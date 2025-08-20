@@ -150,3 +150,21 @@ body {
     scrollbar-color: var(--color-lime-700) var(--color-lime-900);
   }
 }
+
+/* Brand Logos Infinite Scroll Animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
