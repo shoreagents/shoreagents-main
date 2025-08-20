@@ -95,35 +95,7 @@ export function Navbar() {
             </Link>
           </div>
 
-                     {/* Right Side Buttons */}
-           <div className="hidden md:flex items-center space-x-2 lg:space-x-4 ml-auto">
-                                       <Button variant="philippines" className="whitespace-nowrap text-xs lg:text-sm px-3 lg:px-6">
-               <Star className="w-4 h-4 mr-2 text-yellow-300" />
-               <div className="flex flex-col items-center justify-center h-full space-y-0">
-                 <span className="text-xs leading-none">PHILIPPINES</span>
-                 <span className="text-xs leading-none">GOT</span>
-                 <span className="font-black text-xs leading-none">TALENT!</span>
-               </div>
-               <ArrowRight className="w-4 h-4 ml-2" />
-             </Button>
-             
-             <Dropdown
-               trigger={
-                 <Button variant="secondaryBtn" className="flex items-center space-x-2 text-sm px-3 lg:px-6">
-                   <span>More</span>
-                   <ChevronDown className="h-4 w-4" />
-                 </Button>
-               }
-             >
-               <DropdownItem href="/contact">Contact Us</DropdownItem>
-               <DropdownItem href="/careers">Careers</DropdownItem>
-               <DropdownItem href="/support">Support</DropdownItem>
-             </Dropdown>
-             
-             <Button variant="primary" className="whitespace-nowrap text-sm px-3 lg:px-6">
-               Book Consultations
-             </Button>
-          </div>
+
 
           {/* Mobile menu button - Only on small screens */}
           <div className="md:hidden">
@@ -172,21 +144,7 @@ export function Navbar() {
                  About Shore
                </Link>
               
-                             {/* Mobile Buttons */}
-               <div className="pt-4 space-y-3">
-                                   <Button variant="philippines" className="w-full">
-                    <Star className="w-4 h-4 mr-2 text-yellow-300" />
-                                         <div className="flex flex-col items-center justify-center h-full space-y-0">
-                       <span className="text-xs leading-none">PHILIPPINES</span>
-                       <span className="text-xs leading-none">GOT</span>
-                       <span className="font-black text-xs leading-none">TALENT!</span>
-                     </div>
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                <Button variant="primary" className="w-full">
-                  Book Consultations
-                </Button>
-              </div>
+
             </div>
           </div>
         )}
