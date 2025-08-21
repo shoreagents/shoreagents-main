@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { CurrencyProvider } from "@/lib/currencyContext";
+
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -24,10 +26,12 @@ export default function RootLayout({
       <body
         className={`${montserrat.variable} font-montserrat antialiased`}
       >
-        <Navbar />
-        <main>
-          {children}
-        </main>
+        <CurrencyProvider>
+          <Navbar />
+          <main>
+            {children}
+          </main>
+        </CurrencyProvider>
       </body>
     </html>
   );

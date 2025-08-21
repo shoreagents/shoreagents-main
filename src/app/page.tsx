@@ -3,9 +3,23 @@
 import Image from "next/image";
 import { SideNav } from "@/components/layout/SideNav";
 import { Carousel } from "@/components/ui/carousel";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useCurrency } from "@/lib/currencyContext";
+import { EmployeeCard } from "@/components/ui/employee-card";
+import { ResumeModal } from "@/components/ui/resume-modal";
+import { EmployeeCardData, ResumeGenerated } from "@/types/api";
+import { getEmployeeCardData } from "@/lib/api";
 
 export default function Home() {
+  const [isShoreAgentsWay, setIsShoreAgentsWay] = useState(true);
+  const { selectedCurrency, convertPrice, formatPrice } = useCurrency();
+  
+  // State for top employees
+  const [topEmployees, setTopEmployees] = useState<EmployeeCardData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedResume, setSelectedResume] = useState<ResumeGenerated | null>(null);
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+
   const brandLogos = [
     { name: 'Gallery Homes', logo: '/Global Brands/Gallery-Homes.webp' },
     { name: 'BoxBrownie', logo: '/Global Brands/BoxBrownie.webp' },
@@ -78,6 +92,33 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  // Fetch top employees
+  useEffect(() => {
+    const fetchTopEmployees = async () => {
+      try {
+        const data = await getEmployeeCardData();
+        // Get top 3 employees (you can modify this logic based on your criteria)
+        const top3 = data.slice(0, 3);
+        setTopEmployees(top3);
+      } catch (error) {
+        console.error('Error fetching top employees:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopEmployees();
+  }, []);
+
+  const handleViewDetails = (employee: EmployeeCardData) => {
+    console.log('View details for:', employee.user.full_name);
+  };
+
+  const handleViewResume = (resume: ResumeGenerated) => {
+    setSelectedResume(resume);
+    setIsResumeModalOpen(true);
+  };
+
   return (
             <div className="min-h-screen bg-gray-50">
           <SideNav />
@@ -90,8 +131,14 @@ export default function Home() {
                 <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
                   University-educated, office-based Filipino professionals with transparent pricing. AI-powered recruitment finds perfect matches in 7 days.
                 </p>
-                <div className="flex justify-center">
-                  <button className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center]">
+                <div className="flex justify-center space-x-4">
+                  <button 
+                    onClick={() => window.location.href = '/employees'}
+                    className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center] cursor-pointer"
+                  >
+                    View Our Talent Pool
+                  </button>
+                  <button className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-3xl font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 cursor-pointer">
                     Discover Your Perfect Match
                   </button>
                 </div>
@@ -469,18 +516,18 @@ export default function Home() {
 
               {/* Quote Section */}
               <div className="mt-16 text-center">
-                <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-white/50">
-                  <blockquote className="text-xl md:text-2xl text-gray-700 italic mb-6 leading-relaxed">
+                <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg">
+                  <blockquote className="text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
                     "The thing is, most people overcomplicate outsourcing. We've simplified it down to what actually works: find good people, give them proper infrastructure, let you train them your way."
                   </blockquote>
-                  <cite className="text-lg font-semibold text-gray-900">
+                  <cite className="text-base font-semibold text-gray-900">
                     — Stephen Atcheler, CEO & Founder
                   </cite>
                 </div>
                 
                 {/* CTA Button */}
                 <div className="mt-8">
-                  <button className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center]">
+                  <button className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center] cursor-pointer">
                     START YOUR PROCESS TODAY
                   </button>
                 </div>
@@ -498,7 +545,7 @@ export default function Home() {
                 </div>
 
                 {/* Infinite Scroll Container */}
-                <div className="relative overflow-hidden bg-white/50 rounded-2xl w-full max-w-7xl mx-auto">
+                <div className="relative overflow-hidden bg-gray/50 rounded-2xl w-full max-w-7xl mx-auto">
                   <div className="flex animate-scroll">
                     {/* First set of logos */}
                     {brandLogos.map((brand, index) => (
@@ -531,7 +578,550 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </section>
-          </div>
-        );
-      }
+
+              {/* Pricing Transparency Section */}
+              <div className="mt-20 py-8">
+                <div className="text-center mb-12">
+                  <div className="inline-flex items-center px-4 py-2 bg-lime-100 border border-lime-300 rounded-full text-sm font-medium text-gray-700 mb-6">
+                    <svg className="w-4 h-4 mr-2 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                    </svg>
+                    Pricing Transparency
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+                    The <span className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 bg-clip-text text-transparent">Transparent</span> vs <span className="text-red-600">Hidden Fees</span> Difference
+                  </h2>
+                  <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto italic leading-relaxed">
+                    "After getting burned by hidden fees in my own business, I swore our pricing would be crystal clear. Here's exactly what you pay and why."
+                  </p>
+                </div>
+
+                {/* Toggle Switch */}
+                <div className="flex justify-center mb-12">
+                  <div className="relative flex items-center bg-white rounded-full p-1 shadow-lg border border-gray-200">
+                    {/* Animated Background Slider */}
+                    <div 
+                      className={`absolute top-1 bottom-1 rounded-full transition-all duration-500 ease-in-out ${
+                        isShoreAgentsWay 
+                          ? 'left-1 bg-lime-500 w-[calc(50%-2px)]' 
+                          : 'left-[calc(50%+1px)] bg-red-500 w-[calc(50%-2px)]'
+                      }`}
+                    />
+                    
+                    <button
+                      onClick={() => setIsShoreAgentsWay(true)}
+                      className={`relative flex items-center px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer ${
+                        isShoreAgentsWay
+                          ? 'text-white'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}
+                    >
+                      <svg className={`w-5 h-5 mr-2 transition-colors duration-300 ${isShoreAgentsWay ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Shore Agents Way
+                    </button>
+                    <button
+                      onClick={() => setIsShoreAgentsWay(false)}
+                      className={`relative flex items-center px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer ${
+                        !isShoreAgentsWay
+                          ? 'text-white'
+                          : 'text-gray-800'
+                      }`}
+                    >
+                      <svg className={`w-5 h-5 mr-2 transition-colors duration-300 ${!isShoreAgentsWay ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Competitor Way
+                    </button>
+                  </div>
+                </div>
+
+                {/* Pricing Content */}
+                <div className="max-w-6xl mx-auto relative">
+                  <div 
+                    className={`transition-all duration-700 ease-in-out ${
+                      isShoreAgentsWay 
+                        ? 'opacity-100 translate-x-0' 
+                        : 'opacity-0 -translate-x-8 absolute inset-0'
+                    }`}
+                  >
+                    {/* Shore Agents Way Content */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Left Panel: Transparent Pricing Details */}
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-lime-200 h-[500px] flex flex-col">
+                        <h3 className="text-2xl font-bold text-lime-600 mb-6">Transparent Pricing</h3>
+                        
+                        <div className="space-y-4 flex-1">
+                          {/* Salary Multipliers */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Salary Multipliers Explained</h4>
+                              <p className="text-gray-700 mb-1">Entry: 1.43x • Mid: 1.33x • Senior: 1.25x</p>
+                              <p className="text-sm text-gray-600">Lower multipliers for higher salaries - you save more on senior talent</p>
+                            </div>
+                          </div>
+
+                          {/* Benefits */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Benefits at Exact Cost</h4>
+                              <p className="text-gray-700 mb-1">SSS, PhilHealth, PagIBIG, 13th Month - no markup</p>
+                              <p className="text-sm text-gray-600">We show you the government rates, charge exactly that amount</p>
+                            </div>
+                          </div>
+
+                          {/* Workspace Options */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Workspace Options Clear</h4>
+                              <p className="text-gray-700 mb-1">Work from Home: {formatPrice(convertPrice(144))} • Office: {formatPrice(convertPrice(288))}</p>
+                              <p className="text-sm text-gray-600">Choose what fits your business, know the exact cost upfront</p>
+                            </div>
+                          </div>
+
+                          {/* Setup Fees */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Setup Fees Disclosed</h4>
+                              <p className="text-gray-700 mb-1">WFH: {formatPrice(convertPrice(1081))} setup • Office: {formatPrice(convertPrice(541))} setup</p>
+                              <p className="text-sm text-gray-600">6-month payment plans available, no interest charges</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Panel: Pricing Example */}
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-lime-200 h-[500px] flex flex-col">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Shore Agents Pricing Example</h3>
+                        <p className="text-gray-600 mb-6">Mid-Level VA ({formatPrice(convertPrice(901))} salary)</p>
+                        
+                        <div className="space-y-2 mb-6 flex-1">
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">Base Salary:</span>
+                            <span className="font-medium">{formatPrice(convertPrice(1210))}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">Multiplier (1.33x):</span>
+                            <span className="font-medium">{formatPrice(convertPrice(1609))}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">Benefits (exact cost):</span>
+                            <span className="font-medium">{formatPrice(convertPrice(239))}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">Office Workspace:</span>
+                            <span className="font-medium">{formatPrice(convertPrice(387))}</span>
+                          </div>
+                          <div className="border-t pt-3 flex justify-between">
+                            <span className="font-bold text-lg">Total Monthly:</span>
+                            <span className="font-bold text-lg text-lime-600">{formatPrice(convertPrice(2235))}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center bg-lime-50 rounded-xl p-4 border border-lime-200">
+                          <svg className="w-5 h-5 text-lime-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-sm font-medium text-gray-700">Everything included, nothing hidden.</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className={`transition-all duration-700 ease-in-out ${
+                      !isShoreAgentsWay 
+                        ? 'opacity-100 translate-x-0' 
+                        : 'opacity-0 translate-x-8 absolute inset-0'
+                    }`}
+                  >
+                    {/* Competitor Way Content */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Left Panel: Hidden Fee Structure */}
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-red-200 h-[500px] flex flex-col">
+                        <h3 className="text-2xl font-bold text-red-600 mb-6">Hidden Fee Structure</h3>
+                        
+                        <div className="space-y-4 flex-1">
+                          {/* Management Fees */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Management Fees</h4>
+                              <p className="text-gray-700 mb-1">20-40% hidden markup on everything</p>
+                              <p className="text-sm text-gray-600">Competitors add mysterious fees they don't explain.</p>
+                            </div>
+                          </div>
+
+                          {/* Service Charges */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Service Charges</h4>
+                              <p className="text-gray-700 mb-1">Extra monthly fees for basic services</p>
+                              <p className="text-sm text-gray-600">Suddenly your $500 VA costs $800.</p>
+                            </div>
+                          </div>
+
+                          {/* Platform Fees */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Platform Fees</h4>
+                              <p className="text-gray-700 mb-1">Additional charges for using their system</p>
+                              <p className="text-sm text-gray-600">More fees appear after you've already committed.</p>
+                            </div>
+                          </div>
+
+                          {/* Premium Support */}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Premium Support</h4>
+                              <p className="text-gray-700 mb-1">Basic support costs extra</p>
+                              <p className="text-sm text-gray-600">Want to talk to someone? That'll be another fee.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Panel: Competitor Example */}
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-red-200 h-[500px] flex flex-col">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Competitor 'Hidden Fees' Example</h3>
+                        <p className="text-gray-600 mb-6">Mid-Level VA (advertised price)</p>
+                        
+                        <div className="space-y-2 mb-6 flex-1">
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">Advertised Rate:</span>
+                            <span className="font-medium">{formatPrice(convertPrice(800))}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">+ Management Fee (25%):</span>
+                            <span className="font-medium">{formatPrice(convertPrice(200))}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">+ Platform Fee:</span>
+                            <span className="font-medium">{formatPrice(convertPrice(99))}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">+ Setup Fee:</span>
+                            <span className="font-medium">{formatPrice(convertPrice(500))} one-time</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">+ Premium Support:</span>
+                            <span className="font-medium">{formatPrice(convertPrice(150))}</span>
+                          </div>
+                          <div className="border-t pt-3 flex justify-between">
+                            <span className="font-bold text-lg">Actual Monthly:</span>
+                            <span className="font-bold text-lg text-red-600">{formatPrice(convertPrice(1249))}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center bg-red-50 rounded-xl p-4 border border-red-200">
+                          <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
+                          <span className="text-sm font-medium text-gray-700">56% more than advertised!</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transparency Promise Box */}
+                <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg mt-12">
+                  <blockquote className="text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
+                    "No hidden fees. Benefits at exact cost. If you can't understand our pricing in 5 minutes, we've failed."
+                  </blockquote>
+                  <cite className="text-base font-semibold text-gray-900">
+                    — Stephen's Transparency Promise
+                  </cite>
+                </div>
+
+                {/* Stephen's Hidden Fee Horror Story Card */}
+                <div className="max-w-4xl mx-auto mt-12 bg-white rounded-2xl p-8 shadow-lg">
+                  {/* Header */}
+                  <div className="flex items-center mb-6">
+                    <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center mr-4">
+                      <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900">Stephen's Hidden Fee Horror Story</h3>
+                  </div>
+
+                  {/* Stephen's Quote */}
+                  <blockquote className="text-lg text-gray-700 italic mb-8 leading-relaxed border-l-4 border-lime-200 pl-6">
+                    "I hired a 'bookkeeper' for $30/hour. After all the fees, contractors, and markups, I was paying $70/hour for someone I'd never met. That's when I knew there had to be a better way."
+                  </blockquote>
+
+                  {/* Comparison Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* The Old Way */}
+                    <div className="bg-red-50 rounded-xl p-6 border border-red-200">
+                      <h4 className="text-xl font-bold text-red-600 mb-4">The Old Way (Stephen's Pain)</h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">Advertised at $30/hour</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">Hidden agency fees</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">Contractor markups</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">Platform charges</span>
+                        </li>
+                      </ul>
+                      <div className="mt-4 pt-4 border-t border-red-200">
+                        <p className="text-lg font-bold text-red-600">= $70/hour actual cost</p>
+                      </div>
+                    </div>
+
+                    {/* Shore Agents Way */}
+                    <div className="bg-lime-50 rounded-xl p-6 border border-lime-200">
+                      <h4 className="text-xl font-bold text-lime-600 mb-4">Shore Agents Way</h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">Clear salary range</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">Transparent multiplier</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">Exact benefit costs</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-5 h-5 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                            <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700">No hidden fees</span>
+                        </li>
+                      </ul>
+                      <div className="mt-4 pt-4 border-t border-lime-200">
+                        <p className="text-lg font-bold text-lime-600">= Know exact cost upfront</p>
+                      </div>
+                    </div>
+                                     </div>
+                 </div>
+
+                 {/* See Your Exact Savings Card */}
+                 <div className="max-w-4xl mx-auto mt-12 bg-lime-50 rounded-2xl p-8 shadow-lg">
+                   <div className="text-center">
+                     {/* Icon */}
+                     <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                       <svg className="w-8 h-8 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                       </svg>
+                     </div>
+
+                     {/* Heading */}
+                     <h3 className="text-3xl font-bold text-gray-900 mb-4">See Your Exact Savings</h3>
+
+                     {/* Description */}
+                     <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                       Use our transparent pricing calculator to see exactly what you'll pay - no surprises, no hidden fees.
+                     </p>
+
+                     {/* Button */}
+                     <button 
+                       onClick={() => window.location.href = '/pricing'}
+                       className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center] flex items-center mx-auto cursor-pointer"
+                     >
+                       Calculate Your Real Costs
+                       <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                       </svg>
+                     </button>
+                   </div>
+                 </div>
+
+                 {/* Horizontal Rule */}
+                 <hr className="max-w-4xl mx-auto mt-16 border-gray-300" />
+
+                 {/* Meet Your Next Team Member Section */}
+                 <div className="max-w-4xl mx-auto mt-16">
+                   <div className="text-center mb-12">
+                     {/* Ready to Hire Button */}
+                     <div className="inline-flex items-center px-4 py-2 bg-lime-100 border border-lime-300 rounded-full text-sm font-medium text-gray-700 mb-6">
+                       <svg className="w-4 h-4 mr-2 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                       </svg>
+                       READY TO HIRE
+                     </div>
+
+                     {/* Main Heading */}
+                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                       Meet Your Next{" "}
+                       <span className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 bg-clip-text text-transparent">Team Member</span>
+                     </h2>
+
+                     {/* Description */}
+                     <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
+                       University-educated professionals working from our Clark office. No home-based workers, no time wasters - just results.
+                     </p>
+                   </div>
+
+                   {/* Feature Cards */}
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                     {/* Card 1: 7 Days */}
+                     <div className="text-center">
+                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                         <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                         </svg>
+                       </div>
+                       <h3 className="text-3xl font-bold text-gray-900 mb-2">7 Days</h3>
+                       <p className="text-gray-600">Average Hire Time</p>
+                     </div>
+
+                     {/* Card 2: 100% University Educated */}
+                     <div className="text-center">
+                       <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                         <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                         </svg>
+                       </div>
+                       <h3 className="text-3xl font-bold text-gray-900 mb-2">100%</h3>
+                       <p className="text-gray-600">University Educated</p>
+                     </div>
+
+                     {/* Card 3: Office Based */}
+                     <div className="text-center">
+                       <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                         <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                         </svg>
+                       </div>
+                       <h3 className="text-3xl font-bold text-gray-900 mb-2">Office Based</h3>
+                       <p className="text-gray-600">Clark, Philippines</p>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Top 3 Employees Section */}
+                 <div className="max-w-6xl mx-auto mt-16">
+
+                   {/* Employee Cards Grid */}
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     {loading ? (
+                       <div className="col-span-3 text-center py-12">
+                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-600 mx-auto mb-4"></div>
+                         <p className="text-gray-600">Loading top talent...</p>
+                       </div>
+                     ) : (
+                       <>
+                         {topEmployees.map((employee) => (
+                           <EmployeeCard
+                             key={employee.user.id}
+                             data={employee}
+                             onViewDetails={handleViewDetails}
+                             onViewResume={handleViewResume}
+                           />
+                         ))}
+                       </>
+                     )}
+                   </div>
+
+                   {/* View All Talent Button */}
+                   <div className="text-center mt-12">
+                     <button 
+                       onClick={() => window.location.href = '/employees'}
+                       className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center] cursor-pointer"
+                     >
+                       View All Talent Pool
+                     </button>
+                   </div>
+
+                   {/* Resume Modal */}
+                   <ResumeModal
+                     resume={selectedResume}
+                     isOpen={isResumeModalOpen}
+                     onClose={() => {
+                       setIsResumeModalOpen(false);
+                       setSelectedResume(null);
+                     }}
+                   />
+                 </div>
+               </div>
+             </section>
+           </div>
+         );
+       }
