@@ -96,3 +96,58 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
     return [];
   }
 }
+
+// Currency API service with multiple fallback options
+export const currencyApi = {
+  // Primary API - ExchangeRate-API (free tier)
+  async fetchRatesPrimary(): Promise<Record<string, number> | null> {
+    try {
+      const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      if (!response.ok) throw new Error('Primary API failed');
+      
+      const data = await response.json();
+      return data.rates || null;
+    } catch (error) {
+      console.warn('Primary currency API failed:', error);
+      return null;
+    }
+  },
+
+  // Fallback API - Fixer.io (free tier)
+  async fetchRatesFallback(): Promise<Record<string, number> | null> {
+    try {
+      const response = await fetch('https://api.fixer.io/latest?base=USD', {
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      if (!response.ok) throw new Error('Fallback API failed');
+      
+      const data = await response.json();
+      return data.rates || null;
+    } catch (error) {
+      console.warn('Fallback currency API failed:', error);
+      return null;
+    }
+  },
+
+  // Get rates with fallback strategy
+  async getExchangeRates(): Promise<Record<string, number> | null> {
+    // Try primary API first
+    const primaryRates = await this.fetchRatesPrimary();
+    if (primaryRates) return primaryRates;
+
+    // Try fallback API
+    const fallbackRates = await this.fetchRatesFallback();
+    if (fallbackRates) return fallbackRates;
+
+    // Return null if both fail
+    return null;
+  }
+};

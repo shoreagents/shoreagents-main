@@ -1,6 +1,7 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { currencyApi } from './api'
 
 export interface Currency {
   symbol: string
@@ -13,6 +14,9 @@ interface CurrencyContextType {
   setSelectedCurrency: (currency: Currency) => void
   convertPrice: (usdPrice: number) => number
   formatPrice: (price: number) => string
+  isLoadingRates: boolean
+  lastUpdated: string | null
+  refreshRates: () => Promise<void>
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
@@ -29,9 +33,58 @@ const currencies: Currency[] = [
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[0])
+  const [isLoadingRates, setIsLoadingRates] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({})
+
+  // Fetch real-time exchange rates
+  const fetchExchangeRates = async () => {
+    setIsLoadingRates(true)
+    try {
+      const rates = await currencyApi.getExchangeRates()
+      
+      if (rates) {
+        setExchangeRates(rates)
+        setLastUpdated(new Date().toLocaleTimeString())
+        
+        // Update currencies with real-time rates
+        const updatedCurrencies = currencies.map(currency => ({
+          ...currency,
+          exchangeRate: rates[currency.code] || currency.exchangeRate
+        }))
+        
+        // Update selected currency with new rate
+        const currentSelected = updatedCurrencies.find(c => c.code === selectedCurrency.code)
+        if (currentSelected) {
+          setSelectedCurrency(currentSelected)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch exchange rates:', error)
+      // Fallback to static rates if API fails
+    } finally {
+      setIsLoadingRates(false)
+    }
+  }
+
+  // Refresh rates function
+  const refreshRates = async () => {
+    await fetchExchangeRates()
+  }
+
+  // Fetch rates on mount and every 5 minutes
+  useEffect(() => {
+    fetchExchangeRates()
+    
+    const interval = setInterval(fetchExchangeRates, 5 * 60 * 1000) // 5 minutes
+    
+    return () => clearInterval(interval)
+  }, [])
 
   const convertPrice = (usdPrice: number): number => {
-    return usdPrice * selectedCurrency.exchangeRate
+    // Use real-time rate if available, otherwise fallback to static rate
+    const rate = exchangeRates[selectedCurrency.code] || selectedCurrency.exchangeRate
+    return usdPrice * rate
   }
 
   const formatPrice = (price: number): string => {
@@ -58,7 +111,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       selectedCurrency,
       setSelectedCurrency,
       convertPrice,
-      formatPrice
+      formatPrice,
+      isLoadingRates,
+      lastUpdated,
+      refreshRates
     }}>
       {children}
     </CurrencyContext.Provider>
