@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins, Roboto, Open_Sans, Nunito, Lato, Raleway, Ubuntu } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { CurrencyProvider } from "@/lib/currencyContext";
 
 // Choose one of these fonts to experiment with:
@@ -76,6 +77,7 @@ export default function RootLayout({
         className={`${currentFont.variable} font-sans antialiased`}
       >
         <CurrencyProvider>
+          <ScrollToTop />
           <Navbar />
           <main>
             {children}

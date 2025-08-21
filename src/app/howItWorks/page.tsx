@@ -36,7 +36,10 @@ export default function HowItWorksPage() {
 
           {/* Call-to-Action Buttons */}
           <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-16">
-            <button className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer flex items-center">
+            <button 
+              onClick={() => window.location.href = '/gettingstart'}
+              className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer flex items-center"
+            >
               Start Your Process Today
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -391,6 +394,49 @@ export default function HowItWorksPage() {
                     </li>
                   </ul>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Bottom Line Section */}
+      <section className="bg-white py-16">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          <div className="bg-lime-50 rounded-2xl p-12 border border-lime-200 shadow-lg">
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                The Bottom Line
+              </h2>
+              
+              <p className="text-xl text-gray-700 mb-8 max-w-4xl mx-auto leading-relaxed">
+                We provide excellent people with great work setup. <span className="font-bold text-gray-900">YOU</span> run the business and manage their work. It's a partnership, not a takeover of your business management!
+              </p>
+
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+                <button 
+                  onClick={() => window.location.href = '/gettingstart'}
+                  className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer flex items-center"
+                >
+                  Ready to Start? →
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    window.location.href = '/pricing';
+                    // Add a small delay to ensure the page loads before triggering the modal
+                    setTimeout(() => {
+                      const event = new CustomEvent('openPricingCalculator');
+                      window.dispatchEvent(event);
+                    }, 500);
+                  }}
+                  className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-3xl font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  See Exact Pricing
+                </button>
               </div>
             </div>
           </div>

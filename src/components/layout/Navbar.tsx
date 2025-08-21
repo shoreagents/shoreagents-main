@@ -65,19 +65,19 @@ export function Navbar() {
             </Dropdown>
 
             {/* Other Navigation Items */}
-            <Link href="/howItWorks" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold ${isActive('/howItWorks') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/howItWorks" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold hover:scale-105 hover:shadow-sm ${isActive('/howItWorks') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               How it works
             </Link>
-            <Link href="/pricing" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold ${isActive('/pricing') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/pricing" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold hover:scale-105 hover:shadow-sm ${isActive('/pricing') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               Pricing
             </Link>
-            <Link href="/case-studies" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold ${isActive('/case-studies') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/case-studies" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold hover:scale-105 hover:shadow-sm ${isActive('/case-studies') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               Case Studies
             </Link>
-            <Link href="/blogs" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold ${isActive('/blogs') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/blogs" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold hover:scale-105 hover:shadow-sm ${isActive('/blogs') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               Blogs
             </Link>
-            <Link href="/about" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold ${isActive('/about') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/about" className={`px-3 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold hover:scale-105 hover:shadow-sm ${isActive('/about') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               About Shore
             </Link>
           </div>
@@ -87,7 +87,7 @@ export function Navbar() {
             <div className="relative">
               <div 
                 onClick={toggleCurrencyDropdown}
-                className="flex items-center space-x-2 bg-lime-50 border border-lime-300 rounded-lg px-3 py-2 cursor-pointer hover:bg-lime-100 transition-colors w-24"
+                className="flex items-center space-x-2 bg-lime-50 border border-lime-300 rounded-lg px-3 py-2 cursor-pointer hover:bg-lime-100 hover:scale-105 hover:shadow-md transition-all duration-200 w-24"
               >
                 <span className="text-lg font-bold text-lime-600">{selectedCurrency.symbol}</span>
                 <span className="text-sm font-medium text-gray-700">{selectedCurrency.code}</span>
@@ -128,19 +128,19 @@ export function Navbar() {
             </Dropdown>
 
             {/* Other Navigation Items - Compact */}
-            <Link href="/howItWorks" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm ${isActive('/howItWorks') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/howItWorks" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm hover:scale-105 hover:shadow-sm ${isActive('/howItWorks') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               How it works
             </Link>
-            <Link href="/pricing" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm ${isActive('/pricing') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/pricing" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm hover:scale-105 hover:shadow-sm ${isActive('/pricing') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               Pricing
             </Link>
-            <Link href="/case-studies" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm ${isActive('/case-studies') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/case-studies" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm hover:scale-105 hover:shadow-sm ${isActive('/case-studies') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               Case Studies
             </Link>
-            <Link href="/blogs" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm ${isActive('/blogs') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/blogs" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm hover:scale-105 hover:shadow-sm ${isActive('/blogs') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               Blogs
             </Link>
-            <Link href="/about" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm ${isActive('/about') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
+            <Link href="/about" className={`px-2 py-2 rounded-lg transition-all duration-200 whitespace-nowrap font-semibold text-sm hover:scale-105 hover:shadow-sm ${isActive('/about') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-lime-50'}`}>
               About Shore
             </Link>
           </div>
@@ -153,7 +153,7 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               onClick={toggleMobileMenu}
-              className="text-gray-700"
+              className="text-gray-700 hover:scale-110 hover:bg-lime-50 transition-all duration-200"
             >
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
