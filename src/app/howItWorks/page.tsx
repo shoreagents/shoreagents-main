@@ -43,7 +43,7 @@ export default function HowItWorksPage() {
                </svg>
              </button>
              
-             <button className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-3xl font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer">
+             <button onClick={() => window.location.href = '/pricing'}  className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-3xl font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer">
                See Pricing Calculator
              </button>
            </div>
