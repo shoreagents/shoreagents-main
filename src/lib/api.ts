@@ -97,31 +97,58 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
   }
 }
 
-// Currency API service with multiple fallback options
+// Currency API service using Open Exchange Rates
 export const currencyApi = {
-  // Primary API - ExchangeRate-API (free tier)
+  // Open Exchange Rates API with your API key
   async fetchRatesPrimary(): Promise<Record<string, number> | null> {
     try {
-      const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
+      const API_KEY = process.env.NEXT_PUBLIC_OPEN_EXCHANGE_RATES_API_KEY || '6df09f6a1ad74d29a741d8a8ab06112f';
+      console.log('Using API key:', API_KEY ? 'API key found' : 'No API key found');
+      console.log('Making request to Open Exchange Rates API...');
+      const response = await fetch(`https://openexchangerates.org/api/latest.json?app_id=${API_KEY}`, {
         headers: {
           'Accept': 'application/json',
         }
       });
       
-      if (!response.ok) throw new Error('Primary API failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Open Exchange Rates API failed: ${response.status} - ${errorText}`);
+      }
       
       const data = await response.json();
+      
+      // Validate the response structure
+      if (!data.rates || typeof data.rates !== 'object') {
+        throw new Error('Invalid response format from Open Exchange Rates API');
+      }
+      
+      console.log('Open Exchange Rates API response:', {
+        timestamp: data.timestamp,
+        base: data.base,
+        ratesCount: Object.keys(data.rates).length,
+        sampleRates: {
+          USD: data.rates.USD,
+          AUD: data.rates.AUD,
+          CAD: data.rates.CAD,
+          GBP: data.rates.GBP,
+          NZD: data.rates.NZD,
+          EUR: data.rates.EUR,
+          PHP: data.rates.PHP
+        }
+      });
+      
       return data.rates || null;
     } catch (error) {
-      console.warn('Primary currency API failed:', error);
+      console.warn('Open Exchange Rates API failed:', error);
       return null;
     }
   },
 
-  // Fallback API - Fixer.io (free tier)
+  // Fallback API - ExchangeRate-API (free tier)
   async fetchRatesFallback(): Promise<Record<string, number> | null> {
     try {
-      const response = await fetch('https://api.fixer.io/latest?base=USD', {
+      const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
         headers: {
           'Accept': 'application/json',
         }
@@ -139,7 +166,7 @@ export const currencyApi = {
 
   // Get rates with fallback strategy
   async getExchangeRates(): Promise<Record<string, number> | null> {
-    // Try primary API first
+    // Try Open Exchange Rates API first
     const primaryRates = await this.fetchRatesPrimary();
     if (primaryRates) return primaryRates;
 

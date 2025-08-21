@@ -17,6 +17,7 @@ interface CurrencyContextType {
   isLoadingRates: boolean
   lastUpdated: string | null
   refreshRates: () => Promise<void>
+  currencies: Currency[]
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
@@ -32,6 +33,7 @@ const currencies: Currency[] = [
 ]
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
+  const [currenciesState, setCurrenciesState] = useState<Currency[]>(currencies)
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[0])
   const [isLoadingRates, setIsLoadingRates] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
@@ -41,6 +43,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const fetchExchangeRates = async () => {
     setIsLoadingRates(true)
     try {
+      console.log('Fetching exchange rates...')
       const rates = await currencyApi.getExchangeRates()
       
       if (rates) {
@@ -53,11 +56,19 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
           exchangeRate: rates[currency.code] || currency.exchangeRate
         }))
         
+        // Update the currencies state
+        setCurrenciesState(updatedCurrencies)
+        
         // Update selected currency with new rate
         const currentSelected = updatedCurrencies.find(c => c.code === selectedCurrency.code)
         if (currentSelected) {
           setSelectedCurrency(currentSelected)
         }
+        
+        console.log('Exchange rates updated successfully:', rates)
+        console.log('Updated currencies:', updatedCurrencies)
+      } else {
+        console.warn('No exchange rates received from API')
       }
     } catch (error) {
       console.error('Failed to fetch exchange rates:', error)
@@ -82,8 +93,9 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const convertPrice = (usdPrice: number): number => {
-    // Use real-time rate if available, otherwise fallback to static rate
-    const rate = exchangeRates[selectedCurrency.code] || selectedCurrency.exchangeRate
+    // Use the selected currency's exchange rate (which gets updated with real-time rates)
+    const rate = selectedCurrency.exchangeRate
+    console.log(`Converting ${usdPrice} USD to ${selectedCurrency.code} using rate: ${rate}`)
     return usdPrice * rate
   }
 
@@ -114,7 +126,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       formatPrice,
       isLoadingRates,
       lastUpdated,
-      refreshRates
+      refreshRates,
+      currencies: currenciesState
     }}>
       {children}
     </CurrencyContext.Provider>

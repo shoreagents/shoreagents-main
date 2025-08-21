@@ -28,14 +28,14 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-lime-50">
+    <div className="bg-lime-50">
       <SideNav />
       
-      {/* Main Content Section */}
-      <section className="py-16">
+      {/* Main Section - Full View Height */}
+      <section className="min-h-screen py-16 flex items-center">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          {/* Top Split Layout - Header Content Left, Calculator Preview Right */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
+          {/* Main Split Layout - Header Content Left, Calculator Preview Right */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Side - Header Content */}
             <div className="space-y-8">
               {/* Transparent Pricing Badge */}
@@ -127,107 +127,195 @@ export default function PricingPage() {
                 </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl p-4 shadow-lg border border-lime-200 text-center">
-                  <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Star className="w-6 h-6 text-lime-600" />
+              {/* Quick Stats - Horizontal Layout */}
+              <div className="flex space-x-4">
+                <div className="flex-1 flex items-center space-x-3 p-4 bg-white rounded-xl shadow-lg border border-lime-200">
+                  <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center">
+                    <Star className="w-5 h-5 text-lime-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900">4.9/5 Rating</h4>
-                  <p className="text-sm text-gray-600">Client Satisfaction</p>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">4.9/5 Rating</h4>
+                    <p className="text-sm text-gray-600">Client Satisfaction</p>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl p-4 shadow-lg border border-lime-200 text-center">
-                  <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <FileText className="w-6 h-6 text-lime-600" />
+                <div className="flex-1 flex items-center space-x-3 p-4 bg-white rounded-xl shadow-lg border border-lime-200">
+                  <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-lime-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900">500+ Teams</h4>
-                  <p className="text-sm text-gray-600">Successfully Onboarded</p>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">500+ Teams</h4>
+                    <p className="text-sm text-gray-600">Successfully Onboarded</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Bottom Section - Rearranged Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Bottom Section - Visible After Scrolling */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">How Our Pricing Works</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transparent, modular pricing that adapts to your specific needs. No hidden fees, no surprises.
+            </p>
+          </div>
+
+          {/* Two Column Layout with Professional Design */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             {/* How It Works */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-lime-200">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
-                <Calculator className="w-6 h-6 text-lime-600 mr-3" />
-                How It Works
-              </h3>
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">1</span>
+            <div className="relative">
+              <div className="lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:w-px lg:bg-gradient-to-b lg:from-transparent lg:via-lime-300 lg:to-transparent"></div>
+              
+              <div className="flex items-center mb-8">
+                <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center mr-4">
+                  <Calculator className="w-6 h-6 text-lime-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">How It Works</h3>
+              </div>
+              
+              <div className="space-y-8">
+                <div className="flex items-start space-x-6">
+                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <span className="text-white font-bold text-lg">1</span>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Configure Your Team</h4>
-                    <p className="text-gray-600 text-sm">Add staff members and set their salaries. Our transparent multipliers automatically calculate total costs including benefits.</p>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Configure Your Team</h4>
+                    <p className="text-gray-600 leading-relaxed">
+                      Add staff members and set their salaries. Our transparent multipliers automatically calculate total costs including benefits, ensuring you know exactly what you're paying for.
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">2</span>
+                
+                <div className="flex items-start space-x-6">
+                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <span className="text-white font-bold text-lg">2</span>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Choose Workspace</h4>
-                    <p className="text-gray-600 text-sm">Select from Work From Home, Hybrid, or Full Office options. Each has different setup costs and monthly fees.</p>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Choose Workspace</h4>
+                    <p className="text-gray-600 leading-relaxed">
+                      Select from Work From Home, Hybrid, or Full Office options. Each has different setup costs and monthly fees, giving you flexibility to match your business model.
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">3</span>
+                
+                <div className="flex items-start space-x-6">
+                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <span className="text-white font-bold text-lg">3</span>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Get Instant Pricing</h4>
-                    <p className="text-gray-600 text-sm">See real-time calculations with detailed breakdowns. Compare 6-month vs monthly payment plans.</p>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Get Instant Pricing</h4>
+                    <p className="text-gray-600 leading-relaxed">
+                      See real-time calculations with detailed breakdowns. Compare 6-month vs monthly payment plans to find the option that works best for your budget and timeline.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* What's Included */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-lime-200">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">What's Included</h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-lime-50 rounded-lg">
-                  <Users className="w-5 h-5 text-lime-600" />
-                  <span className="text-gray-700 font-medium">Staff Management</span>
+            <div className="lg:pl-8">
+              <div className="flex items-center mb-8">
+                <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center mr-4">
+                  <Building className="w-6 h-6 text-lime-600" />
                 </div>
-                <div className="flex items-center space-x-3 p-3 bg-lime-50 rounded-lg">
-                  <Building className="w-5 h-5 text-lime-600" />
-                  <span className="text-gray-700 font-medium">Workspace Options</span>
+                <h3 className="text-2xl font-bold text-gray-900">What's Included</h3>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
+                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-lime-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Staff Management</h4>
+                    <p className="text-sm text-gray-600">Complete HR and payroll services</p>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3 p-3 bg-lime-50 rounded-lg">
-                  <DollarSign className="w-5 h-5 text-lime-600" />
-                  <span className="text-gray-700 font-medium">Benefits Calculation</span>
+                
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
+                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                    <Building className="w-5 h-5 text-lime-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Workspace Options</h4>
+                    <p className="text-sm text-gray-600">Flexible office and remote solutions</p>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3 p-3 bg-lime-50 rounded-lg">
-                  <Clock className="w-5 h-5 text-lime-600" />
-                  <span className="text-gray-700 font-medium">Contract Flexibility</span>
+                
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
+                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-lime-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Benefits Calculation</h4>
+                    <p className="text-sm text-gray-600">Government-mandated benefits included</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
+                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-lime-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Contract Flexibility</h4>
+                    <p className="text-sm text-gray-600">Monthly or long-term commitments</p>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Quick Stats */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-lime-200">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Choose Us</h3>
-              <div className="space-y-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Star className="w-8 h-8 text-lime-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">4.9/5 Rating</h4>
-                  <p className="text-sm text-gray-600">Client Satisfaction</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FileText className="w-8 h-8 text-lime-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">500+ Teams</h4>
-                  <p className="text-sm text-gray-600">Successfully Onboarded</p>
-                </div>
+      {/* Why Choose Us Section - At the Very Bottom */}
+      <section className="py-16 bg-lime-50">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Shore Agents?</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Join hundreds of satisfied clients who trust us with their offshore staffing needs
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-lime-600" />
               </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">4.9/5 Rating</h3>
+              <p className="text-gray-600">Client Satisfaction</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-lime-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">500+ Teams</h3>
+              <p className="text-gray-600">Successfully Onboarded</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-lime-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">24/7 Support</h3>
+              <p className="text-gray-600">Round-the-clock assistance</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <DollarSign className="w-8 h-8 text-lime-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Cost Savings</h3>
+              <p className="text-gray-600">Up to 70% reduction in costs</p>
             </div>
           </div>
         </div>

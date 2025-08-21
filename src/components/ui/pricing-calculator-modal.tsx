@@ -52,7 +52,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     breakdown: []
   });
 
-  const { selectedCurrency, setSelectedCurrency, convertPrice, formatPrice, isLoadingRates, lastUpdated, refreshRates } = useCurrency();
+  // Currency context integration with Open Exchange Rates API
+  // This provides real-time exchange rates for USD, AUD, CAD, GBP, NZD, EUR, and PHP
+  const { selectedCurrency, setSelectedCurrency, convertPrice, formatPrice, isLoadingRates, lastUpdated, refreshRates, currencies } = useCurrency();
 
   // Calculate benefits based on salary
   const calculateBenefits = (salary: number) => {
@@ -180,15 +182,52 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // Currency display helpers
   const formatPriceWithPHP = (phpAmount: number) => {
-    const converted = convertPrice(phpAmount / 55.5); // Convert PHP to USD first
+    // Convert PHP amount to USD using real-time exchange rate
+    // If PHP is selected, show PHP amount directly
     if (selectedCurrency.code === 'PHP') {
       return `₱${phpAmount.toLocaleString()}`;
     }
+    
+    // Get the PHP exchange rate from the currencies array
+    const phpCurrency = currencies.find(c => c.code === 'PHP');
+    if (!phpCurrency) {
+      console.error('PHP currency not found');
+      return `₱${phpAmount.toLocaleString()}`;
+    }
+    
+    // Convert PHP to USD using the PHP exchange rate
+    const usdAmount = phpAmount / phpCurrency.exchangeRate;
+    const converted = convertPrice(usdAmount);
+    
+    console.log(`Converting ${phpAmount} PHP to ${selectedCurrency.code}:`, {
+      phpAmount,
+      phpExchangeRate: phpCurrency.exchangeRate,
+      usdAmount,
+      selectedCurrency: selectedCurrency.code,
+      selectedExchangeRate: selectedCurrency.exchangeRate,
+      finalAmount: converted
+    });
+    
     return `${formatPrice(converted)} (₱${phpAmount.toLocaleString()})`;
   };
 
   const formatPriceOnly = (phpAmount: number) => {
-    const converted = convertPrice(phpAmount / 55.5);
+    // Convert PHP amount to USD using real-time exchange rate
+    if (selectedCurrency.code === 'PHP') {
+      return `₱${phpAmount.toLocaleString()}`;
+    }
+    
+    // Get the PHP exchange rate from the currencies array
+    const phpCurrency = currencies.find(c => c.code === 'PHP');
+    if (!phpCurrency) {
+      console.error('PHP currency not found');
+      return `₱${phpAmount.toLocaleString()}`;
+    }
+    
+    // Convert PHP to USD using the PHP exchange rate
+    const usdAmount = phpAmount / phpCurrency.exchangeRate;
+    const converted = convertPrice(usdAmount);
+    
     return formatPrice(converted);
   };
 
