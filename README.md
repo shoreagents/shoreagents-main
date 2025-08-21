@@ -1,4 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShoreAgents - Professional Offshore Solutions
+
+This is a [Next.js](https://nextjs.org) project for ShoreAgents, a leading provider of offshore talent solutions and business process outsourcing services.
+
+## Environment Setup
+
+Before running the application, you need to set up environment variables:
+
+1. Copy the example environment file:
+   ```bash
+   cp env.example .env.local
+   ```
+
+2. Edit `.env.local` and add your API keys:
+   ```
+   NEXT_PUBLIC_OPEN_EXCHANGE_RATES_API_KEY=your_api_key_here
+   ```
+
+3. Get your free API key from [Open Exchange Rates](https://openexchangerates.org/)
 
 ## Getting Started
 
