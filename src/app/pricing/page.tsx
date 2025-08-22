@@ -67,7 +67,7 @@ export default function PricingPage() {
               {/* Open Calculator Button */}
               <button 
                 onClick={() => setIsCalculatorOpen(true)}
-                className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center] flex items-center cursor-pointer"
+                className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center cursor-pointer"
               >
                 <Calculator className="w-5 h-5 mr-2" />
                 Open Calculator
@@ -278,44 +278,235 @@ export default function PricingPage() {
       {/* Why Choose Us Section - At the Very Bottom */}
       <section className="py-16 bg-lime-50">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Shore Agents?</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Join hundreds of satisfied clients who trust us with their offshore staffing needs
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Pricing Breakdown</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transparent pricing structure with flexible options to match your business needs
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-lime-600" />
+
+          {/* Two Column Layout - Pricing Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Card - Talent Investment */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-lime-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Talent Investment</h3>
+                </div>
+                <p className="text-gray-600 text-base">Transparent Multipliers</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">4.9/5 Rating</h3>
-              <p className="text-gray-600">Client Satisfaction</p>
+              
+              <div className="p-6 space-y-6">
+                {/* Entry Level */}
+                <div className="relative">
+                  <div className="absolute -left-3 top-0 w-1.5 h-full bg-green-500 rounded-full"></div>
+                  <div className="pl-4">
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">Entry Level</h4>
+                    <p className="text-gray-600 mb-1 text-sm">Salary range: $350 - $700</p>
+                    <p className="text-2xl font-bold text-green-600 mb-1">1.43x</p>
+                    <p className="text-xs text-gray-500">Example: $438 × 1.43 = $626/month</p>
+                  </div>
+                </div>
+
+                {/* Mid Level */}
+                <div className="relative">
+                  <div className="absolute -left-3 top-0 w-1.5 h-full bg-blue-500 rounded-full"></div>
+                  <div className="pl-4">
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">Mid Level</h4>
+                    <p className="text-gray-600 mb-1 text-sm">Salary range: $700 - $1,750</p>
+                    <p className="text-2xl font-bold text-blue-600 mb-1">1.33x</p>
+                    <p className="text-xs text-gray-500">Example: $875 × 1.33 = $1,164/month</p>
+                  </div>
+                </div>
+
+                {/* Senior Level */}
+                <div className="relative">
+                  <div className="absolute -left-3 top-0 w-1.5 h-full bg-orange-500 rounded-full"></div>
+                  <div className="pl-4">
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">Senior Level</h4>
+                    <p className="text-gray-600 mb-1 text-sm">Salary range: $1,750+</p>
+                    <p className="text-2xl font-bold text-orange-600 mb-1">1.25x</p>
+                    <p className="text-xs text-gray-500">Example: $1,750 × 1.25 = $2,188/month</p>
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <p className="text-xs text-gray-700">
+                    <span className="font-semibold">Multipliers cover:</span> Recruitment, staff management, workspace infrastructure, profit margin
+                  </p>
+                  <p className="text-xs text-gray-700">
+                    <span className="font-semibold">Benefits charged separately</span> at exact government cost (~$109/month)
+                  </p>
+                </div>
+
+                {/* Calculate Button */}
+                <button 
+                  onClick={() => setIsCalculatorOpen(true)}
+                  className="w-full bg-lime-600 text-white px-4 py-3 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-base"
+                >
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Calculate Your Costs
+                </button>
+              </div>
             </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-lime-600" />
+
+            {/* Right Card - Workspace Options */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                    <Building className="w-5 h-5 text-lime-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Workspace Options</h3>
+                </div>
+                <p className="text-gray-600 text-base">Mix & Match</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">500+ Teams</h3>
-              <p className="text-gray-600">Successfully Onboarded</p>
+              
+              <div className="p-6 space-y-6">
+                {/* Work From Home */}
+                <div className="group hover:bg-gray-50 rounded-lg p-3 transition-all duration-300">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-lg font-bold text-gray-900">Work From Home</h4>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-gray-900">$140</p>
+                      <p className="text-xs text-gray-500">per month</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-2 text-sm">Full remote infrastructure, monitoring tools, IT support</p>
+                  <p className="text-xs text-gray-500">Setup Cost: $1,050 (includes laptop, monitor, UPS)</p>
+                </div>
+
+                {/* Hybrid Desk */}
+                <div className="group hover:bg-gray-50 rounded-lg p-3 transition-all duration-300">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-lg font-bold text-gray-900">Hybrid Desk</h4>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-gray-900">$210</p>
+                      <p className="text-xs text-gray-500">per month</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-2 text-sm">A-B scheduling, shared desk, personal locker, flexible</p>
+                  <p className="text-xs text-gray-500">Setup Cost: $788 (includes business laptop + hot desk essentials)</p>
+                </div>
+
+                {/* Full Office Seat */}
+                <div className="group hover:bg-gray-50 rounded-lg p-3 transition-all duration-300">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-lg font-bold text-gray-900">Full Office Seat</h4>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-gray-900">$280</p>
+                      <p className="text-xs text-gray-500">per month</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-2 text-sm">Dedicated desk 24/7, ergonomic setup, all amenities</p>
+                  <p className="text-xs text-gray-500">Setup Cost: $525 (includes desktop workstation + office setup)</p>
+                </div>
+
+                {/* Private Office - Special Highlight */}
+                <div className="relative bg-gradient-to-r from-lime-50 to-lime-100 border-2 border-lime-200 rounded-lg p-4">
+                  <div className="absolute -top-2 -right-2 bg-lime-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    POPULAR
+                  </div>
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-lg font-bold text-gray-900">Private Office</h4>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-gray-900">$37</p>
+                      <p className="text-xs text-gray-500">per sqm</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 font-semibold mb-2 text-sm">YOUR SPACE, YOUR RULES - unlimited employees! (10+ minimum)</p>
+                  <p className="text-xs text-gray-500">Terms: 12-month lease, 3-month security deposit</p>
+                </div>
+              </div>
             </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-lime-600" />
+          </div>
+        </div>
+      </section>
+
+      {/* Simple Pricing Examples Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple Pricing Examples</h2>
+          </div>
+
+          {/* Two Column Layout - Example Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Card - 1 Person, Entry Level, Work From Home */}
+            <div className="bg-lime-50 rounded-xl border border-lime-200 overflow-hidden">
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">1 Person, Entry Level, Work From Home</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Salary ($438 × 1.43):</span>
+                    <span className="font-semibold text-gray-900">$626</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Benefits (exact cost):</span>
+                    <span className="font-semibold text-gray-900">$109</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Workspace (WFH):</span>
+                    <span className="font-semibold text-gray-900">$140</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Setup (first 6 months):</span>
+                    <span className="font-semibold text-gray-900">$175</span>
+                  </div>
+                  
+                  <div className="border-t border-lime-200 pt-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-lime-700">First 6 months:</span>
+                      <span className="font-bold text-lime-700 text-lg">$1,050/month</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-lime-700">After 6 months:</span>
+                      <span className="font-bold text-lime-700 text-lg">$875/month</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">24/7 Support</h3>
-              <p className="text-gray-600">Round-the-clock assistance</p>
             </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <DollarSign className="w-8 h-8 text-lime-600" />
+
+            {/* Right Card - 25-Person Workforce, Private Office */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">25-Person Workforce, Private Office</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Staff costs (25 people):</span>
+                    <span className="font-semibold text-gray-900">$24,063</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Office lease (100sqm):</span>
+                    <span className="font-semibold text-gray-900">$3,658</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Setup costs:</span>
+                    <span className="font-semibold text-gray-900">$13,125 upfront</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Security deposit:</span>
+                    <span className="font-semibold text-gray-900">$10,973 upfront</span>
+                  </div>
+                  
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="font-bold text-gray-900 text-lg">Monthly total:</span>
+                      <span className="font-bold text-gray-900 text-xl">$27,720/month</span>
+                    </div>
+                    <p className="text-blue-600 text-sm font-medium">Unlimited staff rotation through office space!</p>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Cost Savings</h3>
-              <p className="text-gray-600">Up to 70% reduction in costs</p>
             </div>
           </div>
         </div>

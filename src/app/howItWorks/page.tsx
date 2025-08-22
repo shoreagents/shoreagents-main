@@ -38,7 +38,7 @@ export default function HowItWorksPage() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-16">
             <button 
               onClick={() => window.location.href = '/gettingstart'}
-              className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer flex items-center"
+              className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-lg hover:shadow-xl cursor-pointer flex items-center"
             >
               Start Your Process Today
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +46,7 @@ export default function HowItWorksPage() {
               </svg>
             </button>
             
-            <button onClick={() => window.location.href = '/pricing'}  className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-3xl font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer">
+            <button onClick={() => window.location.href = '/pricing'}  className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-sm font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 ease-in-out text-lg shadow-lg hover:shadow-xl cursor-pointer">
               See Pricing Calculator
             </button>
           </div>
@@ -416,7 +416,7 @@ export default function HowItWorksPage() {
               <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
                 <button 
                   onClick={() => window.location.href = '/gettingstart'}
-                  className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 text-white px-8 py-4 rounded-3xl font-semibold hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer flex items-center"
+                  className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-lg hover:shadow-xl cursor-pointer flex items-center"
                 >
                   Ready to Start? →
                   <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -433,7 +433,7 @@ export default function HowItWorksPage() {
                       window.dispatchEvent(event);
                     }, 500);
                   }}
-                  className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-3xl font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 text-lg shadow-lg hover:shadow-xl cursor-pointer"
+                  className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-sm font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 ease-in-out text-lg shadow-lg hover:shadow-xl cursor-pointer"
                 >
                   See Exact Pricing
                 </button>
