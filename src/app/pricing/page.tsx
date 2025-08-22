@@ -512,6 +512,103 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Key Advantages Section */}
+      <section className="py-16 bg-lime-50">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Key Advantages</h2>
+          </div>
+
+          {/* Four Card Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Card 1 - True Flexibility */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">True Flexibility</h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed">
+                Mix workspace types as needed. Start with WFH, upgrade to office, scale to private space.
+              </p>
+            </div>
+
+            {/* Card 2 - Transparent Pricing */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Transparent Pricing</h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed">
+                No hidden fees. Benefits at actual cost. Clear multipliers based on salary level.
+              </p>
+            </div>
+
+            {/* Card 3 - Quick Deployment */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Quick Deployment</h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed">
+                Start in 2-3 weeks. Faster scaling once initial process is established.
+              </p>
+            </div>
+
+            {/* Card 4 - Complete Package */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Complete Package</h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed">
+                Recruitment, equipment, HR, compliance all included in the pricing.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ready to Get Started Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          <div className="bg-lime-50 rounded-2xl p-8 md:p-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ready to Get Started?</h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Cheap because we're staff leasing, not consulting. We provide staff + workspace + equipment + basic management. You handle training, processes, and client-side management.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center justify-center">
+                Book Free Consultation
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </button>
+              <button className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-sm font-semibold hover:bg-lime-50 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center justify-center">
+                See How It Works
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Calculator Modal */}
       <PricingCalculatorModal 
         isOpen={isCalculatorOpen} 

@@ -1120,8 +1120,223 @@ export default function Home() {
                      }}
                    />
                  </div>
-               </div>
-             </section>
+
+                
+                 {/* Interview Intelligence Section */}
+                 <div className="mt-20 bg-lime-800 py-16">
+                   <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <div className="text-center mb-12">
+                       <div className="inline-flex items-center px-4 py-2 bg-lime-700 border border-lime-600 rounded-full text-sm font-medium text-lime-100 mb-6">
+                         <svg className="w-4 h-4 mr-2 text-lime-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                         </svg>
+                         AI-POWERED INTERVIEWS
+                       </div>
+                       
+                       <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                         Interview <span className="bg-gradient-to-r from-lime-300 via-lime-100 to-lime-300 bg-clip-text text-transparent">Intelligence</span>
+                       </h2>
+                       
+                       <p className="text-xl text-lime-100 mb-12 max-w-3xl mx-auto">
+                         AI provides personalized interview questions and evaluation frameworks for each candidate, ensuring better hiring decisions.
+                       </p>
+                     </div>
+
+                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                       {/* Card 1: Personalized Questions */}
+                       <div className="bg-lime-700 rounded-2xl p-8 shadow-lg border border-lime-600 hover:shadow-xl transition-all duration-300">
+                         <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+                           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                           </svg>
+                         </div>
+                         <h3 className="text-2xl font-bold text-white mb-4">Personalized Questions</h3>
+                         <p className="text-lime-100 mb-6 leading-relaxed">
+                           Our AI analyzes each candidate's background, skills, and experience to generate tailored interview questions that reveal their true capabilities.
+                         </p>
+                         <div className="bg-lime-600 rounded-lg p-3">
+                           <p className="text-sm font-medium text-white">Targeted insights for each candidate</p>
+                         </div>
+                       </div>
+
+                       {/* Card 2: Evaluation Frameworks */}
+                       <div className="bg-lime-700 rounded-2xl p-8 shadow-lg border border-lime-600 hover:shadow-xl transition-all duration-300">
+                         <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+                           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                           </svg>
+                         </div>
+                         <h3 className="text-2xl font-bold text-white mb-4">Evaluation Frameworks</h3>
+                         <p className="text-lime-100 mb-6 leading-relaxed">
+                           Structured assessment criteria based on role requirements, ensuring consistent and objective candidate evaluation across all interviews.
+                         </p>
+                         <div className="bg-lime-600 rounded-lg p-3">
+                           <p className="text-sm font-medium text-white">Consistent evaluation standards</p>
+                         </div>
+                       </div>
+
+                       {/* Card 3: Better Hiring Decisions */}
+                       <div className="bg-lime-700 rounded-2xl p-8 shadow-lg border border-lime-600 hover:shadow-xl transition-all duration-300">
+                         <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+                           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                           </svg>
+                         </div>
+                         <h3 className="text-2xl font-bold text-white mb-4">Better Hiring Decisions</h3>
+                         <p className="text-lime-100 mb-6 leading-relaxed">
+                           Data-driven insights and AI-powered analysis help you make informed decisions, reducing hiring risks and improving team performance.
+                         </p>
+                         <div className="bg-lime-600 rounded-lg p-3">
+                           <p className="text-sm font-medium text-white">Data-driven hiring success</p>
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* CTA Section */}
+                     <div className="text-center mt-12">
+                       <button className="bg-white text-lime-800 px-8 py-4 rounded-sm font-semibold hover:bg-lime-100 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                         Experience AI-Powered Interviews
+                       </button>
+                     </div>
+                   </div>
+                                   </div>
+                </div>
+                {/* How Our AI System Works Section */}
+               <div className="bg-lime-900 py-16">
+                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <div className="text-center mb-16">
+                       <div className="inline-flex items-center px-4 py-2 bg-lime-600 border border-lime-500 rounded-full text-sm font-medium text-white mb-6">
+                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                         </svg>
+                         Simple Process
+                       </div>
+                       
+                       <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                         How Our AI System <span className="bg-gradient-to-r from-lime-400 via-lime-300 to-lime-400 bg-clip-text text-transparent">Works</span>
+                       </h2>
+                       
+                       <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
+                         Four intelligent steps that revolutionize how you find and hire top Filipino talent
+                       </p>
+                     </div>
+
+                                           {/* Process Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                        {/* Step 1: AI Analysis */}
+                        <div className="bg-lime-800 rounded-2xl p-6 shadow-lg border border-lime-700 hover:shadow-xl transition-all duration-300 relative group">
+                          <div className="absolute -top-2 -right-2">
+                            <div className="w-8 h-8 bg-lime-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                              1
+                            </div>
+                          </div>
+                          <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-xl font-bold text-white mb-4">AI Analysis</h3>
+                          <p className="text-lime-100 mb-4 leading-relaxed">
+                            Submit your requirements and our AI analyzes them against our database
+                          </p>
+                          <p className="text-sm text-lime-200 font-medium">
+                            Machine learning identifies the perfect candidate profile for your business
+                          </p>
+                          {/* Arrow */}
+                          <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
+                            <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+
+                        {/* Step 2: Smart Matching */}
+                        <div className="bg-lime-800 rounded-2xl p-6 shadow-lg border border-lime-700 hover:shadow-xl transition-all duration-300 relative group">
+                          <div className="absolute -top-2 -right-2">
+                            <div className="w-8 h-8 bg-lime-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                              2
+                            </div>
+                          </div>
+                          <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-xl font-bold text-white mb-4">Smart Matching</h3>
+                          <p className="text-lime-100 mb-4 leading-relaxed">
+                            AI ranks and matches candidates based on skills, experience, and cultural fit
+                          </p>
+                          <p className="text-sm text-lime-200 font-medium">
+                            Advanced algorithms consider 200+ factors for optimal matching
+                          </p>
+                          {/* Arrow */}
+                          <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
+                            <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+
+                        {/* Step 3: Automated Screening */}
+                        <div className="bg-lime-800 rounded-2xl p-6 shadow-lg border border-lime-700 hover:shadow-xl transition-all duration-300 relative group">
+                          <div className="absolute -top-2 -right-2">
+                            <div className="w-8 h-8 bg-lime-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                              3
+                            </div>
+                          </div>
+                          <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-xl font-bold text-white mb-4">Automated Screening</h3>
+                          <p className="text-lime-100 mb-4 leading-relaxed">
+                            AI conducts initial assessments and verifies qualifications
+                          </p>
+                          <p className="text-sm text-lime-200 font-medium">
+                            Comprehensive evaluation including technical skills and English proficiency
+                          </p>
+                          {/* Arrow */}
+                          <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
+                            <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+
+                        {/* Step 4: Human Review */}
+                        <div className="bg-lime-800 rounded-2xl p-6 shadow-lg border border-lime-700 hover:shadow-xl transition-all duration-300 relative group">
+                          <div className="absolute -top-2 -right-2">
+                            <div className="w-8 h-8 bg-lime-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                              4
+                            </div>
+                          </div>
+                          <div className="w-16 h-16 bg-lime-600 rounded-full flex items-center justify-center mb-6">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-xl font-bold text-white mb-4">Human Review</h3>
+                          <p className="text-lime-100 mb-4 leading-relaxed">
+                            Our team validates AI recommendations and prepares your shortlist
+                          </p>
+                          <p className="text-sm text-lime-200 font-medium">
+                            Expert recruiters ensure quality and add personal insights
+                          </p>
+                        </div>
+                      </div>
+
+                     {/* CTA Section */}
+                     <div className="text-center mt-12">
+                       <button className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                         Start Your AI-Powered Hiring Process
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+              </section>
+               
+
            </div>
          );
        }

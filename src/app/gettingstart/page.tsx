@@ -1,7 +1,34 @@
 "use client";
 
+import { useState } from "react";
 import { SideNav } from "@/components/layout/SideNav";
-import { Calendar, ArrowRight, DollarSign, Shield, Clock, Crown, Star, Check, Users, Target, Zap, AlertTriangle, Building } from "lucide-react";
+import { Calendar, ArrowRight, DollarSign, Shield, Clock, Crown, Star, Check, Users, Target, Zap, AlertTriangle, Building, ChevronDown, ChevronUp, Calculator } from "lucide-react";
+
+// FAQ Item Component
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border border-gray-200 rounded-lg">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
+        <span className="font-medium text-gray-900">{question}</span>
+        {isOpen ? (
+          <ChevronUp className="w-5 h-5 text-lime-600 flex-shrink-0" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-lime-600 flex-shrink-0" />
+        )}
+      </button>
+      {isOpen && (
+        <div className="px-6 pb-4">
+          <p className="text-gray-600 leading-relaxed">{answer}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GettingStartedPage() {
   return (
@@ -578,9 +605,8 @@ export default function GettingStartedPage() {
           </div>
         </div>
       </section>
-
-             {/* Contact Form Section */}
-       <section className="bg-lime-50 py-16">
+{/* Contact Form Section */}
+<section className="bg-lime-50 py-16">
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
            {/* Section Header */}
            <div className="text-center mb-12">
@@ -783,6 +809,102 @@ export default function GettingStartedPage() {
            </div>
          </div>
        </section>
+             {/* FAQ Section */}
+       <section className="bg-white py-16">
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+           {/* Section Header */}
+           <div className="text-center mb-12">
+             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+               Frequently Asked Questions
+             </h2>
+             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+               Everything you need to know about working with Shore Agents
+             </p>
+           </div>
+
+           {/* FAQ Items */}
+           <div className="max-w-4xl mx-auto space-y-4">
+             {[
+               {
+                 question: "How is this different from hiring freelancers?",
+                 answer: "Our team members are real Shore Agents employees who work exclusively for you during business hours. No juggling multiple clients, no disappearing acts, no divided attention. Plus you get enterprise infrastructure, HR support, and compliance handled professionally."
+               },
+               {
+                 question: "What if the person doesn't work out?",
+                 answer: "We offer a 90-day replacement guarantee. If anyone leaves or doesn't meet expectations in the first 90 days, we'll find you a replacement at no additional cost. Our retention rate is 94% because we hire and manage properly."
+               },
+               {
+                 question: "How do you handle Philippine compliance and labor law?",
+                 answer: "We're experts in Philippine employment law. All employees are properly contracted, benefits are handled, government reporting is done, and we stay current with all regulatory changes. You never have to worry about compliance issues."
+               },
+               {
+                 question: "What about internet outages and power failures?",
+                 answer: "Our Clark Freeport Zone facility has enterprise infrastructure with backup power (UPS + generators), multiple ISP connections with automatic failover, and 24/7 monitoring. We maintain 99.9% uptime."
+               },
+               {
+                 question: "How much control do I have over my team?",
+                 answer: "Complete control. You handle all training, processes, and day-to-day management. We provide the infrastructure, compliance, and administrative support. Think of us as your offshore HR department, not a traditional BPO."
+               },
+               {
+                 question: "Can I start with just one person?",
+                 answer: "Absolutely! Many clients start with one person and scale from there. There's no minimum team size requirement. We've successfully placed everyone from single VAs to teams of 50+."
+               },
+               {
+                 question: "What industries do you work with?",
+                 answer: "We specialize in real estate, property management, construction, mortgage, insurance, legal, accounting, and professional services. Our team understands these industries and can find candidates with relevant experience."
+               },
+               {
+                 question: "How long does the setup process take?",
+                 answer: "Typically 2-4 weeks from signed agreement to your team member starting work. This includes recruitment, interviews (where you choose the candidates), onboarding, and workspace setup."
+               }
+             ].map((faq, index) => (
+               <FAQItem key={index} question={faq.question} answer={faq.answer} />
+             ))}
+           </div>
+         </div>
+       </section>
+
+       {/* Call to Action Section */}
+       <section className="bg-lime-600 py-16">
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+           {/* Main Headline */}
+           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+             Ready to 2x Your Business While Cutting Costs 60%?
+           </h2>
+           
+           {/* Subtitle */}
+           <p className="text-xl text-white mb-8 max-w-3xl mx-auto">
+             Join 500+ companies who've already made the smart choice. Book your free consultation before our limited setup slots fill up.
+           </p>
+
+           {/* Alert Banner */}
+           <div className="inline-flex items-center px-6 py-3 bg-lime-500 rounded-lg mb-8">
+             <AlertTriangle className="w-5 h-5 text-white mr-2" />
+             <span className="text-white font-medium">Only 12 Setup Slots Remaining This Month</span>
+             <AlertTriangle className="w-5 h-5 text-white ml-2" />
+           </div>
+
+           {/* CTA Buttons */}
+           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+             <button className="bg-white text-lime-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center">
+               Book My Free Consultation Now
+               <ArrowRight className="w-5 h-5 ml-2" />
+             </button>
+             
+             <button className="bg-lime-500 text-white px-8 py-4 rounded-lg font-semibold hover:bg-lime-400 transition-colors flex items-center justify-center">
+               <Calculator className="w-5 h-5 mr-2" />
+               Calculate My Savings
+             </button>
+           </div>
+
+           {/* Disclaimer */}
+           <p className="text-white text-sm opacity-90">
+             Free consultation • No pressure • Custom strategy included
+           </p>
+         </div>
+       </section>
+
+       
     </div>
   );
 }
