@@ -153,8 +153,8 @@ export function Footer() {
             
             {/* Our Services */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Our Services</h3>
-              <ul className="space-y-2">
+              <h3 className="text-md font-bold text-white mb-4 border-b border-lime-700 pb-2">Our Services</h3>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/services/hire-one-agent" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
                     One Agent
@@ -200,8 +200,8 @@ export function Footer() {
 
             {/* Main Pillars */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Main Pillars</h3>
-              <ul className="space-y-2">
+              <h3 className="text-md font-bold text-white mb-4 border-b border-lime-700 pb-2">Main Pillars</h3>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
                     Outsourcing
@@ -247,8 +247,8 @@ export function Footer() {
 
             {/* Company */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Company</h3>
-              <ul className="space-y-2">
+              <h3 className="text-md font-bold text-white mb-4 border-b border-lime-700 pb-2">Company</h3>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/howItWorks" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
                     How It Works
@@ -294,8 +294,8 @@ export function Footer() {
 
             {/* Resources */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Resources</h3>
-              <ul className="space-y-2">
+              <h3 className="text-md font-bold text-white mb-4 border-b border-lime-700 pb-2">Resources</h3>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/pricing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
                     Pricing Calculator
@@ -378,6 +378,49 @@ export function Footer() {
               >
                 Admin
               </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Info Section */}
+      <div className="bg-lime-800 border-t border-lime-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* Keywords */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-3">Keywords</h4>
+              <ul className="space-y-1 text-xs text-gray-300">
+                <li>Filipino virtual assistant</li>
+                <li>Philippines outsourcing</li>
+                <li>real estate virtual assistant</li>
+                <li>offshore staff leasing</li>
+                <li>Clark Philippines BPO</li>
+              </ul>
+            </div>
+
+            {/* Service Areas */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-3">Service Areas</h4>
+              <ul className="space-y-1 text-xs text-gray-300">
+                <li>Australia</li>
+                <li>United States</li>
+                <li>Canada</li>
+                <li>United Kingdom</li>
+                <li>New Zealand</li>
+                <li className="text-lime-300">| All industries, specializing in Real Estate</li>
+              </ul>
+            </div>
+
+            {/* Established */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-3">Established</h4>
+              <ul className="space-y-1 text-xs text-gray-300">
+                <li>2019</li>
+                <li className="text-lime-300">| CEO: Stephen Atcheler</li>
+                <li className="text-lime-300">| Location: Clark Freeport Zone, Philippines</li>
+              </ul>
             </div>
           </div>
         </div>
