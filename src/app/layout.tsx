@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins, Roboto, Open_Sans, Nunito, Lato, Raleway, Ubuntu } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { CurrencyProvider } from "@/lib/currencyContext";
 
@@ -59,7 +60,7 @@ const ubuntu = Ubuntu({
 });
 
 // Change this line to use a different font:
-const currentFont = roboto; // Try: inter, poppins, roboto, openSans, nunito, lato, raleway, ubuntu
+const currentFont = poppins; // Try: inter, poppins, roboto, openSans, nunito, lato, raleway, ubuntu
 
 export const metadata: Metadata = {
   title: "ShoreAgents - Professional Offshore Solutions",
@@ -82,6 +83,7 @@ export default function RootLayout({
           <main>
             {children}
           </main>
+          <Footer />
         </CurrencyProvider>
       </body>
     </html>
