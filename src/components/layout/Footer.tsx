@@ -1,0 +1,387 @@
+"use client"
+
+import React from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Clock,
+  Star,
+  User,
+  Globe,
+  Zap,
+  ArrowRight
+} from 'lucide-react'
+
+export function Footer() {
+  const currentYear = new Date().getFullYear()
+
+  return (
+    <footer className="bg-lime-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
+          {/* Company Info - Left Column */}
+          <div className="lg:col-span-2">
+            {/* Header with Logo and Company Name */}
+            <div className="flex items-center mb-6">
+              <Image
+                src="/ShoreAgents-Logo.png"
+                alt="ShoreAgents Logo"
+                width={180}
+                height={40}
+                className="h-10 w-auto"
+              />
+            </div>
+
+            {/* Company Description */}
+            <p className="text-gray-300 mb-8 leading-relaxed max-w-2xl">
+              Stephen Atcheler, founder of Shore Agents, brings extensive experience in real estate and business scaling. 
+              After successfully scaling an Australian real estate agency, Stephen moved to the Philippines to perfect 
+              the outsourcing model and provide exceptional offshore talent solutions.
+            </p>
+
+            {/* Trust Indicators */}
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center text-gray-300">
+                <User className="h-5 w-5 text-lime-400 mr-3" />
+                <span className="text-sm">Derek Gallimore Approved</span>
+              </div>
+              <div className="flex items-center text-gray-300">
+                <Star className="h-5 w-5 text-lime-400 mr-3" />
+                <span className="text-sm">5+ Years Philippines Experience</span>
+              </div>
+              <div className="flex items-center text-gray-300">
+                <Globe className="h-5 w-5 text-lime-400 mr-3" />
+                <span className="text-sm">Office-Based in Clark</span>
+              </div>
+            </div>
+
+            {/* Starting Prices Section */}
+            <div className="bg-lime-800/50 rounded-lg p-6 border border-lime-700">
+              <div className="flex items-center mb-4">
+                <Zap className="h-5 w-5 text-energy-400 mr-2" />
+                <span className="text-white font-medium">Starting Prices:</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">₱41,875</div>
+                  <div className="text-sm text-gray-300">Entry Level</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">₱59,875</div>
+                  <div className="text-sm text-gray-300">Mid Level</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">₱133,875</div>
+                  <div className="text-sm text-gray-300">Senior Level</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact & CTA - Right Column */}
+          <div className="lg:col-span-1">
+            <h3 className="text-xl font-bold text-white mb-8">Get In Touch</h3>
+            
+            {/* Contact Details */}
+            <div className="space-y-6 mb-8">
+              <div className="flex items-start">
+                <MapPin className="h-5 w-5 text-lime-400 mt-1 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-medium">Clark Freeport Zone</p>
+                  <p className="text-gray-300 text-sm">Angeles City, Pampanga, Philippines</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <Phone className="h-5 w-5 text-lime-400 mt-1 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-medium">+63 (0) 917 123 4567</p>
+                  <p className="text-gray-300 text-sm">Philippines Local</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <Mail className="h-5 w-5 text-lime-400 mt-1 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-medium">hello@shoreagents.com</p>
+                  <p className="text-gray-300 text-sm">Quick Response</p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <Clock className="h-5 w-5 text-lime-400 mt-1 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-medium">Mon-Fri: 8AM-6PM PHT</p>
+                  <p className="text-gray-300 text-sm">Available in your timezone</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Call-to-Action Buttons */}
+            <div className="space-y-4">
+              <Button 
+                variant="philippines"
+                className="w-full flex items-center justify-center group"
+                asChild
+              >
+                <Link href="/services">
+                  <Star className="h-5 w-5 mr-2 text-yellow-300" />
+                  <span>PHILIPPINES GOT TALENT!</span>
+                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+              </Button>
+              
+              <Link 
+                href="/gettingstart" 
+                className="block w-full bg-lime-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-lime-600 transition-colors duration-200 flex items-center justify-center group"
+              >
+                <span>Book Free Consultation</span>
+                <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Four Column Footer Section */}
+        <div className="mt-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+            {/* Our Services */}
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Our Services</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/services/hire-one-agent" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    One Agent
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services/build-a-team" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Build a Team
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services/create-workforce" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Create a Workforce
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services/real-estate-virtual-assistant" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Real Estate Virtual Assistant
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services/property-management-assistant" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Property Management Assistant
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services/construction-virtual-assistant" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Construction Virtual Assistant
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services/seo-virtual-assistant" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    SEO Virtual Assistant
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services/ai-virtual-assistant" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    AI Virtual Assistant
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Main Pillars */}
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Main Pillars</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Outsourcing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/virtual-assistant" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Virtual Assistant
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/real-estate-outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Real Estate Outsourcing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/property-management-outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Property Management Outsourcing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/construction-outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Construction Outsourcing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/accounting-outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Accounting Outsourcing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/seo-outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    SEO Outsourcing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/architectural-outsourcing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Architectural Outsourcing
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Company</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/howItWorks" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    How It Works
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/employees" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Our Team
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Our Company
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about#ceo" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Stephen Atcheler - CEO
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about#location" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Find Us in Clark
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/case-studies" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Case Studies
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Blog & Articles
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/service-guide" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Complete Service Guide
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4 border-b border-lime-700 pb-2">Resources</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/pricing" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Pricing Calculator
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/sales" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Sales Page
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/candidates" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Window Shop - Candidates
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/demos" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Our Agents Demos
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/service-guide" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Complete Service Guide
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Blog & Articles
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/case-studies" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    Case Studies
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/howItWorks" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                    How It Works
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="border-t border-lime-700 bg-lime-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            {/* Copyright */}
+            <div className="text-sm text-gray-300">
+              <div>© {currentYear} Shore Agents. All rights reserved.</div>
+              <div>Professional Filipino Staff Leasing | Clark, Philippines</div>
+            </div>
+            
+            {/* Legal Links */}
+            <div className="flex flex-wrap justify-center md:justify-end space-x-6 text-sm">
+              <Link 
+                href="/privacy" 
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+              >
+                Privacy Policy
+              </Link>
+              <Link 
+                href="/terms" 
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+              >
+                Terms of Service
+              </Link>
+              <Link 
+                href="/sitemap" 
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+              >
+                Sitemap
+              </Link>
+              <Link 
+                href="/admin" 
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+              >
+                Admin
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
