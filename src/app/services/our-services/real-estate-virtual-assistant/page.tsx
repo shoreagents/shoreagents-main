@@ -3,6 +3,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, CheckCircle, Calculator, Users, Home } from 'lucide-react'
+import { SideNav } from '@/components/layout/SideNav'
 
 export default function RealEstateVirtualAssistantPage() {
   const services = [
@@ -39,6 +40,8 @@ export default function RealEstateVirtualAssistantPage() {
   ]
 
   return (
+    <>
+    <SideNav/>
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
@@ -199,5 +202,6 @@ export default function RealEstateVirtualAssistantPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

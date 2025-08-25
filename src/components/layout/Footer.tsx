@@ -61,22 +61,22 @@ export function Footer() {
             </div>
 
             {/* Starting Prices Section */}
-            <div className="bg-lime-800/50 rounded-lg p-6 border border-lime-700">
-              <div className="flex items-center mb-4">
-                <Zap className="h-5 w-5 text-energy-400 mr-2" />
-                <span className="text-white font-medium">Starting Prices:</span>
+            <div className="bg-lime-800/50 rounded-lg p-4 border border-lime-700">
+              <div className="flex items-center mb-3">
+                <Zap className="h-4 w-4 text-energy-400 mr-2" />
+                <span className="text-white text-sm font-medium">Starting Prices:</span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white">₱41,875</div>
+                  <div className="text-lg font-bold text-white">₱41,875</div>
                   <div className="text-sm text-gray-300">Entry Level</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white">₱59,875</div>
+                  <div className="text-lg font-bold text-white">₱59,875</div>
                   <div className="text-sm text-gray-300">Mid Level</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white">₱133,875</div>
+                  <div className="text-lg font-bold text-white">₱133,875</div>
                   <div className="text-sm text-gray-300">Senior Level</div>
                 </div>
               </div>
@@ -130,19 +130,21 @@ export function Footer() {
                 asChild
               >
                 <Link href="/services">
-                  <Star className="h-5 w-5 mr-2 text-yellow-300" />
                   <span>PHILIPPINES GOT TALENT!</span>
                   <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
                 </Link>
               </Button>
               
-              <Link 
-                href="/gettingstart" 
-                className="block w-full bg-lime-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-lime-600 transition-colors duration-200 flex items-center justify-center group"
+              <Button 
+                variant="philippines"
+                className="w-full flex items-center justify-center group"
+                asChild
               >
-                <span>Book Free Consultation</span>
-                <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
+                <Link href="/gettingstart">
+                  <span>Book Free Consultation</span>
+                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -378,49 +380,6 @@ export function Footer() {
               >
                 Admin
               </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Info Section */}
-      <div className="bg-lime-800 border-t border-lime-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Keywords */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-3">Keywords</h4>
-              <ul className="space-y-1 text-xs text-gray-300">
-                <li>Filipino virtual assistant</li>
-                <li>Philippines outsourcing</li>
-                <li>real estate virtual assistant</li>
-                <li>offshore staff leasing</li>
-                <li>Clark Philippines BPO</li>
-              </ul>
-            </div>
-
-            {/* Service Areas */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-3">Service Areas</h4>
-              <ul className="space-y-1 text-xs text-gray-300">
-                <li>Australia</li>
-                <li>United States</li>
-                <li>Canada</li>
-                <li>United Kingdom</li>
-                <li>New Zealand</li>
-                <li className="text-lime-300">| All industries, specializing in Real Estate</li>
-              </ul>
-            </div>
-
-            {/* Established */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-3">Established</h4>
-              <ul className="space-y-1 text-xs text-gray-300">
-                <li>2019</li>
-                <li className="text-lime-300">| CEO: Stephen Atcheler</li>
-                <li className="text-lime-300">| Location: Clark Freeport Zone, Philippines</li>
-              </ul>
             </div>
           </div>
         </div>

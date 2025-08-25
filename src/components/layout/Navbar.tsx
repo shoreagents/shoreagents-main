@@ -53,20 +53,20 @@ export function Navbar() {
           <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center">
             {/* Services Dropdown */}
             <div className="relative group">
-              <div className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 cursor-pointer px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200">
+              <Link href="/services" className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200">
                 <span>Services</span>
                 <ChevronDown className="h-4 w-4" />
-              </div>
+              </Link>
               
               {/* Services Dropdown Content */}
               <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                 <div className="p-3">
                   {/* Our Services */}
                   <div className="relative group/services">
-                    <div className="flex items-center justify-between w-full text-left px-3 py-2 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 cursor-pointer">
+                    <Link href="/services" className="flex items-center justify-between w-full text-left px-3 py-2 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200">
                       <span className="font-medium">Our Services</span>
                       <ChevronDown className="h-4 w-4 group-hover/services:rotate-180 transition-transform duration-200" />
-                    </div>
+                    </Link>
                     
                     {/* Our Services Submenu */}
                     <div className="absolute left-full top-0 ml-2 w-[600px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/services:opacity-100 group-hover/services:visible transition-all duration-300">
@@ -75,7 +75,7 @@ export function Navbar() {
                         
                         {/* Main Service Steps */}
                         <div className="grid grid-cols-3 gap-4 mb-6">
-                          <Link href="/services/hire-one-agent" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/our-services/hire-one-agent" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200">Hire One Agent</h4>
@@ -90,7 +90,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/services/build-a-team" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/our-services/build-a-team" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200">Build a Team</h4>
@@ -105,7 +105,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/services/create-workforce" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/our-services/create-workforce" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200">Create a Workforce</h4>
@@ -124,44 +124,44 @@ export function Navbar() {
                         {/* Specialized Roles */}
                         <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Link href="/services/real-estate-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/real-estate-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Real Estate Virtual Assistant
                             </Link>
-                            <Link href="/services/property-management-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/property-management-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Property Management Assistant
                             </Link>
-                            <Link href="/services/administrative-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/administrative-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Administrative Assistant
                             </Link>
-                            <Link href="/services/customer-service-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/customer-service-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Customer Service Assistant
                             </Link>
                           </div>
                           <div className="space-y-2">
-                            <Link href="/services/construction-team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/construction-team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Construction Team
                             </Link>
-                            <Link href="/services/insurance-support" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/insurance-support" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Insurance Support
                             </Link>
-                            <Link href="/services/marketing-team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/marketing-team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Marketing Team
                             </Link>
-                            <Link href="/services/finance-accounting" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/finance-accounting" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Finance & Accounting
                             </Link>
                           </div>
                           <div className="space-y-2">
-                            <Link href="/services/technical-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/technical-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Technical Teams
                             </Link>
-                            <Link href="/services/engineering-support" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/engineering-support" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Engineering Support
                             </Link>
-                            <Link href="/services/legal-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/legal-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Legal Teams
                             </Link>
-                            <Link href="/services/complete-departments" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/complete-departments" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Complete Departments
                             </Link>
                           </div>
@@ -172,10 +172,10 @@ export function Navbar() {
 
                   {/* Pillars */}
                   <div className="relative group/pillars">
-                    <div className="flex items-center justify-between w-full text-left px-3 py-2 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 cursor-pointer">
+                    <Link href="/pillars" className="flex items-center justify-between w-full text-left px-3 py-2 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200">
                       <span className="font-medium">Pillars</span>
                       <ChevronDown className="h-4 w-4 group-hover/pillars:rotate-180 transition-transform duration-200" />
-                    </div>
+                    </Link>
                     
                     {/* Pillars Submenu */}
                     <div className="absolute left-full top-0 ml-2 w-[600px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/pillars:opacity-100 group-hover/pillars:visible transition-all duration-300">
@@ -185,7 +185,7 @@ export function Navbar() {
                         
                         {/* Main Pillar Cards */}
                         <div className="grid grid-cols-3 gap-4 mb-6">
-                          <Link href="/pillars/outsourcing-services" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/pillars/outsourcing-services" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200">Outsourcing Services</h4>
@@ -200,7 +200,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/pillars/virtual-assistants" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/pillars/virtual-assistants" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200">Virtual Assistants</h4>
@@ -215,7 +215,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/pillars/technical-digital" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/pillars/technical-digital" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200">Technical & Digital</h4>
@@ -234,44 +234,44 @@ export function Navbar() {
                         {/* Pillar Items Grid */}
                         <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Link href="/pillars/real-estate-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/real-estate-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Real Estate Outsourcing
                             </Link>
-                            <Link href="/pillars/property-management-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/property-management-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Property Management Outsourcing
                             </Link>
-                            <Link href="/pillars/construction-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/construction-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Construction Outsourcing
                             </Link>
-                            <Link href="/pillars/accounting-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/accounting-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Accounting Outsourcing
                             </Link>
                           </div>
                           <div className="space-y-2">
-                            <Link href="/pillars/real-estate-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/real-estate-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Real Estate Virtual Assistant
                             </Link>
-                            <Link href="/pillars/seo-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/seo-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               SEO Virtual Assistant
                             </Link>
-                            <Link href="/pillars/ai-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/ai-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               AI Virtual Assistant
                             </Link>
-                            <Link href="/pillars/social-media-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/social-media-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Social Media Virtual Assistant
                             </Link>
                           </div>
                           <div className="space-y-2">
-                            <Link href="/pillars/architectural-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/architectural-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Architectural Outsourcing
                             </Link>
-                            <Link href="/pillars/engineering-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/engineering-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Engineering Outsourcing
                             </Link>
-                            <Link href="/pillars/seo-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/seo-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               SEO Outsourcing
                             </Link>
-                            <Link href="/pillars/graphic-design-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/graphic-design-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Graphic Design Outsourcing
                             </Link>
                           </div>
@@ -310,12 +310,12 @@ export function Navbar() {
                 <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/blogs') ? 'w-full' : ''}`}></span>
               </span>
             </Link>
-{/* About Dropdown */}
-<div className="relative group">
-              <div className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 cursor-pointer px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200">
+            {/* About Dropdown */}
+            <div className="relative group">
+              <Link href="/about" className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200">
                 <span>About Shore</span>
                 <ChevronDown className="h-4 w-4" />
-              </div>
+              </Link>
               
               {/* About Dropdown Content */}
               <div className="absolute top-full left-0 mt-2 w-[600px] bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
@@ -454,20 +454,20 @@ export function Navbar() {
           <div className="hidden md:flex lg:hidden items-center space-x-2 flex-1 justify-center">
             {/* Services Dropdown */}
             <div className="relative group">
-              <div className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 cursor-pointer px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200">
+              <Link href="/services" className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200">
                 <span>Services</span>
                 <ChevronDown className="h-4 w-4" />
-              </div>
+              </Link>
               
               {/* Services Dropdown Content */}
               <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                 <div className="p-2">
                   {/* Our Services */}
                   <div className="relative group/services">
-                    <div className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 cursor-pointer text-sm">
+                    <Link href="/services" className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 text-sm">
                       <span className="font-medium">Our Services</span>
                       <ChevronDown className="h-3 w-3 group-hover/services:rotate-180 transition-transform duration-200" />
-                    </div>
+                    </Link>
                     
                     {/* Our Services Submenu */}
                     <div className="absolute left-full top-0 ml-1 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/services:opacity-100 group-hover/services:visible transition-all duration-300">
@@ -476,7 +476,7 @@ export function Navbar() {
                         
                         {/* Main Service Steps */}
                         <div className="grid grid-cols-1 gap-2 mb-3">
-                          <Link href="/services/hire-one-agent" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/our-services/hire-one-agent" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Hire One Agent</h4>
@@ -491,7 +491,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/services/build-a-team" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/our-services/build-a-team" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Build a Team</h4>
@@ -506,7 +506,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/services/create-workforce" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/our-services/create-workforce" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Create a Workforce</h4>
@@ -525,30 +525,30 @@ export function Navbar() {
                         {/* Specialized Roles */}
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <Link href="/services/real-estate-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/real-estate-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Real Estate Virtual Assistant
                             </Link>
-                            <Link href="/services/property-management-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/property-management-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Property Management Assistant
                             </Link>
-                            <Link href="/services/administrative-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/administrative-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Administrative Assistant
                             </Link>
-                            <Link href="/services/customer-service-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/customer-service-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Customer Service Assistant
                             </Link>
                           </div>
                           <div className="space-y-1">
-                            <Link href="/services/construction-team" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/construction-team" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Construction Team
                             </Link>
-                            <Link href="/services/insurance-support" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/insurance-support" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Insurance Support
                             </Link>
-                            <Link href="/services/marketing-team" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/marketing-team" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Marketing Team
                             </Link>
-                            <Link href="/services/finance-accounting" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/our-services/finance-accounting" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Finance & Accounting
                             </Link>
                           </div>
@@ -559,10 +559,10 @@ export function Navbar() {
 
                   {/* Pillars */}
                   <div className="relative group/pillars">
-                    <div className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 cursor-pointer text-sm">
+                    <Link href="/pillars" className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 text-sm">
                       <span className="font-medium">Pillars</span>
                       <ChevronDown className="h-3 w-3 group-hover/pillars:rotate-180 transition-transform duration-200" />
-                    </div>
+                    </Link>
                     
                     {/* Pillars Submenu */}
                     <div className="absolute left-full top-0 ml-1 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/pillars:opacity-100 group-hover/pillars:visible transition-all duration-300">
@@ -572,7 +572,7 @@ export function Navbar() {
                         
                         {/* Main Pillar Cards */}
                         <div className="grid grid-cols-1 gap-2 mb-3">
-                          <Link href="/pillars/outsourcing-services" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/pillars/outsourcing-services" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Outsourcing Services</h4>
@@ -587,7 +587,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/pillars/virtual-assistants" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/pillars/virtual-assistants" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Virtual Assistants</h4>
@@ -602,7 +602,7 @@ export function Navbar() {
                             </div>
                           </Link>
                           
-                          <Link href="/pillars/technical-digital" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
+                          <Link href="/services/pillars/technical-digital" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Technical & Digital</h4>
@@ -621,30 +621,30 @@ export function Navbar() {
                         {/* Pillar Items Grid */}
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <Link href="/pillars/real-estate-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/real-estate-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Real Estate Outsourcing
                             </Link>
-                            <Link href="/pillars/property-management-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/property-management-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Property Management Outsourcing
                             </Link>
-                            <Link href="/pillars/construction-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/construction-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Construction Outsourcing
                             </Link>
-                            <Link href="/pillars/accounting-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/accounting-outsourcing" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Accounting Outsourcing
                             </Link>
                           </div>
                           <div className="space-y-1">
-                            <Link href="/pillars/real-estate-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/real-estate-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Real Estate Virtual Assistant
                             </Link>
-                            <Link href="/pillars/seo-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/seo-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               SEO Virtual Assistant
                             </Link>
-                            <Link href="/pillars/ai-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/ai-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               AI Virtual Assistant
                             </Link>
-                            <Link href="/pillars/social-media-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                            <Link href="/services/pillars/social-media-virtual-assistant" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Social Media Virtual Assistant
                             </Link>
                           </div>
@@ -658,20 +658,20 @@ export function Navbar() {
 
             {/* About Dropdown - Medium Screen */}
             <div className="relative group">
-              <div className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 cursor-pointer px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200">
+                             <Link href="/about" className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200">
                 <span>About Shore</span>
                 <ChevronDown className="h-4 w-4" />
-              </div>
+              </Link>
               
               {/* About Dropdown Content */}
               <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                 <div className="p-2">
                   {/* Our Story */}
                   <div className="relative group/story">
-                    <div className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 cursor-pointer text-sm">
+                    <Link href="/about/our-story" className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 text-sm">
                       <span className="font-medium">Our Story</span>
                       <ChevronDown className="h-3 w-3 group-hover/story:rotate-180 transition-transform duration-200" />
-                    </div>
+                    </Link>
                     
                     {/* Our Story Submenu */}
                     <div className="absolute left-full top-0 ml-1 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/story:opacity-100 group-hover/story:visible transition-all duration-300">
@@ -740,10 +740,10 @@ export function Navbar() {
 
                   {/* Proven Results */}
                   <div className="relative group/results">
-                    <div className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 cursor-pointer text-sm">
+                    <Link href="/about" className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 text-sm">
                       <span className="font-medium">Proven Results</span>
                       <ChevronDown className="h-3 w-3 group-hover/results:rotate-180 transition-transform duration-200" />
-                    </div>
+                    </Link>
                     
                     {/* Proven Results Submenu */}
                     <div className="absolute left-full top-0 ml-1 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/results:opacity-100 group-hover/results:visible transition-all duration-300">
@@ -812,10 +812,10 @@ export function Navbar() {
 
                   {/* Resources */}
                   <div className="relative group/resources">
-                    <div className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 cursor-pointer text-sm">
+                    <Link href="/about" className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 text-sm">
                       <span className="font-medium">Resources</span>
                       <ChevronDown className="h-3 w-3 group-hover/resources:rotate-180 transition-transform duration-200" />
-                    </div>
+                    </Link>
                     
                     {/* Resources Submenu */}
                     <div className="absolute left-full top-0 ml-1 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/resources:opacity-100 group-hover/resources:visible transition-all duration-300">
@@ -945,53 +945,53 @@ export function Navbar() {
                      <div className="text-sm font-semibold text-gray-800 mb-1">Our Services</div>
                      <div className="pl-2 space-y-1">
                        {/* Main Service Steps */}
-                       <Link href="/services/hire-one-agent" className="block text-gray-600 hover:text-lime-600 py-1 text-sm font-medium">
+                       <Link href="/services/our-services/hire-one-agent" className="block text-gray-600 hover:text-lime-600 py-1 text-sm font-medium">
                          Hire One Agent - Perfect for first-time outsourcers
                        </Link>
-                       <Link href="/services/build-a-team" className="block text-gray-600 hover:text-lime-600 py-1 text-sm font-medium">
+                       <Link href="/services/our-services/build-a-team" className="block text-gray-600 hover:text-lime-600 py-1 text-sm font-medium">
                          Build a Team - Scale your business with 3-10 professionals
                        </Link>
-                       <Link href="/services/create-workforce" className="block text-gray-600 hover:text-lime-600 py-1 text-sm font-medium">
+                       <Link href="/services/our-services/create-workforce" className="block text-gray-600 hover:text-lime-600 py-1 text-sm font-medium">
                          Create a Workforce - Large operations, 10+ people
                        </Link>
                        
                        {/* Specialized Roles */}
                        <div className="mt-3 pt-2 border-t border-gray-200">
                          <div className="text-xs font-semibold text-gray-700 mb-1">Specialized Roles:</div>
-                         <Link href="/services/real-estate-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/real-estate-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Real Estate Virtual Assistant
                          </Link>
-                         <Link href="/services/property-management-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/property-management-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Property Management Assistant
                          </Link>
-                         <Link href="/services/administrative-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/administrative-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Administrative Assistant
                          </Link>
-                         <Link href="/services/customer-service-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/customer-service-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Customer Service Assistant
                          </Link>
-                         <Link href="/services/construction-team" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/construction-team" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Construction Team
                          </Link>
-                         <Link href="/services/insurance-support" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/insurance-support" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Insurance Support
                          </Link>
-                         <Link href="/services/marketing-team" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/marketing-team" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Marketing Team
                          </Link>
-                         <Link href="/services/finance-accounting" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/finance-accounting" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Finance & Accounting
                          </Link>
-                         <Link href="/services/technical-teams" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/technical-teams" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Technical Teams
                          </Link>
-                         <Link href="/services/engineering-support" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/engineering-support" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Engineering Support
                          </Link>
-                         <Link href="/services/legal-teams" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/legal-teams" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Legal Teams
                          </Link>
-                         <Link href="/services/complete-departments" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                         <Link href="/services/our-services/complete-departments" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Complete Departments
                          </Link>
                        </div>
@@ -1000,40 +1000,40 @@ export function Navbar() {
                    <div>
                      <div className="text-sm font-semibold text-gray-800 mb-1">Pillars</div>
                      <div className="pl-2 space-y-1">
-                       <Link href="/pillars/real-estate-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                                 <Link href="/services/pillars/real-estate-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Real Estate Outsourcing
                        </Link>
-                       <Link href="/pillars/property-management-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/property-management-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Property Management Outsourcing
                        </Link>
-                       <Link href="/pillars/construction-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/construction-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Construction Outsourcing
                        </Link>
-                       <Link href="/pillars/accounting-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/accounting-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Accounting Outsourcing
                        </Link>
-                       <Link href="/pillars/real-estate-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/real-estate-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Real Estate Virtual Assistant
                        </Link>
-                       <Link href="/pillars/seo-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/seo-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          SEO Virtual Assistant
                        </Link>
-                       <Link href="/pillars/ai-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/ai-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          AI Virtual Assistant
                        </Link>
-                       <Link href="/pillars/social-media-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/social-media-virtual-assistant" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Social Media Virtual Assistant
                        </Link>
-                       <Link href="/pillars/architectural-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/architectural-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Architectural Outsourcing
                        </Link>
-                       <Link href="/pillars/engineering-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/engineering-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Engineering Outsourcing
                        </Link>
-                       <Link href="/pillars/seo-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/seo-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          SEO Outsourcing
                    </Link>
-                       <Link href="/pillars/graphic-design-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                                               <Link href="/services/pillars/graphic-design-outsourcing" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                          Graphic Design Outsourcing
                    </Link>
                      </div>
