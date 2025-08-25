@@ -664,99 +664,18 @@ export function Navbar() {
               </Link>
               
               {/* About Dropdown Content */}
-              <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                <div className="p-2">
-                  {/* Our Story */}
-                  <div className="relative group/story">
-                    <Link href="/about/our-story" className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 text-sm">
-                      <span className="font-medium">Our Story</span>
-                      <ChevronDown className="h-3 w-3 group-hover/story:rotate-180 transition-transform duration-200" />
-                    </Link>
-                    
-                    {/* Our Story Submenu */}
-                    <div className="absolute left-full top-0 ml-1 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/story:opacity-100 group-hover/story:visible transition-all duration-300">
-                      <div className="p-4">
-                        <h3 className="text-base font-bold text-gray-900 mb-3 border-b border-gray-200 pb-1">Our Story</h3>
-                        
-                        {/* Our Team Section */}
-                        <div className="grid grid-cols-1 gap-2 mb-3">
-                          <Link href="/about/our-team" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Our Team</h4>
-                                <p className="text-xs text-gray-600 mt-1">Meet the people behind Shore Agents</p>
-                                <span className="inline-block mt-1 px-2 py-0.5 bg-lime-100 text-lime-700 text-xs font-medium rounded">Team</span>
-                              </div>
-                              <div className="text-lime-600 group-hover:translate-x-1 transition-transform duration-200">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </div>
-                            </div>
-                          </Link>
-                          
-                          <Link href="/about/stephen-atcheler" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Stephen Atcheler, CEO</h4>
-                                <p className="text-xs text-gray-600 mt-1">Leadership and vision</p>
-                                <span className="inline-block mt-1 px-2 py-0.5 bg-lime-100 text-lime-700 text-xs font-medium rounded">CEO</span>
-                              </div>
-                              <div className="text-lime-600 group-hover:translate-x-1 transition-transform duration-200">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </div>
-                            </div>
-                          </Link>
-                          
-                          <Link href="/about/find-us-clark" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Find Us in Clark</h4>
-                                <p className="text-xs text-gray-600 mt-1">Visit our office location</p>
-                                <span className="inline-block mt-1 px-2 py-0.5 bg-lime-100 text-lime-700 text-xs font-medium rounded">Location</span>
-                              </div>
-                              <div className="text-lime-600 group-hover:translate-x-1 transition-transform duration-200">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </div>
-                            </div>
-                          </Link>
-                        </div>
-
-                        {/* Additional Team Items */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Link href="/about/ballast-team" className="block text-xs text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
-                              Ballast: 4 - 46 Team
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Proven Results */}
-                  <div className="relative group/results">
-                    <Link href="/about" className="flex items-center justify-between w-full text-left px-2 py-1 text-gray-700 hover:text-lime-600 hover:bg-lime-50 rounded transition-colors duration-200 text-sm">
-                      <span className="font-medium">Proven Results</span>
-                      <ChevronDown className="h-3 w-3 group-hover/results:rotate-180 transition-transform duration-200" />
-                    </Link>
-                    
-                    {/* Proven Results Submenu */}
-                    <div className="absolute left-full top-0 ml-1 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/results:opacity-100 group-hover/results:visible transition-all duration-300">
-                      <div className="p-4">
-                        <h3 className="text-base font-bold text-gray-900 mb-3 border-b border-gray-200 pb-1">Proven Results</h3>
-                        
-                        {/* Case Studies Section */}
-                        <div className="grid grid-cols-1 gap-2 mb-3">
-                          <Link href="/about/gallery-group-partnership" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Gallery Group Partnership</h4>
-                                <p className="text-xs text-gray-600 mt-1">Successful partnership showcase</p>
+              <div className="absolute top-full left-0 mt-2 w-[400px] bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                <div className="p-4">
+                  <h3 className="text-base font-bold text-gray-900 mb-3 border-b border-gray-200 pb-1">About Shore</h3>
+                  
+                  {/* Main About Cards */}
+                  <div className="grid grid-cols-1 gap-2 mb-3">
+                    <Link href="/about/our-story" className="block p-3 bg-lime-50 rounded hover:bg-lime-100 transition-colors duration-200 group">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200 text-sm">Our Story</h4>
+                          <p className="text-xs text-gray-600 mt-1">Learn about our journey</p>
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-lime-100 text-lime-700 text-xs font-medium rounded">Story</span>
                                 <span className="inline-block mt-1 px-2 py-0.5 bg-lime-100 text-lime-700 text-xs font-medium rounded">Partnership</span>
                               </div>
                               <div className="text-lime-600 group-hover:translate-x-1 transition-transform duration-200">
@@ -884,42 +803,7 @@ export function Navbar() {
                 </div>
               </div>
             </div>
-
-            {/* Other Navigation Items - Compact */}
-            <Link href="/howItWorks" className={`px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200 relative group ${isActive('/howItWorks') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
-              <span className="relative inline-block">
-              How it works
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/howItWorks') ? 'w-full' : ''}`}></span>
-              </span>
-            </Link>
-            <Link href="/pricing" className={`px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200 relative group ${isActive('/pricing') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
-              <span className="relative inline-block">
-              Pricing
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/pricing') ? 'w-full' : ''}`}></span>
-              </span>
-            </Link>
-            <Link href="/case-studies" className={`px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200 relative group ${isActive('/case-studies') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
-              <span className="relative inline-block">
-              Case Studies
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/case-studies') ? 'w-full' : ''}`}></span>
-              </span>
-            </Link>
-            <Link href="/blogs" className={`px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200 relative group ${isActive('/blogs') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
-              <span className="relative inline-block">
-              Blogs
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/blogs') ? 'w-full' : ''}`}></span>
-              </span>
-            </Link>
-            <Link href="/about" className={`px-2 py-2 whitespace-nowrap font-semibold text-sm transition-colors duration-200 relative group ${isActive('/about') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
-              <span className="relative inline-block">
-              About Shore
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/about') ? 'w-full' : ''}`}></span>
-              </span>
-            </Link>
-          </div>
-
-
-
+            
           {/* Mobile menu button - Only on small screens */}
           <div className="md:hidden">
             <Button
@@ -931,12 +815,11 @@ export function Navbar() {
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
-        </div>
-
-                 {/* Mobile Navigation Menu */}
-         {isMobileMenuOpen && (
-           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+        <div>
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden">
+              <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
                              {/* Services Mobile */}
                <div className="px-3 py-2">
                  <div className="text-gray-700 font-medium mb-2">Services</div>
@@ -1072,12 +955,10 @@ export function Navbar() {
                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/about') ? 'w-full' : ''}`}></span>
                  </span>
                </Link>
-              
-
-            </div>
-          </div>
-        )}
-      </div>
-    </nav>
-  )
-}
+             </div>
+           </div>
+         )}
+       </div>
+     </nav>
+   )
+ }
