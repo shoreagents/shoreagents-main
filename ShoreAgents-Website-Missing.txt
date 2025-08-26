@@ -13,3 +13,4 @@ Missing Button's Page
 - Insurance Virtual Assistant > Get Insurance VA Support, *
 - Marketing Team > Get Marketing VA Support, Start Marketing Partnership, *
 - Finance and Accounting Virtual Assistant > Get Accounting VA Support , Start Accounting Partnership, *
+- Technical Teams > Get Architect VA Support, Start Partnership, * 
