@@ -1,5 +1,9 @@
+import { SideNav } from "@/components/layout/SideNav"
+
 export default function TechnicalTeamsPage() {
   return (
+    <>
+    <SideNav />
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="min-h-screen bg-gradient-to-br from-lime-50 to-ocean-50 relative overflow-hidden">
@@ -19,14 +23,14 @@ export default function TechnicalTeamsPage() {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v2H7V5zm6 4H7v2h6V9zm-6 4h6v2H7v-2z" clipRule="evenodd" />
               </svg>
-              <span className="text-sm font-medium">TECHNICAL TEAMS VIRTUAL ASSISTANT</span>
+              <span className="text-sm font-medium">ARCHITECT VIRTUAL ASSISTANT</span>
             </div>
 
             {/* Main Heading */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8">
               <span className="text-lime-900">Professional</span>
               <br />
-              <span className="text-lime-600">Technical Support</span>
+              <span className="text-lime-600">Architectural Support</span>
               <br />
               <span className="text-lime-900">For Complex Projects</span>
             </h1>
@@ -280,5 +284,6 @@ export default function TechnicalTeamsPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

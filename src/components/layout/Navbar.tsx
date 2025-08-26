@@ -152,8 +152,8 @@ export function Navbar() {
                             </Link>
                           </div>
                           <div className="space-y-2">
-                            <Link href="/services/our-services/technical-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
-                              Technical Teams
+                            <Link href="/services/our-services/architecture-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
+                              Architecture Teams
                             </Link>
                             <Link href="/services/our-services/engineering-support" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200 font-medium">
                               Engineering Support
@@ -874,8 +874,8 @@ export function Navbar() {
                          <Link href="/services/our-services/finance-accounting" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Finance & Accounting
                          </Link>
-                         <Link href="/services/our-services/technical-teams" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
-                           Technical Teams
+                         <Link href="/services/our-services/architecture-teams" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
+                           Architecture Teams
                          </Link>
                          <Link href="/services/our-services/engineering-support" className="block text-gray-600 hover:text-lime-600 py-1 text-sm">
                            Engineering Support
