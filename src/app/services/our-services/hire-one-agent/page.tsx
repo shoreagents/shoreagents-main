@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PricingCalculatorModal } from "@/components/ui/pricing-calculator-modal";
 import { useCurrency } from "@/lib/currencyContext";
 import { useState } from "react";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function HireOneAgentPage() {
   const [selectedTier, setSelectedTier] = useState("entry");
@@ -39,6 +40,8 @@ export default function HireOneAgentPage() {
   };
 
   return (
+    <>
+    <SideNav />
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-lime-50 to-white py-16 px-4">
@@ -330,5 +333,6 @@ export default function HireOneAgentPage() {
         onClose={() => setIsPricingModalOpen(false)} 
       />
     </div>
+    </>
   );
 }
