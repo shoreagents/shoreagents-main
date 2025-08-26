@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { currencyApi } from './api'
+import { ipDetectionService, detectUserCurrency, getLocationInfo, LocationData } from './ipDetection'
 
 export interface Currency {
   symbol: string
@@ -18,6 +19,10 @@ interface CurrencyContextType {
   lastUpdated: string | null
   refreshRates: () => Promise<void>
   currencies: Currency[]
+  userLocation: LocationData | null
+  isDetectingLocation: boolean
+  detectUserLocation: () => Promise<void>
+  isAutoDetected: boolean
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
@@ -38,6 +43,9 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [isLoadingRates, setIsLoadingRates] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({})
+  const [userLocation, setUserLocation] = useState<LocationData | null>(null)
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
+  const [isAutoDetected, setIsAutoDetected] = useState(false)
 
   // Fetch real-time exchange rates
   const fetchExchangeRates = async () => {
@@ -83,6 +91,31 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     await fetchExchangeRates()
   }
 
+  // Detect user location and set appropriate currency
+  const detectUserLocation = async () => {
+    setIsDetectingLocation(true)
+    try {
+      const locationInfo = await getLocationInfo()
+      
+      if (locationInfo.location) {
+        setUserLocation(locationInfo.location)
+        
+        // Find the currency in our available currencies
+        const detectedCurrency = currenciesState.find(c => c.code === locationInfo.currency)
+        
+        if (detectedCurrency && detectedCurrency.code !== selectedCurrency.code) {
+          setSelectedCurrency(detectedCurrency)
+          setIsAutoDetected(true)
+          console.log(`🌍 Auto-detected currency: ${detectedCurrency.code} for location: ${locationInfo.location.country}`)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to detect user location:', error)
+    } finally {
+      setIsDetectingLocation(false)
+    }
+  }
+
   // Fetch rates on mount and every 5 minutes
   useEffect(() => {
     fetchExchangeRates()
@@ -90,6 +123,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     const interval = setInterval(fetchExchangeRates, 5 * 60 * 1000) // 5 minutes
     
     return () => clearInterval(interval)
+  }, [])
+
+  // Detect user location on mount
+  useEffect(() => {
+    detectUserLocation()
   }, [])
 
   const convertPrice = (usdPrice: number): number => {
@@ -127,7 +165,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       isLoadingRates,
       lastUpdated,
       refreshRates,
-      currencies: currenciesState
+      currencies: currenciesState,
+      userLocation,
+      isDetectingLocation,
+      detectUserLocation,
+      isAutoDetected
     }}>
       {children}
     </CurrencyContext.Provider>
