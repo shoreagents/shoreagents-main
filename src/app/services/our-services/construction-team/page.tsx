@@ -258,9 +258,9 @@ export default function ConstructionTeamPage() {
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Button 
-              variant="outline" 
+              variant="outline"
               size="lg"
-              className="border-2 border-white text-white hover:bg-white hover:text-lime-600 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300"
+              className="border-2 border-white text-lime-800 hover:bg-white hover:text-lime-600 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300"
             >
               Start Construction Partnership
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -269,7 +269,7 @@ export default function ConstructionTeamPage() {
             <Button 
               variant="outline" 
               size="lg"
-              className="border-2 border-white text-white hover:bg-white hover:text-lime-600 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300"
+              className="border-2 border-white text-lime-800 hover:bg-white hover:text-lime-600 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300"
             >
               <User className="mr-2 h-5 w-5" />
               Gallery Group Case Study
