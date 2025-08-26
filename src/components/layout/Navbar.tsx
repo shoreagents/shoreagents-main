@@ -11,7 +11,7 @@ import { useCurrency, currencies } from '@/lib/currencyContext'
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { selectedCurrency, setSelectedCurrency } = useCurrency()
+  const { selectedCurrency, setSelectedCurrency, userLocation, isDetectingLocation, detectUserLocation, isAutoDetected } = useCurrency()
   const pathname = usePathname()
 
   // Helper function to check if a link is active
@@ -26,6 +26,10 @@ export function Navbar() {
   
   const handleCurrencySelect = (currency: any) => {
     setSelectedCurrency(currency)
+    // Clear auto-detection flag when manually selecting
+    if (isAutoDetected) {
+      // You can add logic here to clear the auto-detection state if needed
+    }
   }
 
   return (
@@ -420,10 +424,20 @@ export function Navbar() {
           <div className="hidden md:flex items-center pr-4">
             <div className="relative group">
               <div 
-                className="flex items-center space-x-2 bg-lime-600 text-white border border-lime-600 rounded-lg px-4 py-1.5 cursor-pointer hover:bg-lime-500 hover:border-lime-500 transition-all duration-200 w-28 shadow-sm hover:shadow-md"
+                className={`flex items-center space-x-2 bg-lime-600 text-white border border-lime-600 rounded-lg px-4 py-1.5 cursor-pointer hover:bg-lime-500 hover:border-lime-500 transition-all duration-200 w-28 shadow-sm hover:shadow-md ${isAutoDetected ? 'ring-2 ring-lime-300' : ''}`}
+                title={isDetectingLocation ? "Detecting your location..." : `Current currency: ${selectedCurrency.code}${isAutoDetected ? ' (Auto-detected)' : ''}`}
               >
-                <span className="text-lg font-bold text-white">{selectedCurrency.symbol}</span>
-                <span className="text-sm font-medium text-white">{selectedCurrency.code}</span>
+                {isDetectingLocation ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span className="text-sm font-medium text-white">...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg font-bold text-white">{selectedCurrency.symbol}</span>
+                    <span className="text-sm font-medium text-white">{selectedCurrency.code}</span>
+                  </>
+                )}
                 <ChevronDown className="h-4 w-4 text-white transition-transform duration-200 group-hover:rotate-180" />
               </div>
               

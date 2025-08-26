@@ -11,4 +11,5 @@ Missing Button's Page
 - Administrative Virtual Assistant > Get Administrative VA Support, Start Administrative Partnership, *
 - Construction Virtual Assistant > Get Construction VA Support, Start Construction Partnership, * 
 - Insurance Virtual Assistant > Get Insurance VA Support, *
+- Marketing Team > Get Marketing VA Support, Start Marketing Partnership, *
 
