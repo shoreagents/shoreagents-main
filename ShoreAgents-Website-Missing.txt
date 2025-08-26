@@ -12,4 +12,4 @@ Missing Button's Page
 - Construction Virtual Assistant > Get Construction VA Support, Start Construction Partnership, * 
 - Insurance Virtual Assistant > Get Insurance VA Support, *
 - Marketing Team > Get Marketing VA Support, Start Marketing Partnership, *
-- Accounting Virtual Assistant > Get Accounting VA Support , Start Accounting Partnership, *
+- Finance and Accounting Virtual Assistant > Get Accounting VA Support , Start Accounting Partnership, *

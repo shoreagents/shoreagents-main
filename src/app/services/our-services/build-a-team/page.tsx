@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { PricingCalculatorModal } from "@/components/ui/pricing-calculator-modal";
 import Link from "next/link";
 import { useState } from "react";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function BuildATeamPage() {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   return (
+    <>
+    <SideNav />
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-lime-50 to-white py-16 px-4">
@@ -522,5 +525,6 @@ export default function BuildATeamPage() {
         onClose={() => setIsPricingModalOpen(false)} 
       />
     </div>
+    </>
   );
 }
