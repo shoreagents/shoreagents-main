@@ -492,7 +492,7 @@ export default function AboutPage() {
                         navItemRefs.current[section.id] = el
                       }}
                       onClick={() => scrollToSection(section.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                         activeSection === section.id
                           ? 'bg-lime-100 text-lime-700 border-l-4 border-lime-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-lime-600'
@@ -521,9 +521,11 @@ export default function AboutPage() {
                   {teamSections.map((section) => (
                     <button
                       key={section.id}
-                      ref={(el) => (navItemRefs.current[section.id] = el)}
+                      ref={(el) => {
+                        navItemRefs.current[section.id] = el
+                      }}
                       onClick={() => scrollToSection(section.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                         activeSection === section.id
                           ? 'bg-lime-100 text-lime-700 border-l-4 border-lime-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-lime-600'
@@ -552,9 +554,11 @@ export default function AboutPage() {
                   {partnershipSections.map((section) => (
                     <button
                       key={section.id}
-                      ref={(el) => (navItemRefs.current[section.id] = el)}
+                      ref={(el) => {
+                        navItemRefs.current[section.id] = el
+                      }}
                       onClick={() => scrollToSection(section.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                         activeSection === section.id
                           ? 'bg-lime-100 text-lime-700 border-l-4 border-lime-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-lime-600'
@@ -583,9 +587,11 @@ export default function AboutPage() {
                   {caseStudySections.map((section) => (
                     <button
                       key={section.id}
-                      ref={(el) => (navItemRefs.current[section.id] = el)}
+                      ref={(el) => {
+                        navItemRefs.current[section.id] = el
+                      }}
                       onClick={() => scrollToSection(section.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                         activeSection === section.id
                           ? 'bg-lime-100 text-lime-700 border-l-4 border-lime-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-lime-600'
@@ -614,9 +620,11 @@ export default function AboutPage() {
                   {resourceSections.map((section) => (
                     <button
                       key={section.id}
-                      ref={(el) => (navItemRefs.current[section.id] = el)}
+                      ref={(el) => {
+                        navItemRefs.current[section.id] = el
+                      }}
                       onClick={() => scrollToSection(section.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                         activeSection === section.id
                           ? 'bg-lime-100 text-lime-700 border-l-4 border-lime-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-lime-600'

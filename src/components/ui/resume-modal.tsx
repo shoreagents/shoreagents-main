@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ResumeGenerated } from '@/types/api';
 import { Button } from './button';
 import { X, FileText, Download, ExternalLink } from 'lucide-react';
+import { useToast } from '@/lib/toast-context';
 
 interface ResumeModalProps {
   resume: ResumeGenerated | null;
@@ -13,6 +14,7 @@ interface ResumeModalProps {
 
 export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -55,6 +57,9 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
+          
+          // Show success toast
+          showToast('Resume downloaded successfully!', 'success');
         } catch (error) {
           console.warn('Failed to decode file data, falling back to text resume:', error);
           downloadResumeAsText();
@@ -120,8 +125,8 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
     
-    // Show success message
-    alert('Resume downloaded successfully!');
+    // Show success toast
+    showToast('Resume downloaded successfully!', 'success');
   };
 
   const handleViewOnline = () => {
@@ -144,6 +149,9 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
           window.open(url, '_blank');
           // Clean up the URL after a delay
           setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+          
+          // Show success toast
+          showToast('Resume opened in new tab!', 'success');
         } catch (error) {
           console.warn('Failed to decode file data, falling back to HTML resume:', error);
           showResumeContentInNewTab();
@@ -238,13 +246,13 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
     
     htmlContent += '</body></html>';
     
-         const blob = new Blob([htmlContent], { type: 'text/html' });
-     const url = window.URL.createObjectURL(blob);
-     window.open(url, '_blank');
-     setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-     
-     // Show success message
-     alert('Resume opened in new tab!');
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+    
+    // Show success toast
+    showToast('Resume opened in new tab!', 'success');
   };
 
   return (

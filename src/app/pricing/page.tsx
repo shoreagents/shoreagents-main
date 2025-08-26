@@ -347,7 +347,7 @@ export default function PricingPage() {
                 {/* Calculate Button */}
                 <button 
                   onClick={() => setIsCalculatorOpen(true)}
-                  className="w-full bg-lime-600 text-white px-4 py-3 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-base"
+                  className="w-full bg-lime-600 text-white px-4 py-3 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-base cursor-pointer"
                 >
                   <Calculator className="w-4 h-4 mr-2" />
                   Calculate Your Costs

@@ -11,7 +11,6 @@ import { useCurrency, currencies } from '@/lib/currencyContext'
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false)
   const { selectedCurrency, setSelectedCurrency } = useCurrency()
   const pathname = usePathname()
 
@@ -25,11 +24,8 @@ export function Navbar() {
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen)
   
-  const toggleCurrencyDropdown = () => setIsCurrencyDropdownOpen(!isCurrencyDropdownOpen)
-  
   const handleCurrencySelect = (currency: any) => {
     setSelectedCurrency(currency)
-    setIsCurrencyDropdownOpen(false)
   }
 
   return (
@@ -422,27 +418,26 @@ export function Navbar() {
 
           {/* Currency Selector - Right Side */}
           <div className="hidden md:flex items-center pr-4">
-            <div className="relative">
+            <div className="relative group">
               <div 
-                onClick={toggleCurrencyDropdown}
-                className="flex items-center space-x-2 bg-lime-50 border border-lime-300 rounded-sm px-3 py-2 cursor-pointer hover:bg-lime-100 transition-colors duration-200 w-24"
+                className="flex items-center space-x-2 bg-lime-600 text-white border border-lime-600 rounded-lg px-4 py-1.5 cursor-pointer hover:bg-lime-500 hover:border-lime-500 transition-all duration-200 w-28 shadow-sm hover:shadow-md"
               >
-                <span className="text-lg font-bold text-lime-600">{selectedCurrency.symbol}</span>
-                <span className="text-sm font-medium text-gray-700">{selectedCurrency.code}</span>
-                <ChevronDown className={`h-4 w-4 text-lime-600 transition-transform duration-200 ${isCurrencyDropdownOpen ? 'rotate-180' : ''}`} />
+                <span className="text-lg font-bold text-white">{selectedCurrency.symbol}</span>
+                <span className="text-sm font-medium text-white">{selectedCurrency.code}</span>
+                <ChevronDown className="h-4 w-4 text-white transition-transform duration-200 group-hover:rotate-180" />
               </div>
               
               {/* Currency Dropdown */}
-              <div className={`absolute top-full right-0 mt-2 bg-white border border-lime-300 rounded-sm shadow-lg transition-all duration-300 ease-in-out z-50 w-24 ${isCurrencyDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+              <div className="absolute top-full right-0 mt-2 bg-white border border-lime-600 rounded-lg shadow-xl transition-all duration-300 ease-in-out z-50 w-28 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
                 <div className="py-2">
                   {currencies.map((currency) => (
                     <div 
                       key={currency.code}
-                      className="flex items-center px-4 py-2 cursor-pointer hover:bg-lime-50 transition-colors"
+                      className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-lime-50 transition-colors duration-200"
                       onClick={() => handleCurrencySelect(currency)}
                     >
                       <span className="text-lg font-bold text-lime-600 w-8">{currency.symbol}</span>
-                      <span className="text-sm text-gray-700">{currency.code}</span>
+                      <span className="text-sm text-gray-700 font-medium">{currency.code}</span>
                     </div>
                   ))}
                 </div>

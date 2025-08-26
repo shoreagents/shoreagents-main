@@ -72,7 +72,7 @@ export function Carousel({
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+              className={`w-2 h-2 rounded-full transition-colors duration-300 cursor-pointer ${
                 index === currentSlide 
                   ? 'bg-lime-600' 
                   : 'bg-lime-300 hover:bg-lime-400'

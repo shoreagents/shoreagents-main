@@ -327,7 +327,7 @@ export default function ServicesPage() {
                     <button
                       key={service.id}
                       onClick={() => scrollToSection(service.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                         activeSection === service.id
                           ? 'bg-lime-100 text-lime-700 border-l-4 border-lime-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-lime-600'
@@ -357,7 +357,7 @@ export default function ServicesPage() {
                     <button
                       key={service.id}
                       onClick={() => scrollToSection(service.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                         activeSection === service.id
                           ? 'bg-lime-100 text-lime-700 border-l-4 border-lime-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-lime-600'

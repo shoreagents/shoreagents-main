@@ -12,7 +12,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
     <div className="border border-gray-200 rounded-lg">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
       >
         <span className="font-medium text-gray-900">{question}</span>
         {isOpen ? (

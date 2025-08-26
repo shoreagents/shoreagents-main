@@ -5,7 +5,9 @@ import {
   AIAnalysisResult, 
   ResumeGenerated, 
   ApiResponse,
-  EmployeeCardData 
+  EmployeeCardData,
+  WorkStatus,
+  WorkStatusResponse
 } from '@/types/api';
 
 const API_BASE_URL = 'https://www.bpoc.io/api/public';
@@ -65,8 +67,89 @@ export async function fetchResumesGenerated(): Promise<ResumeGenerated[]> {
   }
 }
 
+// Helper function to check if API is available
+async function checkApiHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user-work-status`, {
+      method: 'HEAD', // Just check if endpoint exists
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+// Helper function to retry API calls
+async function retryFetch<T>(
+  fetchFn: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fetchFn();
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      console.warn(`Work status API attempt ${attempt} failed, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2; // Exponential backoff
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
+export async function fetchWorkStatus(): Promise<WorkStatus[]> {
+  try {
+    // First check if API is available
+    const isApiAvailable = await checkApiHealth();
+    if (!isApiAvailable) {
+      console.warn('Work status API is not available, skipping work status data');
+      return [];
+    }
+
+    // Create the fetch function with retry logic
+    const fetchWorkStatusData = async (): Promise<WorkStatus[]> => {
+      const response = await fetch(`${API_BASE_URL}/user-work-status`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data: WorkStatusResponse = await response.json();
+      
+      if (!data || !data.results) {
+        throw new Error('Invalid work status API response format');
+      }
+      
+      return data.results;
+    };
+
+    // Retry the fetch with exponential backoff
+    const results = await retryFetch(fetchWorkStatusData, 3, 1000);
+    
+    console.log(`Successfully fetched ${results.length} work status records`);
+    return results;
+  } catch (error) {
+    console.error('Error fetching work status after retries:', error);
+    // Return empty array instead of throwing to prevent app crashes
+    return [];
+  }
+}
+
 export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
   try {
+    // Fetch all data in parallel, but handle work status separately to prevent failures
     const [users, applications, jobs, aiAnalysisResults, resumes] = await Promise.all([
       fetchUsers(),
       fetchApplications(),
@@ -75,6 +158,15 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
       fetchResumesGenerated()
     ]);
 
+    // Try to fetch work status separately to prevent it from breaking the entire function
+    let workStatuses: WorkStatus[] = [];
+    try {
+      workStatuses = await fetchWorkStatus();
+    } catch (workStatusError) {
+      console.warn('Failed to fetch work status data, continuing without it:', workStatusError);
+      workStatuses = [];
+    }
+
     return users.map(user => {
       const userApplications = applications.filter(app => app.user_id === user.id);
       const appliedJobs = jobs.filter(job => 
@@ -82,13 +174,15 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
       );
       const aiAnalysis = aiAnalysisResults.find(analysis => analysis.user_id === user.id);
       const resume = resumes.find(res => res.user_id === user.id);
+      const workStatus = workStatuses.find(status => status.userId === user.id);
 
       return {
         user,
         applications: userApplications,
         appliedJobs,
         aiAnalysis,
-        resume
+        resume,
+        workStatus
       };
     });
   } catch (error) {

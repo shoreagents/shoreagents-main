@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { EmployeeCard } from '@/components/ui/employee-card';
 import { ResumeModal } from '@/components/ui/resume-modal';
+import { EmployeeDetailsModal } from '@/components/ui/employee-details-modal';
 import { SideNav } from '@/components/layout/SideNav';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { getEmployeeCardData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/lib/toast-context';
 import {
   Search,
   Filter,
@@ -25,7 +27,10 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [selectedResume, setSelectedResume] = useState<ResumeGenerated | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCardData | null>(null);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [isEmployeeDetailsModalOpen, setIsEmployeeDetailsModalOpen] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchEmployees();
@@ -41,8 +46,18 @@ export default function EmployeesPage() {
       setError(null);
       const data = await getEmployeeCardData();
       setEmployees(data);
+      
+      // Check if we have work status data
+      const employeesWithWorkStatus = data.filter(emp => emp.workStatus);
+      if (employeesWithWorkStatus.length === 0) {
+        showToast(`Loaded ${data.length} employees (work status data unavailable)`, 'info');
+      } else {
+        showToast(`Loaded ${data.length} employees successfully`, 'success');
+      }
     } catch (err) {
-      setError('Failed to fetch employee data. Please try again.');
+      const errorMessage = 'Failed to fetch employee data. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       console.error('Error fetching employees:', err);
     } finally {
       setLoading(false);
@@ -58,7 +73,9 @@ export default function EmployeesPage() {
         employee.user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.user.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.user.location.toLowerCase().includes(searchTerm.toLowerCase())
+        employee.user.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (employee.workStatus?.currentEmployer?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (employee.workStatus?.currentPosition?.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -78,6 +95,15 @@ export default function EmployeesPage() {
       case 'ai-analyzed':
         filtered = filtered.filter(employee => employee.aiAnalysis);
         break;
+      case 'employed':
+        filtered = filtered.filter(employee => employee.workStatus?.workStatus === 'employed');
+        break;
+      case 'available':
+        filtered = filtered.filter(employee => employee.workStatus?.workStatus === 'available');
+        break;
+      case 'with-work-status':
+        filtered = filtered.filter(employee => employee.workStatus);
+        break;
       default:
         break;
     }
@@ -86,14 +112,19 @@ export default function EmployeesPage() {
   };
 
   const handleViewDetails = (employee: EmployeeCardData) => {
-    // This could open a modal or navigate to a detailed view
-    console.log('View details for:', employee.user.full_name);
-    // You can implement a modal or navigation here
+    setSelectedEmployee(employee);
+    setIsEmployeeDetailsModalOpen(true);
   };
 
   const handleViewResume = (resume: ResumeGenerated) => {
     setSelectedResume(resume);
     setIsResumeModalOpen(true);
+  };
+
+  const handleViewResumeFromDetails = (resume: ResumeGenerated) => {
+    setSelectedResume(resume);
+    setIsResumeModalOpen(true);
+    setIsEmployeeDetailsModalOpen(false); // Close details modal when opening resume
   };
 
   const getFilterStats = () => {
@@ -104,8 +135,11 @@ export default function EmployeesPage() {
     ).length;
     const withResume = employees.filter(e => e.resume).length;
     const aiAnalyzed = employees.filter(e => e.aiAnalysis).length;
+    const withWorkStatus = employees.filter(e => e.workStatus).length;
+    const employed = employees.filter(e => e.workStatus?.workStatus === 'employed').length;
+    const available = employees.filter(e => e.workStatus?.workStatus === 'available').length;
 
-    return { total, withApplications, qualified, withResume, aiAnalyzed };
+    return { total, withApplications, qualified, withResume, aiAnalyzed, withWorkStatus, employed, available };
   };
 
   const stats = getFilterStats();
@@ -126,7 +160,7 @@ export default function EmployeesPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={fetchEmployees} className="flex items-center space-x-2">
+          <Button onClick={fetchEmployees} variant="refresh" className="flex items-center space-x-2">
             <RefreshCw className="w-4 h-4" />
             <span>Try Again</span>
           </Button>
@@ -150,48 +184,69 @@ export default function EmployeesPage() {
                 Discover qualified candidates ready to join your team
               </p>
             </div>
-            <Button onClick={fetchEmployees} variant="outline" className="flex items-center space-x-2">
+            <Button onClick={fetchEmployees} variant="refresh" className="flex items-center space-x-2">
               <RefreshCw className="w-4 h-4" />
               <span>Refresh</span>
             </Button>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
+            <div className="bg-blue-50 p-4 rounded-lg stat-card-hover">
               <div className="flex items-center space-x-2">
                 <Users className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium text-blue-900">Total</span>
               </div>
               <p className="text-2xl font-bold text-blue-900">{stats.total}</p>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg">
+            <div className="bg-green-50 p-4 rounded-lg stat-card-hover">
               <div className="flex items-center space-x-2">
                 <Briefcase className="w-5 h-5 text-green-600" />
                 <span className="text-sm font-medium text-green-900">Applied</span>
               </div>
               <p className="text-2xl font-bold text-green-900">{stats.withApplications}</p>
             </div>
-            <div className="bg-purple-50 p-4 rounded-lg">
+            <div className="bg-purple-50 p-4 rounded-lg stat-card-hover">
               <div className="flex items-center space-x-2">
                 <Briefcase className="w-5 h-5 text-purple-600" />
                 <span className="text-sm font-medium text-purple-900">Qualified</span>
               </div>
               <p className="text-2xl font-bold text-purple-900">{stats.qualified}</p>
             </div>
-            <div className="bg-yellow-50 p-4 rounded-lg">
+            <div className="bg-yellow-50 p-4 rounded-lg stat-card-hover">
               <div className="flex items-center space-x-2">
                 <Briefcase className="w-5 h-5 text-yellow-600" />
                 <span className="text-sm font-medium text-yellow-900">Resume</span>
               </div>
               <p className="text-2xl font-bold text-yellow-900">{stats.withResume}</p>
             </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
+            <div className="bg-orange-50 p-4 rounded-lg stat-card-hover">
               <div className="flex items-center space-x-2">
                 <Briefcase className="w-5 h-5 text-orange-600" />
                 <span className="text-sm font-medium text-orange-900">AI Analyzed</span>
               </div>
               <p className="text-2xl font-bold text-orange-900">{stats.aiAnalyzed}</p>
+            </div>
+            <div className="bg-indigo-50 p-4 rounded-lg stat-card-hover">
+              <div className="flex items-center space-x-2">
+                <Briefcase className="w-5 h-5 text-indigo-600" />
+                <span className="text-sm font-medium text-indigo-900">Work Status</span>
+              </div>
+              <p className="text-2xl font-bold text-indigo-900">{stats.withWorkStatus}</p>
+            </div>
+            <div className="bg-emerald-50 p-4 rounded-lg stat-card-hover">
+              <div className="flex items-center space-x-2">
+                <Briefcase className="w-5 h-5 text-emerald-600" />
+                <span className="text-sm font-medium text-emerald-900">Employed</span>
+              </div>
+              <p className="text-2xl font-bold text-emerald-900">{stats.employed}</p>
+            </div>
+            <div className="bg-rose-50 p-4 rounded-lg stat-card-hover">
+              <div className="flex items-center space-x-2">
+                <Briefcase className="w-5 h-5 text-rose-600" />
+                <span className="text-sm font-medium text-rose-900">Available</span>
+              </div>
+              <p className="text-2xl font-bold text-rose-900">{stats.available}</p>
             </div>
           </div>
 
@@ -204,20 +259,23 @@ export default function EmployeesPage() {
                 placeholder="Search by name, email, position, or location..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent input-hover-effect"
               />
             </div>
             <div className="flex gap-2">
               <select
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent select-hover-effect cursor-pointer"
               >
                 <option value="all">All Candidates</option>
                 <option value="with-applications">With Applications</option>
                 <option value="qualified">Qualified</option>
                 <option value="with-resume">With Resume</option>
                 <option value="ai-analyzed">AI Analyzed</option>
+                <option value="with-work-status">With Work Status</option>
+                <option value="employed">Currently Employed</option>
+                <option value="available">Available for Work</option>
               </select>
             </div>
           </div>
@@ -236,27 +294,38 @@ export default function EmployeesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                         {filteredEmployees.map((employee) => (
-               <EmployeeCard
-                 key={employee.user.id}
-                 data={employee}
-                 onViewDetails={handleViewDetails}
-                 onViewResume={handleViewResume}
-               />
-             ))}
+            {filteredEmployees.map((employee) => (
+              <EmployeeCard
+                key={employee.user.id}
+                data={employee}
+                onViewDetails={handleViewDetails}
+                onViewResume={handleViewResume}
+              />
+            ))}
           </div>
-                 )}
-       </div>
+        )}
+      </div>
 
-       {/* Resume Modal */}
-       <ResumeModal
-         resume={selectedResume}
-         isOpen={isResumeModalOpen}
-         onClose={() => {
-           setIsResumeModalOpen(false);
-           setSelectedResume(null);
-         }}
-       />
-     </div>
-   );
- }
+      {/* Resume Modal */}
+      <ResumeModal
+        resume={selectedResume}
+        isOpen={isResumeModalOpen}
+        onClose={() => {
+          setIsResumeModalOpen(false);
+          setSelectedResume(null);
+        }}
+      />
+
+      {/* Employee Details Modal */}
+      <EmployeeDetailsModal
+        employee={selectedEmployee}
+        isOpen={isEmployeeDetailsModalOpen}
+        onClose={() => {
+          setIsEmployeeDetailsModalOpen(false);
+          setSelectedEmployee(null);
+        }}
+        onViewResume={handleViewResumeFromDetails}
+      />
+    </div>
+  );
+}
