@@ -83,6 +83,26 @@ export interface ResumeGenerated {
   created_at: string;
 }
 
+export interface WorkStatus {
+  userId: string;
+  currentEmployer: string;
+  currentPosition: string;
+  currentSalary: string;
+  noticePeriod: number;
+  salaryGoal: string;
+  currentMood: string;
+  workStatus: string;
+  employmentType: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkStatusResponse {
+  results: WorkStatus[];
+  limit: number;
+  offset: number;
+}
+
 export interface ApiResponse<T> {
   page: number;
   pageSize: number;
@@ -96,4 +116,5 @@ export interface EmployeeCardData {
   appliedJobs: Job[];
   aiAnalysis?: AIAnalysisResult;
   resume?: ResumeGenerated;
+  workStatus?: WorkStatus;
 }

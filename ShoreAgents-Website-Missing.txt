@@ -1,3 +1,6 @@
+Note that asterisk is for Pricing Calculator
+
+
 ShoreAgents Website
 Missing Page 
 - Customer-service-assistant
@@ -7,5 +10,5 @@ Missing Button's Page
 - Property Management Virtual Assistant > Get Property Management VA, 
 - Administrative Virtual Assistant > Get Administrative VA Support, Start Administrative Partnership, *
 - Construction Virtual Assistant > Get Construction VA Support, Start Construction Partnership, * 
-
+- Insurance Virtual Assistant > Get Insurance VA Support, *
 

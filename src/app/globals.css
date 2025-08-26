@@ -92,6 +92,70 @@ html {
 /* Smooth transitions for all interactive elements */
 button, a, [role="button"] {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+/* Enhanced card hover effects */
+.card-hover-effect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced input field hover effects */
+.input-hover-effect {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-hover-effect:hover {
+  border-color: var(--color-lime-400);
+  box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.1);
+}
+
+/* Enhanced select field hover effects */
+.select-hover-effect {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.select-hover-effect:hover {
+  border-color: var(--color-lime-400);
+  box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.1);
+}
+
+/* Enhanced stat card hover effects */
+.stat-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.stat-card-hover:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced badge hover effects */
+.badge-hover-effect {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge-hover-effect:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced avatar hover effects */
+.avatar-hover-effect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.avatar-hover-effect:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Custom Scrollbar Styling */
