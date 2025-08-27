@@ -299,7 +299,7 @@ export default function EngineeringSupportPage() {
             
             <div className="lg:flex-shrink-0 space-y-4 lg:space-y-0 lg:space-x-4 lg:flex lg:flex-row">
               <Button 
-                variant="outline"
+                variant="primary"
                 size="lg"
                 className="w-full lg:w-auto px-8 py-4 text-lg font-semibold border-white text-white hover:bg-white hover:text-lime-600 shadow-lg hover:shadow-xl"
               >
@@ -307,7 +307,7 @@ export default function EngineeringSupportPage() {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 
-                variant="outline"
+                variant="secondary"
                 size="lg"
                 className="w-full lg:w-auto px-8 py-4 text-lg font-semibold border-white text-white hover:bg-white hover:text-lime-600 shadow-lg hover:shadow-xl"
               >
