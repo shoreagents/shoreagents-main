@@ -106,7 +106,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         if (detectedCurrency && detectedCurrency.code !== selectedCurrency.code) {
           setSelectedCurrency(detectedCurrency)
           setIsAutoDetected(true)
-          console.log(`🌍 Auto-detected currency: ${detectedCurrency.code} for location: ${locationInfo.location.country}`)
+          console.log(`Auto-detected currency: ${detectedCurrency.code} for location: ${locationInfo.location.country}`)
         }
       }
     } catch (error) {
