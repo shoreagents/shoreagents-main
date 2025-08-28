@@ -339,7 +339,7 @@ export function Navbar() {
                       </div>
                     </Link>
                     
-                    <Link href="/about/our-team" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
+                    <Link href="/about/team" className="block p-4 bg-lime-50 rounded-lg hover:bg-lime-100 transition-colors duration-200 group">
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-semibold text-gray-900 group-hover:text-lime-600 transition-colors duration-200">Our Team</h4>
