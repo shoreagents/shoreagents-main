@@ -389,6 +389,39 @@ export default function VirtualAssistantsPage() {
           </div>
         </div>
       </section>
+
+      {/* Ready to Build Your VA Dream Team Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lime-600 to-lime-700">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            Ready to Build Your VA Dream Team?
+          </h2>
+          
+          <p className="text-xl md:text-2xl text-white mb-12 max-w-3xl mx-auto leading-relaxed">
+            From one business owner to another - let's create a virtual assistant solution that actually works.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <Button 
+              size="lg" 
+              className="bg-white text-lime-600 hover:bg-gray-50 px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-white"
+            >
+              Find Your Perfect VA
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            
+            <Button 
+              variant="primary" 
+              size="lg"
+              className="border-2 border-white text-white hover:bg-white hover:text-lime-600 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              <CheckCircle className="mr-2 h-5 w-5" />
+              VA Success Stories
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
