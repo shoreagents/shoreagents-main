@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Shield, Settings, BarChart3, Users, Award } from "lucide-react";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function EngineeringSupportPage() {
   // Scroll to top when component mounts
@@ -12,6 +13,7 @@ export default function EngineeringSupportPage() {
 
     return (
     <div className="min-h-screen bg-gray-50 pt-0">
+      <SideNav />
       {/* Top Spacer to prevent content bleed */}
       <div className="h-0 w-full"></div>
       

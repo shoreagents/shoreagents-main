@@ -17,10 +17,12 @@ import {
   GraduationCap,
   BarChart3
 } from "lucide-react";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function PropertyManagementOutsourcingPage() {
   return (
           <div className="min-h-screen bg-gradient-to-br from-lime-50 to-blue-50">
+            <SideNav />
         {/* Hero Section */}
         <section className="relative overflow-hidden min-h-screen flex items-center">
           {/* Container */}

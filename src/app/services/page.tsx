@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Users, Building2, Factory, CheckCircle, Star, Clock, Shield, Zap } from 'lucide-react'
+import { SideNav } from '@/components/layout/SideNav'
 
 interface ServiceSection {
   id: string
@@ -281,6 +282,7 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SideNav />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-lime-50 via-white to-lime-100 py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
