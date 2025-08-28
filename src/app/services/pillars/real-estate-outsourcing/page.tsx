@@ -4,12 +4,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { colors } from "@/lib/colors";
 import { useCurrency } from "@/lib/currencyContext";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function RealEstateOutsourcingPage() {
   const { selectedCurrency, convertPrice, formatPrice } = useCurrency();
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-lime-50 to-ocean-50">
+      <SideNav />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-16 lg:py-24">

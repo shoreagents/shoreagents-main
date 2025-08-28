@@ -1,10 +1,12 @@
 "use client";
 
 import { ArrowRight, Building2, Users, TrendingUp, Zap, Shield, Globe, Check } from "lucide-react";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function OutsourcingServicesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <SideNav />
       {/* Hero Section - Full Viewport Height */}
       <section className="h-screen flex items-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto w-full">

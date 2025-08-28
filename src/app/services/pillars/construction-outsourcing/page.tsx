@@ -15,10 +15,12 @@ import {
   Wrench,
   Square
 } from "lucide-react";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function ConstructionOutsourcingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-lime-50 to-ocean-50">
+      <SideNav />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Container */}

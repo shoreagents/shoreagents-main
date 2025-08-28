@@ -3,10 +3,12 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { colors } from "@/lib/colors";
+import { SideNav } from "@/components/layout/SideNav";
 
 export default function SeoOutsourcingPage() {
   return (
     <div className="min-h-screen">
+      <SideNav />
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
         {/* Background Gradient */}

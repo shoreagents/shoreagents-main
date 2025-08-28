@@ -3,10 +3,12 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Search, User, TrendingUp, Calculator, Shield } from 'lucide-react'
+import { SideNav } from '@/components/layout/SideNav'
 
 export default function SeoVirtualAssistantPage() {
   return (
     <div className="min-h-screen bg-white">
+      <SideNav />
       {/* Hero Section */}
       <section className="relative py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
