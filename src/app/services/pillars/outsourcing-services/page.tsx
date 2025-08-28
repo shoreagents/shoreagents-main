@@ -191,7 +191,7 @@ export default function OutsourcingServicesPage() {
               <p className="text-gray-600 text-sm leading-relaxed mb-4">
                 Systematic property management support without the receptionist-inspection disasters.
               </p>
-              <a href="/services/pillars/outsourcing-services/property-management" className="inline-flex items-center text-lime-600 font-semibold hover:text-lime-700 transition-colors duration-200 text-sm">
+              <a href="/services/pillars/property-management" className="inline-flex items-center text-lime-600 font-semibold hover:text-lime-700 transition-colors duration-200 text-sm">
                 Learn More
                 <ArrowRight className="w-4 h-4 ml-1" />
               </a>
@@ -205,7 +205,7 @@ export default function OutsourcingServicesPage() {
               <p className="text-gray-600 text-sm leading-relaxed mb-4">
                 Gallery Group multi-year partnership: 'head and shoulders above the rest'.
               </p>
-              <a href="/services/pillars/outsourcing-services/construction-outsourcing" className="inline-flex items-center text-lime-600 font-semibold hover:text-lime-700 transition-colors duration-200 text-sm">
+              <a href="/services/pillars/construction-outsourcing" className="inline-flex items-center text-lime-600 font-semibold hover:text-lime-700 transition-colors duration-200 text-sm">
                 Learn More
                 <ArrowRight className="w-4 h-4 ml-1" />
               </a>
