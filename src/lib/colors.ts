@@ -46,7 +46,7 @@ export type EnergyColor = keyof typeof colors.energy;
 
 // Helper function to get color values
 export const getColor = (palette: keyof typeof colors, shade: string) => {
-  return colors[palette][shade as keyof typeof colors[typeof palette]];
+  return colors[palette][shade as unknown as keyof typeof colors[typeof palette]] || colors[palette][500];
 };
 
 // Common color combinations
