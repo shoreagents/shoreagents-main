@@ -60,7 +60,7 @@ export default function OurMissionPage() {
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Vision</h2>
               <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                To be the world's most trusted and innovative outsourcing partner, 
+                To be the world&apos;s most trusted and innovative outsourcing partner, 
                 transforming how businesses operate and succeed in the global marketplace.
               </p>
             </div>
@@ -131,7 +131,7 @@ export default function OurMissionPage() {
                 <h3 className="text-xl font-semibold text-gray-900">Client Focus</h3>
               </div>
               <p className="text-gray-600">
-                Our clients' success is our success. We are committed to understanding 
+                Our clients&apos; success is our success. We are committed to understanding 
                 their needs and delivering solutions that exceed their expectations.
               </p>
             </div>
@@ -232,7 +232,7 @@ export default function OurMissionPage() {
         <div className="bg-white rounded-xl shadow-lg p-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Partner With Us?</h2>
           <p className="text-xl text-gray-600 mb-6">
-            Let's work together to achieve your business goals and drive success.
+            Let&apos;s work together to achieve your business goals and drive success.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/about/contact">

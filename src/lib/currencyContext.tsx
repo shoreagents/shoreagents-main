@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
 import { currencyApi } from './api'
 import { ipDetectionService, getLocationInfo, LocationData } from './ipDetection'
 
@@ -47,8 +47,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [isDetectingLocation, setIsDetectingLocation] = useState(false)
   const [isAutoDetected, setIsAutoDetected] = useState(false)
 
-  // Fetch real-time exchange rates
-  const fetchExchangeRates = async () => {
+  // Fetch real-time exchange rates - memoized with useCallback
+  const fetchExchangeRates = useCallback(async () => {
     setIsLoadingRates(true)
     try {
       console.log('Fetching exchange rates...')
@@ -84,15 +84,15 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoadingRates(false)
     }
-  }
+  }, [selectedCurrency.code])
 
   // Refresh rates function
-  const refreshRates = async () => {
+  const refreshRates = useCallback(async () => {
     await fetchExchangeRates()
-  }
+  }, [fetchExchangeRates])
 
   // Detect user location and set appropriate currency
-  const detectUserLocation = async () => {
+  const detectUserLocation = useCallback(async () => {
     setIsDetectingLocation(true)
     try {
       const locationInfo = await getLocationInfo()
@@ -114,21 +114,46 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsDetectingLocation(false)
     }
-  }
+  }, [currenciesState, selectedCurrency.code])
 
   // Fetch rates on mount and every 5 minutes
   useEffect(() => {
-    fetchExchangeRates()
+    let isMounted = true;
     
-    const interval = setInterval(fetchExchangeRates, 5 * 60 * 1000) // 5 minutes
+    const fetchRates = async () => {
+      if (!isMounted) return;
+      await fetchExchangeRates();
+    };
     
-    return () => clearInterval(interval)
-  }, [fetchExchangeRates])
+    fetchRates();
+    
+    const interval = setInterval(() => {
+      if (isMounted) {
+        fetchRates();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [fetchExchangeRates]);
 
   // Detect user location on mount
   useEffect(() => {
-    detectUserLocation()
-  }, [])
+    let isMounted = true;
+    
+    const detectLocation = async () => {
+      if (!isMounted) return;
+      await detectUserLocation();
+    };
+    
+    detectLocation();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [detectUserLocation]);
 
   const convertPrice = (usdPrice: number): number => {
     // Use the selected currency's exchange rate (which gets updated with real-time rates)

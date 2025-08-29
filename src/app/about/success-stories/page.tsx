@@ -26,7 +26,7 @@ export default function SuccessStoriesPage() {
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-4">Success Stories</h1>
               <p className="text-xl text-gray-600 max-w-3xl">
-                Real results from real clients - discover how we've helped businesses achieve their goals.
+                Real results from real clients - discover how we&apos;ve helped businesses achieve their goals.
               </p>
             </div>
           </div>
@@ -51,7 +51,7 @@ export default function SuccessStoriesPage() {
                 </div>
               </div>
               <p className="text-gray-700 mb-6">
-                Jack Miller's real estate agency was struggling with administrative overhead and client management. 
+                Jack Miller&apos;s real estate agency was struggling with administrative overhead and client management. 
                 ShoreAgents stepped in to provide comprehensive support, resulting in significant cost savings 
                 and improved operational efficiency.
               </p>
@@ -228,8 +228,8 @@ export default function SuccessStoriesPage() {
                 </div>
               </div>
               <p className="text-gray-700 italic mb-4">
-                "ShoreAgents transformed our operations completely. The cost savings were incredible, 
-                but more importantly, the quality of work exceeded our expectations."
+                &quot;ShoreAgents transformed our operations completely. The cost savings were incredible, 
+                but more importantly, the quality of work exceeded our expectations.&quot;
               </p>
               <div className="flex items-center space-x-1">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -249,8 +249,8 @@ export default function SuccessStoriesPage() {
                 </div>
               </div>
               <p className="text-gray-700 italic mb-4">
-                "The team at ShoreAgents became an extension of our company. Their dedication and 
-                expertise helped us scale our marketing efforts significantly."
+                &quot;The team at ShoreAgents became an extension of our company. Their dedication and 
+                expertise helped us scale our marketing efforts significantly.&quot;
               </p>
               <div className="flex items-center space-x-1">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -270,8 +270,8 @@ export default function SuccessStoriesPage() {
                 </div>
               </div>
               <p className="text-gray-700 italic mb-4">
-                "Working with ShoreAgents has been a game-changer for our business. Their attention to detail 
-                and commitment to quality is outstanding."
+                &quot;Working with ShoreAgents has been a game-changer for our business. Their attention to detail 
+                and commitment to quality is outstanding.&quot;
               </p>
               <div className="flex items-center space-x-1">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -311,7 +311,7 @@ export default function SuccessStoriesPage() {
         <div className="bg-lime-600 rounded-xl p-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Create Your Success Story?</h2>
           <p className="text-xl text-lime-100 mb-6">
-            Let's discuss how we can help you achieve similar results for your business.
+            Let&apos;s discuss how we can help you achieve similar results for your business.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/about/contact">

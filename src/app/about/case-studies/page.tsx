@@ -251,8 +251,8 @@ export default function CaseStudiesPage() {
                 </div>
               </div>
               <p className="text-gray-700 italic">
-                "ShoreAgents transformed our operations completely. The cost savings were incredible, 
-                but more importantly, the quality of work exceeded our expectations."
+                &quot;ShoreAgents transformed our operations completely. The cost savings were incredible, 
+                but more importantly, the quality of work exceeded our expectations.&quot;
               </p>
             </div>
 
@@ -267,8 +267,8 @@ export default function CaseStudiesPage() {
                 </div>
               </div>
               <p className="text-gray-700 italic">
-                "The team at ShoreAgents became an extension of our company. Their dedication and 
-                expertise helped us scale our marketing efforts significantly."
+                &quot;The team at ShoreAgents became an extension of our company. Their dedication and 
+                expertise helped us scale our marketing efforts significantly.&quot;
               </p>
             </div>
           </div>
@@ -278,7 +278,7 @@ export default function CaseStudiesPage() {
         <div className="bg-lime-600 rounded-xl p-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Create Your Success Story?</h2>
           <p className="text-xl text-lime-100 mb-6">
-            Let's discuss how we can help you achieve similar results for your business.
+            Let&apos;s discuss how we can help you achieve similar results for your business.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/about/contact">

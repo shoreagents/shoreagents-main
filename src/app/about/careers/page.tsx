@@ -119,7 +119,7 @@ export default function CareersPage() {
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Recruitment Specialist</h3>
                   <p className="text-gray-600 mb-4">
-                    Find and attract top talent to join our growing team and support our clients' needs.
+                    Find and attract top talent to join our growing team and support our clients&apos; needs.
                   </p>
                   <div className="flex items-center space-x-6 text-sm text-gray-600">
                     <div className="flex items-center space-x-2">
@@ -318,7 +318,7 @@ export default function CareersPage() {
         <div className="bg-lime-600 rounded-xl p-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Join Our Team?</h2>
           <p className="text-xl text-lime-100 mb-6">
-            Don't see a position that matches your skills? Send us your resume and we'll keep you in mind for future opportunities.
+            Don&apos;t see a position that matches your skills? Send us your resume and we&apos;ll keep you in mind for future opportunities.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-lime-600 hover:bg-gray-100">

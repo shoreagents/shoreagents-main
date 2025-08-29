@@ -64,9 +64,9 @@ export default function LeadershipPage() {
                   from a small startup into a global outsourcing leader.
                 </p>
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  Under Stephen's leadership, ShoreAgents has expanded its services across multiple industries, 
+                  Under Stephen&apos;s leadership, ShoreAgents has expanded its services across multiple industries, 
                   serving clients in Australia, New Zealand, and beyond. His commitment to innovation and client 
-                  success has been the driving force behind the company's remarkable growth.
+                  success has been the driving force behind the company&apos;s remarkable growth.
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="bg-lime-50 p-4 rounded-lg">
@@ -160,7 +160,7 @@ export default function LeadershipPage() {
                 </div>
               </div>
               <p className="text-gray-600 text-sm mb-4">
-                Leading our recruitment efforts to find exceptional talent that matches our clients' needs.
+                Leading our recruitment efforts to find exceptional talent that matches our clients&apos; needs.
               </p>
             </div>
 
