@@ -131,14 +131,14 @@ export default function Home() {
                 <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
                   University-educated, office-based Filipino professionals with transparent pricing. AI-powered recruitment finds perfect matches in 7 days.
                 </p>
-                <div className="flex justify-center space-x-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
                   <button 
                     onClick={() => window.location.href = '/employees'}
-                    className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer"
+                    className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer"
                   >
                     View Our Talent Pool
                   </button>
-                  <button className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-sm font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                  <button className="bg-white text-lime-600 border-2 border-lime-600 px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-600 hover:text-white transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
                     Discover Your Perfect Match
                   </button>
                 </div>
@@ -165,37 +165,35 @@ export default function Home() {
             </p>
             
             {/* Key Features */}
-            <div className="inline-flex h-14 items-center px-6 py-2 bg-lime-100 border border-lime-300 rounded-xl shadow-sm mb-6">
-              <div className="flex items-center gap-8">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-sm text-gray-700 whitespace-nowrap">
-                    <span className="font-medium">7 days to hire</span>
-                    <span className="font-normal text-gray-600"> (not 4 weeks)</span>
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <span className="text-sm text-gray-700 whitespace-nowrap">
-                    <span className="font-medium">Office-based</span>
-                    <span className="font-normal text-gray-600"> (not home-based)</span>
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-sm text-gray-700 whitespace-nowrap">
-                    <span className="font-medium">Staff leasing</span>
-                    <span className="font-normal text-gray-600"> (we handle infrastructure)</span>
-                  </span>
-                </div>
+            <div className="inline-flex flex-col sm:flex-row h-auto sm:h-14 items-center px-4 sm:px-6 py-3 sm:py-2 bg-lime-100 border border-lime-300 rounded-xl shadow-sm mb-6 gap-3 sm:gap-8">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-gray-700 whitespace-nowrap">
+                  <span className="font-medium">7 days to hire</span>
+                  <span className="font-normal text-gray-600"> (not 4 weeks)</span>
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span className="text-sm text-gray-700 whitespace-nowrap">
+                  <span className="font-medium">Office-based</span>
+                  <span className="font-normal text-gray-600"> (not home-based)</span>
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-gray-700 whitespace-nowrap">
+                  <span className="font-medium">Staff leasing</span>
+                  <span className="font-normal text-gray-600"> (we handle infrastructure)</span>
+                </span>
               </div>
             </div>
           </div>
@@ -362,152 +360,152 @@ export default function Home() {
 
               {/* Responsibilities Cards */}
               <div className="mt-16 opacity-0 transition-all duration-700 ease-out" id="responsibilities-div">
-                <div className="text-center mb-12 opacity-0 transition-all duration-700 ease-out delay-200" id="responsibilities-header">
-                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                <div className="text-center mb-8 sm:mb-12 opacity-0 transition-all duration-700 ease-out delay-200" id="responsibilities-header">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
                     Clear <span className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 bg-clip-text text-transparent">Responsibilities</span>
                   </h2>
-                  <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
                     We handle the infrastructure, you focus on your business growth.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                   {/* What We Handle Card */}
-                  <div className="bg-white rounded-2xl p-8 shadow-[4px_4px_0px_#4d7c0f] hover:shadow-[6px_6px_0px_#4d7c0f] transition-all duration-300 border border-lime-200 hover:border-lime-300 opacity-0 transition-all duration-700 ease-out delay-400" id="we-handle-card">
-                    <div className="flex items-center mb-6">
-                      <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center mr-4">
-                        <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 shadow-[4px_4px_0px_#4d7c0f] hover:shadow-[6px_6px_0px_#4d7c0f] transition-all duration-300 border border-lime-200 hover:border-lime-300 opacity-0 transition-all duration-700 ease-out delay-400" id="we-handle-card">
+                    <div className="flex items-center mb-4 sm:mb-6">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-lime-100 rounded-xl flex items-center justify-center mr-3 sm:mr-4">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900">What We Handle</h3>
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900">What We Handle</h3>
                     </div>
-                    <ul className="space-y-4">
+                    <ul className="space-y-3 sm:space-y-4">
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-lime-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Recruitment & candidate screening</span>
+                        <span className="text-sm sm:text-base text-gray-700">Recruitment & candidate screening</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-lime-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Office space & infrastructure</span>
+                        <span className="text-sm sm:text-base text-gray-700">Office space & infrastructure</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-lime-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Computers, internet, backup power</span>
+                        <span className="text-sm sm:text-base text-gray-700">Computers, internet, backup power</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-lime-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Government compliance &amp; contracts</span>
+                        <span className="text-sm sm:text-base text-gray-700">Government compliance &amp; contracts</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-lime-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">HR management & payroll</span>
+                        <span className="text-sm sm:text-base text-gray-700">HR management & payroll</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-lime-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Performance monitoring systems</span>
+                        <span className="text-sm sm:text-base text-gray-700">Performance monitoring systems</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-lime-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-lime-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">24/7 IT support & security</span>
+                        <span className="text-sm sm:text-base text-gray-700">24/7 IT support & security</span>
                       </li>
                     </ul>
                   </div>
 
                   {/* What You Handle Card */}
-                  <div className="bg-white rounded-2xl p-8 shadow-[4px_4px_0px_#4d7c0f] hover:shadow-[6px_6px_0px_#4d7c0f] transition-all duration-300 border border-lime-200 hover:border-lime-300 opacity-0 transition-all duration-700 ease-out delay-600" id="you-handle-card">
-                    <div className="flex items-center mb-6">
-                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
-                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 shadow-[4px_4px_0px_#4d7c0f] hover:shadow-[6px_6px_0px_#4d7c0f] transition-all duration-300 border border-ocean-200 hover:border-ocean-300 opacity-0 transition-all duration-700 ease-out delay-600" id="you-handle-card">
+                    <div className="flex items-center mb-4 sm:mb-6">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-ocean-100 rounded-xl flex items-center justify-center mr-3 sm:mr-4">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900">What You Handle</h3>
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900">What You Handle</h3>
                     </div>
-                    <ul className="space-y-4">
+                    <ul className="space-y-3 sm:space-y-4">
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-ocean-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Training your team members</span>
+                        <span className="text-sm sm:text-base text-gray-700">Training your team members</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-ocean-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Daily task assignment & management</span>
+                        <span className="text-sm sm:text-base text-gray-700">Daily task assignment & management</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-ocean-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Quality control & feedback</span>
+                        <span className="text-sm sm:text-base text-gray-700">Quality control & feedback</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-ocean-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Business process development</span>
+                        <span className="text-sm sm:text-base text-gray-700">Business process development</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-ocean-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Team communication & culture</span>
+                        <span className="text-sm sm:text-base text-gray-700">Team communication & culture</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-ocean-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Performance goals & KPIs</span>
+                        <span className="text-sm sm:text-base text-gray-700">Performance goals & KPIs</span>
                       </li>
                       <li className="flex items-start">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-ocean-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Strategic direction & growth</span>
+                        <span className="text-sm sm:text-base text-gray-700">Strategic direction & growth</span>
                       </li>
                     </ul>
                   </div>
@@ -516,18 +514,18 @@ export default function Home() {
 
               {/* Quote Section */}
               <div className="mt-16 text-center">
-                <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg">
-                  <blockquote className="text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
+                <div className="max-w-4xl mx-auto p-6 sm:p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg">
+                  <blockquote className="text-base sm:text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
                     &quot;The thing is, most people overcomplicate outsourcing. We&apos;ve simplified it down to what actually works: find good people, give them proper infrastructure, let you train them your way.&quot;
                   </blockquote>
-                  <cite className="text-base font-semibold text-gray-900">
+                  <cite className="text-sm sm:text-base font-semibold text-gray-900">
                     — Stephen Atcheler, CEO & Founder
                   </cite>
                 </div>
                 
                 {/* CTA Button */}
                 <div className="mt-8">
-                  <button className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                  <button className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
                     START YOUR PROCESS TODAY
                   </button>
                 </div>
@@ -599,7 +597,7 @@ export default function Home() {
 
                 {/* Toggle Switch */}
                 <div className="flex justify-center mb-12">
-                  <div className="relative flex items-center bg-white rounded-full p-1 shadow-lg border border-gray-200">
+                  <div className="relative flex items-center bg-white rounded-full p-1 shadow-lg border border-gray-200 w-full max-w-md">
                     {/* Animated Background Slider */}
                     <div 
                       className={`absolute top-1 bottom-1 rounded-full transition-all duration-500 ease-in-out ${
@@ -611,29 +609,31 @@ export default function Home() {
                     
                     <button
                       onClick={() => setIsShoreAgentsWay(true)}
-                      className={`relative flex items-center px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer hover:scale-105 active:scale-95 ${
+                      className={`relative flex items-center px-3 sm:px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer hover:scale-105 active:scale-95 text-xs sm:text-sm ${
                         isShoreAgentsWay
                           ? 'text-white'
                           : 'text-gray-600 hover:text-gray-800'
                       }`}
                     >
-                      <svg className={`w-5 h-5 mr-2 transition-colors duration-300 ${isShoreAgentsWay ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 transition-colors duration-300 ${isShoreAgentsWay ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Shore Agents Way
+                      <span className="hidden sm:inline">Shore Agents Way</span>
+                      <span className="sm:hidden text-[10px]">Shore Way</span>
                     </button>
                     <button
                       onClick={() => setIsShoreAgentsWay(false)}
-                      className={`relative flex items-center px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer hover:scale-105 active:scale-95 ${
+                      className={`relative flex items-center px-3 sm:px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer hover:scale-105 active:scale-95 text-xs sm:text-sm ${
                         !isShoreAgentsWay
                           ? 'text-white'
-                          : 'text-gray-800'
+                          : 'text-gray-600'
                       }`}
                     >
-                      <svg className={`w-5 h-5 mr-2 transition-colors duration-300 ${!isShoreAgentsWay ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 transition-colors duration-300 ${!isShoreAgentsWay ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
-                      Competitor Way
+                      <span className="hidden sm:inline">Competitor Way</span>
+                      <span className="sm:hidden text-[10px]">Other Way</span>
                     </button>
                   </div>
                 </div>
@@ -650,7 +650,7 @@ export default function Home() {
                     {/* Shore Agents Way Content */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Left Panel: Transparent Pricing Details */}
-                      <div className="bg-white rounded-xl p-6 shadow-lg border border-lime-200 h-[500px] flex flex-col">
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-lime-200 min-h-[500px] flex flex-col">
                         <h3 className="text-2xl font-bold text-lime-600 mb-6">Transparent Pricing</h3>
                         
                         <div className="space-y-4 flex-1">
@@ -713,7 +713,7 @@ export default function Home() {
                       </div>
 
                       {/* Right Panel: Pricing Example */}
-                      <div className="bg-white rounded-xl p-6 shadow-lg border border-lime-200 h-[500px] flex flex-col">
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-lime-200 min-h-[500px] flex flex-col">
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">Shore Agents Pricing Example</h3>
                         <p className="text-gray-600 mb-6">Mid-Level VA ({formatPrice(convertPrice(901))} salary)</p>
                         
@@ -760,7 +760,7 @@ export default function Home() {
                     {/* Competitor Way Content */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Left Panel: Hidden Fee Structure */}
-                      <div className="bg-white rounded-xl p-6 shadow-lg border border-red-200 h-[500px] flex flex-col">
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-red-200 min-h-[500px] flex flex-col">
                         <h3 className="text-2xl font-bold text-red-600 mb-6">Hidden Fee Structure</h3>
                         
                         <div className="space-y-4 flex-1">
@@ -823,7 +823,7 @@ export default function Home() {
                       </div>
 
                       {/* Right Panel: Competitor Example */}
-                      <div className="bg-white rounded-xl p-6 shadow-lg border border-red-200 h-[500px] flex flex-col">
+                      <div className="bg-white rounded-xl p-6 shadow-lg border border-red-200 min-h-[500px] flex flex-col">
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">Competitor &apos;Hidden Fees&apos; Example</h3>
                         <p className="text-gray-600 mb-6">Mid-Level VA (advertised price)</p>
                         
@@ -866,17 +866,17 @@ export default function Home() {
                 </div>
 
                 {/* Transparency Promise Box */}
-                <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg mt-12">
-                  <blockquote className="text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
+                <div className="max-w-4xl mx-auto p-6 sm:p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg mt-12">
+                  <blockquote className="text-base sm:text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
                     &quot;No hidden fees. Benefits at exact cost. If you can&apos;t understand our pricing in 5 minutes, we&apos;ve failed.&quot;
                   </blockquote>
-                  <cite className="text-base font-semibold text-gray-900">
+                  <cite className="text-sm sm:text-base font-semibold text-gray-900">
                     — Stephen&apos;s Transparency Promise
                   </cite>
                 </div>
 
                                   {/* Stephen&apos;s Hidden Fee Horror Story Card */}
-                <div className="max-w-4xl mx-auto mt-12 bg-white rounded-2xl p-8 shadow-lg">
+                <div className="max-w-4xl mx-auto mt-12 bg-white rounded-2xl p-6 sm:p-8 shadow-lg">
                   {/* Header */}
                   <div className="flex items-center mb-6">
                     <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center mr-4">
@@ -888,12 +888,12 @@ export default function Home() {
                   </div>
 
                   {/* Stephen&apos;s Quote */}
-                  <blockquote className="text-lg text-gray-700 italic mb-8 leading-relaxed border-l-4 border-lime-200 pl-6">
+                  <blockquote className="text-base sm:text-lg text-gray-700 italic mb-8 leading-relaxed border-l-4 border-lime-200 pl-4 sm:pl-6">
                     &quot;I hired a &apos;bookkeeper&apos; for $30/hour. After all the fees, contractors, and markups, I was paying $70/hour for someone I&apos;d never met. That&apos;s when I knew there had to be a better way.&quot;
                   </blockquote>
 
                   {/* Comparison Section */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {/* The Old Way */}
                     <div className="bg-red-50 rounded-xl p-6 border border-red-200">
                       <h4 className="text-xl font-bold text-red-600 mb-4">The Old Way (Stephen&apos;s Pain)</h4>
@@ -981,27 +981,27 @@ export default function Home() {
                  </div>
 
                  {/* See Your Exact Savings Card */}
-                 <div className="max-w-4xl mx-auto mt-12 bg-lime-50 rounded-2xl p-8 shadow-lg">
+                 <div className="max-w-4xl mx-auto mt-12 bg-lime-50 rounded-2xl p-6 sm:p-8 shadow-lg">
                    <div className="text-center">
                      {/* Icon */}
-                     <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                       <svg className="w-8 h-8 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                       <svg className="w-6 h-6 sm:w-8 sm:h-8 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                        </svg>
                      </div>
 
                      {/* Heading */}
-                     <h3 className="text-3xl font-bold text-gray-900 mb-4">See Your Exact Savings</h3>
+                     <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">See Your Exact Savings</h3>
 
                      {/* Description */}
-                     <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                     <p className="text-base sm:text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
                        Use our transparent pricing calculator to see exactly what you&apos;ll pay - no surprises, no hidden fees.
                      </p>
 
                      {/* Button */}
                      <button 
                        onClick={() => window.location.href = '/pricing'}
-                       className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center mx-auto cursor-pointer"
+                       className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center mx-auto cursor-pointer"
                      >
                        Calculate Your Real Costs
                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1038,40 +1038,40 @@ export default function Home() {
                    </div>
 
                    {/* Feature Cards */}
-                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-16">
                      {/* Card 1: 7 Days */}
                      <div className="text-center">
-                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                         <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                         <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                          </svg>
                        </div>
-                       <h3 className="text-3xl font-bold text-gray-900 mb-2">7 Days</h3>
-                       <p className="text-gray-600">Average Hire Time</p>
+                       <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">7 Days</h3>
+                       <p className="text-gray-600 text-sm sm:text-base">Average Hire Time</p>
                      </div>
 
                      {/* Card 2: 100% University Educated */}
                      <div className="text-center">
-                       <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                         <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                         <svg className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                          </svg>
                        </div>
-                       <h3 className="text-3xl font-bold text-gray-900 mb-2">100%</h3>
-                       <p className="text-gray-600">University Educated</p>
+                       <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">100%</h3>
+                       <p className="text-gray-600 text-sm sm:text-base">University Educated</p>
                      </div>
 
                      {/* Card 3: Office Based */}
                      <div className="text-center">
-                       <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                         <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <div className="w-12 h-12 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                         <svg className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                          </svg>
                        </div>
-                       <h3 className="text-3xl font-bold text-gray-900 mb-2">Office Based</h3>
-                       <p className="text-gray-600">Clark, Philippines</p>
+                       <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Office Based</h3>
+                       <p className="text-gray-600 text-sm sm:text-base">Clark, Philippines</p>
                      </div>
                    </div>
                  </div>
@@ -1080,7 +1080,7 @@ export default function Home() {
                  <div className="max-w-6xl mx-auto mt-16">
 
                    {/* Employee Cards Grid */}
-                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                      {loading ? (
                        <div className="col-span-3 text-center py-12">
                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-600 mx-auto mb-4"></div>
@@ -1104,7 +1104,7 @@ export default function Home() {
                    <div className="text-center mt-12">
                      <button 
                        onClick={() => window.location.href = '/employees'}
-                       className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer"
+                       className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer"
                      >
                        View All Talent Pool
                      </button>
@@ -1194,7 +1194,7 @@ export default function Home() {
 
                      {/* CTA Section */}
                      <div className="text-center mt-12">
-                       <button className="bg-white text-lime-800 px-8 py-4 rounded-sm font-semibold hover:bg-lime-100 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                       <button className="bg-white text-lime-800 px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-100 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
                          Experience AI-Powered Interviews
                        </button>
                      </div>
@@ -1222,7 +1222,7 @@ export default function Home() {
                      </div>
 
                                            {/* Process Cards */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
                         {/* Step 1: AI Analysis */}
                         <div className="bg-lime-800 rounded-2xl p-6 shadow-lg border border-lime-700 hover:shadow-xl transition-all duration-300 relative group">
                           <div className="absolute -top-2 -right-2">
@@ -1328,7 +1328,7 @@ export default function Home() {
 
                      {/* CTA Section */}
                      <div className="text-center mt-12">
-                       <button className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                       <button className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
                          Start Your AI-Powered Hiring Process
                        </button>
                      </div>
