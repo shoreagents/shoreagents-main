@@ -218,7 +218,7 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
     
     if (resumeData.experience && resumeData.experience.length > 0) {
       htmlContent += '<div class="section"><h2>Experience</h2>';
-      resumeData.experience.forEach((exp: any) => {
+             resumeData.experience.forEach((exp: Record<string, unknown>) => {
         htmlContent += `
           <div class="experience-item">
             <div class="company">${exp.position || exp.title || 'Position'}</div>
@@ -232,7 +232,7 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
     
     if (resumeData.education && resumeData.education.length > 0) {
       htmlContent += '<div class="section"><h2>Education</h2>';
-      resumeData.education.forEach((edu: any) => {
+             resumeData.education.forEach((edu: Record<string, unknown>) => {
         htmlContent += `
           <div class="education-item">
             <div class="company">${edu.degree}</div>
