@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { EmployeeCardData } from '@/types/api';
+import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { Button } from './button';
 import { 
   X, 
@@ -25,7 +25,7 @@ interface EmployeeDetailsModalProps {
   employee: EmployeeCardData | null;
   isOpen: boolean;
   onClose: () => void;
-  onViewResume?: (resume: any) => void;
+  onViewResume?: (resume: ResumeGenerated) => void;
 }
 
 export function EmployeeDetailsModal({ employee, isOpen, onClose, onViewResume }: EmployeeDetailsModalProps) {

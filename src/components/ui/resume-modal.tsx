@@ -99,7 +99,7 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
     
     if (resumeData.experience && resumeData.experience.length > 0) {
       content += `EXPERIENCE\n`;
-      resumeData.experience.forEach((exp: any) => {
+      resumeData.experience.forEach((exp: Record<string, unknown>) => {
         content += `${exp.position || exp.title || 'Position'} at ${exp.company}\n`;
         if (exp.duration) content += `${exp.duration}\n`;
         content += '\n';
@@ -108,7 +108,7 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
     
     if (resumeData.education && resumeData.education.length > 0) {
       content += `EDUCATION\n`;
-      resumeData.education.forEach((edu: any) => {
+      resumeData.education.forEach((edu: Record<string, unknown>) => {
         content += `${edu.degree} - ${edu.institution}\n`;
         if (edu.year) content += `${edu.year}\n`;
         content += '\n';
@@ -375,7 +375,7 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
                            <div>
                              <strong>Original Files:</strong>
                              <div className="mt-1">
-                               {data.files.map((file: any, index: number) => (
+                               {data.files.map((file: Record<string, unknown>, index: number) => (
                                  <div key={index} className="text-gray-600">
                                    📎 {file.fileName} ({file.fileType})
                                  </div>

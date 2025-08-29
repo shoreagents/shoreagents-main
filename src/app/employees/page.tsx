@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { EmployeeCard } from '@/components/ui/employee-card';
 import { ResumeModal } from '@/components/ui/resume-modal';
 import { EmployeeDetailsModal } from '@/components/ui/employee-details-modal';
@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/toast-context';
 import {
   Search,
-  Filter,
   Users,
   Briefcase,
   MapPin,
@@ -34,13 +33,13 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [fetchEmployees]);
 
   useEffect(() => {
     filterEmployees();
-  }, [employees, searchTerm, selectedFilter]);
+  }, [employees, searchTerm, selectedFilter, filterEmployees]);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -62,9 +61,9 @@ export default function EmployeesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  const filterEmployees = () => {
+  const filterEmployees = useCallback(() => {
     let filtered = employees;
 
     // Apply search filter
@@ -109,7 +108,7 @@ export default function EmployeesPage() {
     }
 
     setFilteredEmployees(filtered);
-  };
+  }, [employees, searchTerm, selectedFilter]);
 
   const handleViewDetails = (employee: EmployeeCardData) => {
     setSelectedEmployee(employee);

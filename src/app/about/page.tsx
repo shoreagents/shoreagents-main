@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Users, Award, BookOpen, User, MapPin, Building, Calculator, FileText, Play, Star, CheckCircle, Clock, Shield, Zap } from 'lucide-react'
+import { ArrowRight, Users, Award, BookOpen, User, MapPin, Building, Calculator, FileText, Play, Star } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 
 interface AboutSection {
