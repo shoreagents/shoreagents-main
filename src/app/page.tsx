@@ -161,7 +161,7 @@ export default function Home() {
               <span className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 bg-clip-text text-transparent hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center]">Actually Works</span>
             </h2>
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto italic">
-              "I've done all the dumb things, so you don't have to. Here's the systematic approach that actually works."
+              &quot;I&apos;ve done all the dumb things, so you don&apos;t have to. Here&apos;s the systematic approach that actually works.&quot;
             </p>
             
             {/* Key Features */}

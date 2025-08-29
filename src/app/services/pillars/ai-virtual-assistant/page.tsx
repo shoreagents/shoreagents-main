@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Clock, CheckCircle, Sparkles, Users, Brain, Zap, TrendingUp, FileText, Calculator, Phone, Settings, Star, DollarSign, Quote } from 'lucide-react'
+import { ArrowRight, Clock, CheckCircle, Sparkles, Users, Brain, Zap, TrendingUp, FileText, Calculator, Phone, Settings, Star, DollarSign } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 
 export default function AiVirtualAssistantPage() {
@@ -96,7 +96,7 @@ export default function AiVirtualAssistantPage() {
 
                 {/* Description */}
                 <p className="text-lg sm:text-xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed">
-                  We're developing the most advanced AI-enhanced virtual assistant services combining human intelligence with Uncle Claude's capabilities. Be the first to experience the future.
+                  We&apos;re developing the most advanced AI-enhanced virtual assistant services combining human intelligence with Uncle Claude&apos;s capabilities. Be the first to experience the future.
                 </p>
 
                 {/* CTA Buttons */}
@@ -132,7 +132,7 @@ export default function AiVirtualAssistantPage() {
                   <h3 className="text-xl font-bold text-gray-900">AI + Human Intelligence</h3>
                 </div>
                 <p className="text-gray-700 leading-relaxed">
-                  Combining Filipino talent with AI tools like "Uncle Claude" creates something special - virtual assistants that outperform expensive local hires.
+                  Combining Filipino talent with AI tools like &ldquo;Uncle Claude&rdquo; creates something special - virtual assistants that outperform expensive local hires.
                 </p>
               </div>
 
@@ -222,20 +222,20 @@ export default function AiVirtualAssistantPage() {
                   {/* Body Paragraphs */}
                   <div className="space-y-4 text-lg text-gray-700 leading-relaxed">
                     <p>
-                      The thing is, AI alone isn't the answer - and neither are humans without tools. However, I found that Filipino VAs working with AI creates something exceptional.
+                      The thing is, AI alone isn&apos;t the answer - and neither are humans without tools. However, I found that Filipino VAs working with AI creates something exceptional.
                     </p>
                     <p>
-                      Our upcoming teams will use "Uncle Claude" for content creation, data analysis, and complex problem-solving, while applying human intelligence for judgment, relationship building, and creative solutions.
+                      Our upcoming teams will use &ldquo;Uncle Claude&rdquo; for content creation, data analysis, and complex problem-solving, while applying human intelligence for judgment, relationship building, and creative solutions.
                     </p>
                     <p>
-                      It's pretty cool how this combination will deliver results that pure AI services or traditional VAs simply can't match. Better outputs, faster turnaround, lower costs.
+                      It&apos;s pretty cool how this combination will deliver results that pure AI services or traditional VAs simply can&apos;t match. Better outputs, faster turnaround, lower costs.
                     </p>
                   </div>
 
                   {/* Quote Box */}
                   <div className="mt-8 bg-lime-100 rounded-lg p-6 border border-lime-200">
                     <p className="text-lime-800 font-bold text-lg italic">
-                      "AI amplifies human intelligence - it doesn't replace it. The magic happens when skilled people use AI as a superpower."
+                      &ldquo;AI amplifies human intelligence - it doesn&apos;t replace it. The magic happens when skilled people use AI as a superpower.&rdquo;
                     </p>
                   </div>
                 </div>
@@ -331,7 +331,7 @@ export default function AiVirtualAssistantPage() {
                 Why AI Virtual Assistants Will Actually Work
               </h2>
               <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-                It's pretty cool how the combination of human intelligence, AI tools, and proper systems will create results that neither pure AI nor traditional VAs can match.
+                It&apos;s pretty cool how the combination of human intelligence, AI tools, and proper systems will create results that neither pure AI nor traditional VAs can match.
               </p>
             </div>
 
