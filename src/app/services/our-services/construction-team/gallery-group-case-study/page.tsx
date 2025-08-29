@@ -252,7 +252,7 @@ export default function GalleryGroupCaseStudyPage() {
               <Award className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-blue-900 mb-4">Mike's Business Tours Discovery</h3>
               <p className="text-lg text-blue-900 leading-relaxed max-w-4xl mx-auto">
-                Gallery Group's partnership with Shore Agents was discovered through <strong>Mike's Business Tours</strong>, where they were recognized as being <strong>"head and shoulders above the rest"</strong> in the outsourcing space.
+                Gallery Group&apos;s partnership with Shore Agents was discovered through <strong>Mike&apos;s Business Tours</strong>, where they were recognized as being <strong>&quot;head and shoulders above the rest&quot;</strong> in the outsourcing space.
               </p>
             </div>
 

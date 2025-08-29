@@ -46,7 +46,7 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const div = entry.target as HTMLElement;
@@ -413,7 +413,7 @@ export default function Home() {
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-gray-700">Government compliance & contracts</span>
+                        <span className="text-gray-700">Government compliance &amp; contracts</span>
                       </li>
                       <li className="flex items-start">
                         <div className="w-6 h-6 bg-lime-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
@@ -824,7 +824,7 @@ export default function Home() {
 
                       {/* Right Panel: Competitor Example */}
                       <div className="bg-white rounded-xl p-6 shadow-lg border border-red-200 h-[500px] flex flex-col">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Competitor 'Hidden Fees' Example</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Competitor &apos;Hidden Fees&apos; Example</h3>
                         <p className="text-gray-600 mb-6">Mid-Level VA (advertised price)</p>
                         
                         <div className="space-y-2 mb-6 flex-1">
@@ -868,7 +868,7 @@ export default function Home() {
                 {/* Transparency Promise Box */}
                 <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg mt-12">
                   <blockquote className="text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
-                    "No hidden fees. Benefits at exact cost. If you can't understand our pricing in 5 minutes, we've failed."
+                    &quot;No hidden fees. Benefits at exact cost. If you can&apos;t understand our pricing in 5 minutes, we&apos;ve failed.&quot;
                   </blockquote>
                   <cite className="text-base font-semibold text-gray-900">
                     — Stephen's Transparency Promise
@@ -884,19 +884,19 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900">Stephen's Hidden Fee Horror Story</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">Stephen&apos;s Hidden Fee Horror Story</h3>
                   </div>
 
                   {/* Stephen's Quote */}
                   <blockquote className="text-lg text-gray-700 italic mb-8 leading-relaxed border-l-4 border-lime-200 pl-6">
-                    "I hired a 'bookkeeper' for $30/hour. After all the fees, contractors, and markups, I was paying $70/hour for someone I'd never met. That's when I knew there had to be a better way."
+                    &quot;I hired a &apos;bookkeeper&apos; for $30/hour. After all the fees, contractors, and markups, I was paying $70/hour for someone I&apos;d never met. That&apos;s when I knew there had to be a better way.&quot;
                   </blockquote>
 
                   {/* Comparison Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* The Old Way */}
                     <div className="bg-red-50 rounded-xl p-6 border border-red-200">
-                      <h4 className="text-xl font-bold text-red-600 mb-4">The Old Way (Stephen's Pain)</h4>
+                      <h4 className="text-xl font-bold text-red-600 mb-4">The Old Way (Stephen&apos;s Pain)</h4>
                       <ul className="space-y-3">
                         <li className="flex items-start">
                           <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
@@ -995,7 +995,7 @@ export default function Home() {
 
                      {/* Description */}
                      <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                       Use our transparent pricing calculator to see exactly what you'll pay - no surprises, no hidden fees.
+                       Use our transparent pricing calculator to see exactly what you&apos;ll pay - no surprises, no hidden fees.
                      </p>
 
                      {/* Button */}
@@ -1152,7 +1152,7 @@ export default function Home() {
                          </div>
                          <h3 className="text-2xl font-bold text-white mb-4">Personalized Questions</h3>
                          <p className="text-lime-100 mb-6 leading-relaxed">
-                           Our AI analyzes each candidate's background, skills, and experience to generate tailored interview questions that reveal their true capabilities.
+                           Our AI analyzes each candidate&apos;s background, skills, and experience to generate tailored interview questions that reveal their true capabilities.
                          </p>
                          <div className="bg-lime-600 rounded-lg p-3">
                            <p className="text-sm font-medium text-white">Targeted insights for each candidate</p>

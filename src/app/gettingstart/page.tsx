@@ -113,7 +113,7 @@ export default function GettingStartedPage() {
             <div className="bg-gray-100 rounded-sm p-6 relative">
               <Star className="w-5 h-5 text-lime-600 absolute top-4 left-4" />
               <blockquote className="text-gray-700 italic mb-4 mt-6">
-                "Anyone in real estate should reach out to Shore Agents. They're the real deal."
+                &quot;Anyone in real estate should reach out to Shore Agents. They&apos;re the real deal.&quot;
               </blockquote>
               <cite className="text-sm font-semibold text-gray-900">
                 — Derek Gallimore, CEO, Outsource Accelerator
@@ -166,7 +166,7 @@ export default function GettingStartedPage() {
               <span className="text-lime-600">Offshore Nightmares?</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Most companies waste months and thousands on failed offshore attempts. Here's why traditional approaches fail...
+              Most companies waste months and thousands on failed offshore attempts. Here&apos;s why traditional approaches fail...
             </p>
           </div>
 
@@ -241,7 +241,7 @@ export default function GettingStartedPage() {
 
           {/* Testimonial Section */}
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Sound Familiar? You're Not Alone.</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Sound Familiar? You&apos;re Not Alone.</h3>
             <p className="text-lg text-gray-600 max-w-4xl mx-auto">
               Stephen Atcheler (Shore Agents CEO) made every single one of these mistakes while scaling his 400-property real estate business. The 5-person hiring disaster alone cost him $50,000+ and 6 months of wasted time.
             </p>
@@ -252,7 +252,7 @@ export default function GettingStartedPage() {
             <div className="inline-flex items-center px-6 py-3 bg-lime-100 rounded-sm">
               <AlertTriangle className="w-5 h-5 text-lime-600 mr-2" />
               <span className="text-lime-600 font-semibold">
-                That's exactly why{" "}
+                That&apos;s exactly why{" "}
                 <span className="underline cursor-pointer hover:text-lime-700">Shore Agents</span> exists
               </span>
             </div>
@@ -270,7 +270,7 @@ export default function GettingStartedPage() {
               <span className="text-lime-600">Complete Solution</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We've solved every offshore challenge so you don't have to. Here's what makes us different...
+              We&apos;ve solved every offshore challenge so you don&apos;t have to. Here&apos;s what makes us different...
             </p>
           </div>
 
@@ -409,7 +409,7 @@ export default function GettingStartedPage() {
                 Real Results from Real Clients
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Don't take our word for it. Here's what happens when you partner with Shore Agents:
+                Don&apos;t take our word for it. Here&apos;s what happens when you partner with Shore Agents:
               </p>
             </div>
 
@@ -420,7 +420,7 @@ export default function GettingStartedPage() {
                 <div className="text-2xl font-bold text-gray-900 mb-2">Long-term success</div>
                 <div className="text-gray-600 mb-4">Multi-year partnership</div>
                 <blockquote className="text-gray-700 italic mb-4">
-                  "Head and shoulders above the rest"
+                  &quot;Head and shoulders above the rest&quot;
                 </blockquote>
                 <div className="font-semibold text-gray-900">Iain Neilson</div>
                 <div className="text-gray-600">Gallery Group</div>
@@ -431,7 +431,7 @@ export default function GettingStartedPage() {
                 <div className="text-2xl font-bold text-gray-900 mb-2">1150% growth</div>
                 <div className="text-gray-600 mb-4">4 → 46 specialists</div>
                 <blockquote className="text-gray-700 italic mb-4">
-                  "Surpassed expectations by far"
+                  &quot;Surpassed expectations by far&quot;
                 </blockquote>
                 <div className="font-semibold text-gray-900">Kuahiwi Kahapea</div>
                 <div className="text-gray-600">Ballast</div>
