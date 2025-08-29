@@ -246,7 +246,7 @@ const serviceSections: ServiceSection[] = [
 
 export default function ServicesPage() {
   const [activeSection, setActiveSection] = useState<string>('')
-  const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({})
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -389,7 +389,9 @@ export default function ServicesPage() {
               <section
                 key={service.id}
                 id={service.id}
-                ref={(el) => (sectionRefs.current[service.id] = el)}
+                ref={(el) => {
+                  sectionRefs.current[service.id] = el;
+                }}
                 className="bg-white rounded-xl shadow-lg p-8 lg:p-12"
               >
                 <div className="flex items-start space-x-6">

@@ -375,11 +375,11 @@ export function ResumeModal({ resume, isOpen, onClose }: ResumeModalProps) {
                            <div>
                              <strong>Original Files:</strong>
                              <div className="mt-1">
-                               {data.files.map((file: Record<string, unknown>, index: number) => (
-                                 <div key={index} className="text-gray-600">
-                                   📎 {file.fileName} ({file.fileType})
-                                 </div>
-                               ))}
+                                                               {data.files.map((file: Record<string, unknown>, index: number) => (
+                                  <div key={index} className="text-gray-600">
+                                    📎 {String(file.fileName || 'Unknown file')} ({String(file.fileType || 'Unknown type')})
+                                  </div>
+                                ))}
                              </div>
                            </div>
                          )}

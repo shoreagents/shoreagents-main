@@ -277,7 +277,7 @@ export function EmployeeDetailsModal({ employee, isOpen, onClose, onViewResume }
                 <div className="space-y-3">
                   {employee.resume && (
                     <Button
-                      onClick={() => onViewResume?.(employee.resume)}
+                      onClick={() => onViewResume?.(employee.resume!)}
                       className="w-full flex items-center justify-center space-x-2"
                     >
                       <FileText className="w-4 h-4" />

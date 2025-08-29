@@ -13,7 +13,6 @@ import {
   Search,
   Users,
   Briefcase,
-  MapPin,
   RefreshCw,
   Loader2
 } from 'lucide-react';
@@ -30,14 +29,6 @@ export default function EmployeesPage() {
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [isEmployeeDetailsModalOpen, setIsEmployeeDetailsModalOpen] = useState(false);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
-
-  useEffect(() => {
-    filterEmployees();
-  }, [employees, searchTerm, selectedFilter, filterEmployees]);
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -109,6 +100,14 @@ export default function EmployeesPage() {
 
     setFilteredEmployees(filtered);
   }, [employees, searchTerm, selectedFilter]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
+
+  useEffect(() => {
+    filterEmployees();
+  }, [filterEmployees]);
 
   const handleViewDetails = (employee: EmployeeCardData) => {
     setSelectedEmployee(employee);
