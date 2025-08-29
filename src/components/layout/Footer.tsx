@@ -37,6 +37,73 @@ export function Footer() {
               />
             </div>
 
+            {/* Social Media Links */}
+            <div className="flex items-center space-x-4 mb-2 -mt-4">
+              <Link 
+                href="https://www.facebook.com/ShoreAgents" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+                aria-label="Follow us on Facebook"
+              >
+                <i className="fab fa-facebook-f text-xl"></i>
+              </Link>
+              <Link 
+                href="https://x.com/ShoreAgents" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+                aria-label="Follow us on X (Twitter)"
+              >
+                <i className="fab fa-x-twitter text-xl"></i>
+              </Link>
+              <Link 
+                href="https://www.linkedin.com/company/shoreagents/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+                aria-label="Follow us on LinkedIn"
+              >
+                <i className="fab fa-linkedin-in text-xl"></i>
+              </Link>
+              <Link 
+                href="https://www.instagram.com/shore_agents/?hl=en" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+                aria-label="Follow us on Instagram"
+              >
+                <i className="fab fa-instagram text-xl"></i>
+              </Link>
+              <Link 
+                href="https://www.youtube.com/@shoreagents" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+                aria-label="Subscribe to our YouTube channel"
+              >
+                <i className="fab fa-youtube text-xl"></i>
+              </Link>
+              <Link 
+                href="https://www.pinterest.com/ShoreAgents/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+                aria-label="Follow us on Pinterest"
+              >
+                <i className="fab fa-pinterest-p text-xl"></i>
+              </Link>
+              <Link 
+                href="https://www.tiktok.com/@shoreagents" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-lime-300 transition-colors duration-200"
+                aria-label="Follow us on TikTok"
+              >
+                <i className="fab fa-tiktok text-xl"></i>
+              </Link>
+            </div>
+
             {/* Company Description */}
             <p className="text-gray-300 mb-8 leading-relaxed max-w-2xl">
               Stephen Atcheler, founder of Shore Agents, brings extensive experience in real estate and business scaling. 
