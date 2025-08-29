@@ -442,7 +442,7 @@ export default function GettingStartedPage() {
                 <div className="text-2xl font-bold text-gray-900 mb-2">$40K saved</div>
                 <div className="text-gray-600 mb-4">$40K annual savings</div>
                 <blockquote className="text-gray-700 italic mb-4">
-                  "69% cost reduction achieved"
+                  &quot;69% cost reduction achieved&quot;
                 </blockquote>
                 <div className="font-semibold text-gray-900">Jack Miller</div>
                 <div className="text-gray-600">Gelt Financial</div>

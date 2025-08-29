@@ -86,7 +86,7 @@ export default function CulturePage() {
                 <h3 className="text-xl font-semibold text-gray-900">Support</h3>
               </div>
               <p className="text-gray-600">
-                We support each other's growth and well-being, offering mentorship, resources, 
+                We support each other&apos;s growth and well-being, offering mentorship, resources, 
                 and a helping hand whenever needed.
               </p>
             </div>

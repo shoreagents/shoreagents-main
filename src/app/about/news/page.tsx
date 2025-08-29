@@ -61,7 +61,7 @@ export default function NewsPage() {
                   ShoreAgents Celebrates 10 Years of Excellence
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  We're proud to announce our 10th anniversary milestone, marking a decade of delivering 
+                  We&apos;re proud to announce our 10th anniversary milestone, marking a decade of delivering 
                   exceptional outsourcing solutions to businesses worldwide.
                 </p>
                 <div className="flex items-center justify-between">
@@ -99,7 +99,7 @@ export default function NewsPage() {
                   New AI-Powered Solutions Launch
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  We're excited to introduce our latest AI-powered automation solutions designed to 
+                  We&apos;re excited to introduce our latest AI-powered automation solutions designed to 
                   streamline business operations and boost efficiency.
                 </p>
                 <div className="flex items-center justify-between">
@@ -132,7 +132,7 @@ export default function NewsPage() {
                 Team Expansion Announcement
               </h3>
               <p className="text-gray-600 mb-4">
-                We're growing! ShoreAgents welcomes 50 new team members to support our expanding client base.
+                We&apos;re growing! ShoreAgents welcomes 50 new team members to support our expanding client base.
               </p>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-lime-600 font-medium">Company News</span>
@@ -174,7 +174,7 @@ export default function NewsPage() {
                 Industry Recognition Award
               </h3>
               <p className="text-gray-600 mb-4">
-                ShoreAgents receives the "Best Outsourcing Partner 2024" award from the Philippine Business Association.
+                ShoreAgents receives the &quot;Best Outsourcing Partner 2024&quot; award from the Philippine Business Association.
               </p>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-lime-600 font-medium">Awards</span>
@@ -195,7 +195,7 @@ export default function NewsPage() {
                 New Service Launch: Legal Support
               </h3>
               <p className="text-gray-600 mb-4">
-                We're expanding our services to include comprehensive legal support and administrative assistance.
+                We&apos;re expanding our services to include comprehensive legal support and administrative assistance.
               </p>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-lime-600 font-medium">Services</span>

@@ -41,7 +41,7 @@ export default function ContactPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
               <p className="text-gray-700 mb-8">
-                Ready to explore how ShoreAgents can help your business grow? We're here to answer 
+                Ready to explore how ShoreAgents can help your business grow? We&apos;re here to answer 
                 your questions and discuss your specific needs.
               </p>
             </div>

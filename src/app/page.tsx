@@ -518,7 +518,7 @@ export default function Home() {
               <div className="mt-16 text-center">
                 <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg">
                   <blockquote className="text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
-                    "The thing is, most people overcomplicate outsourcing. We've simplified it down to what actually works: find good people, give them proper infrastructure, let you train them your way."
+                    &quot;The thing is, most people overcomplicate outsourcing. We&apos;ve simplified it down to what actually works: find good people, give them proper infrastructure, let you train them your way.&quot;
                   </blockquote>
                   <cite className="text-base font-semibold text-gray-900">
                     — Stephen Atcheler, CEO & Founder
@@ -593,7 +593,7 @@ export default function Home() {
                     The <span className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 bg-clip-text text-transparent">Transparent</span> vs <span className="text-red-600">Hidden Fees</span> Difference
                   </h2>
                   <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto italic leading-relaxed">
-                    "After getting burned by hidden fees in my own business, I swore our pricing would be crystal clear. Here's exactly what you pay and why."
+                    &quot;After getting burned by hidden fees in my own business, I swore our pricing would be crystal clear. Here&apos;s exactly what you pay and why.&quot;
                   </p>
                 </div>
 
@@ -774,7 +774,7 @@ export default function Home() {
                             <div>
                               <h4 className="font-semibold text-gray-900 mb-1">Management Fees</h4>
                               <p className="text-gray-700 mb-1">20-40% hidden markup on everything</p>
-                              <p className="text-sm text-gray-600">Competitors add mysterious fees they don't explain.</p>
+                              <p className="text-sm text-gray-600">Competitors add mysterious fees they don&apos;t explain.</p>
                             </div>
                           </div>
 
@@ -802,7 +802,7 @@ export default function Home() {
                             <div>
                               <h4 className="font-semibold text-gray-900 mb-1">Platform Fees</h4>
                               <p className="text-gray-700 mb-1">Additional charges for using their system</p>
-                              <p className="text-sm text-gray-600">More fees appear after you've already committed.</p>
+                              <p className="text-sm text-gray-600">More fees appear after you&apos;ve already committed.</p>
                             </div>
                           </div>
 
@@ -816,7 +816,7 @@ export default function Home() {
                             <div>
                               <h4 className="font-semibold text-gray-900 mb-1">Premium Support</h4>
                               <p className="text-gray-700 mb-1">Basic support costs extra</p>
-                              <p className="text-sm text-gray-600">Want to talk to someone? That'll be another fee.</p>
+                              <p className="text-sm text-gray-600">Want to talk to someone? That&apos;ll be another fee.</p>
                             </div>
                           </div>
                         </div>
@@ -871,11 +871,11 @@ export default function Home() {
                     &quot;No hidden fees. Benefits at exact cost. If you can&apos;t understand our pricing in 5 minutes, we&apos;ve failed.&quot;
                   </blockquote>
                   <cite className="text-base font-semibold text-gray-900">
-                    — Stephen's Transparency Promise
+                    — Stephen&apos;s Transparency Promise
                   </cite>
                 </div>
 
-                {/* Stephen's Hidden Fee Horror Story Card */}
+                                  {/* Stephen&apos;s Hidden Fee Horror Story Card */}
                 <div className="max-w-4xl mx-auto mt-12 bg-white rounded-2xl p-8 shadow-lg">
                   {/* Header */}
                   <div className="flex items-center mb-6">
@@ -887,7 +887,7 @@ export default function Home() {
                     <h3 className="text-2xl font-bold text-gray-900">Stephen&apos;s Hidden Fee Horror Story</h3>
                   </div>
 
-                  {/* Stephen's Quote */}
+                  {/* Stephen&apos;s Quote */}
                   <blockquote className="text-lg text-gray-700 italic mb-8 leading-relaxed border-l-4 border-lime-200 pl-6">
                     &quot;I hired a &apos;bookkeeper&apos; for $30/hour. After all the fees, contractors, and markups, I was paying $70/hour for someone I&apos;d never met. That&apos;s when I knew there had to be a better way.&quot;
                   </blockquote>

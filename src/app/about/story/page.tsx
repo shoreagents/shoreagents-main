@@ -48,10 +48,10 @@ export default function OurStoryPage() {
                 <p className="text-lg text-gray-700 leading-relaxed mb-6">
                   What started as a small team in Clark, Philippines has grown into a comprehensive outsourcing partner 
                   serving clients across the globe. Our journey has been marked by continuous innovation, unwavering 
-                  commitment to quality, and deep understanding of our clients' evolving needs.
+                  commitment to quality, and deep understanding of our clients&apos; evolving needs.
                 </p>
                 <p className="text-lg text-gray-700 leading-relaxed">
-                  Today, we're proud to have helped thousands of businesses scale their operations, reduce costs, 
+                  Today, we&apos;re proud to have helped thousands of businesses scale their operations, reduce costs, 
                   and focus on their core competencies while we handle the rest.
                 </p>
               </div>
