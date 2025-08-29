@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { ChevronDown, Menu, X, Star, ArrowRight } from 'lucide-react'
-import { useCurrency, currencies } from '@/lib/currencyContext'
+import { useCurrency, currencies, Currency } from '@/lib/currencyContext'
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -24,7 +24,7 @@ export function Navbar() {
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen)
   
-  const handleCurrencySelect = (currency: any) => {
+  const handleCurrencySelect = (currency: Currency) => {
     setSelectedCurrency(currency)
     // Clear auto-detection flag when manually selecting
     if (isAutoDetected) {

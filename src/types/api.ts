@@ -38,7 +38,7 @@ export interface AIAnalysisResult {
   id: string;
   user_id: string;
   resume_id: string;
-  analysis_data: any;
+  analysis_data: Record<string, unknown>;
   created_at: string;
 }
 
@@ -70,9 +70,9 @@ export interface ResumeGenerated {
         design?: string;
       };
       summary?: string;
-      education?: any[];
-      experience?: any[];
-      projects?: any[];
+      education?: Array<Record<string, unknown>>;
+      experience?: Array<Record<string, unknown>>;
+      projects?: Array<Record<string, unknown>>;
       achievements?: string[];
       bestJobTitle?: string;
       certifications?: string[];

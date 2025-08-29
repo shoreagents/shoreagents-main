@@ -404,7 +404,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                           name="workspace"
                           value={option.id}
                           checked={workspaceType === option.id}
-                          onChange={(e) => setWorkspaceType(e.target.value as any)}
+                          onChange={(e) => setWorkspaceType(e.target.value as string)}
                           className="sr-only"
                         />
                         <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
@@ -456,7 +456,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                         name="contract"
                         value={option.id}
                         checked={contractType === option.id}
-                        onChange={(e) => setContractType(e.target.value as any)}
+                        onChange={(e) => setContractType(e.target.value as string)}
                         className="sr-only"
                       />
                       <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
