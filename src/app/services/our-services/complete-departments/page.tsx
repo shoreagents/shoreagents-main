@@ -88,7 +88,7 @@ export default function CompleteDepartmentsPage() {
                   </div>
                   <div className="flex items-start gap-3">
                     <XCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                    <p className="text-gray-700 leading-relaxed">"Figure it out yourself" support</p>
+                    <p className="text-gray-700 leading-relaxed">&quot;Figure it out yourself&quot; support</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <XCircle className="w-5 h-5 text-red-500 mt-0.5" />

@@ -61,7 +61,7 @@ export default function HowItWorksPage() {
               Our <span className="text-lime-200">3-Step</span> Hiring Process
             </h2>
             <p className="text-xl text-lime-100 max-w-3xl mx-auto">
-              Simple, transparent, and effective - here's exactly how we help you find the perfect team members.
+              Simple, transparent, and effective - here&apos;s exactly how we help you find the perfect team members.
             </p>
           </div>
 
@@ -85,7 +85,7 @@ export default function HowItWorksPage() {
                     <li>• You call us or book online</li>
                     <li>• What kind of work do you need done?</li>
                     <li>• How many people do you want?</li>
-                    <li>• What's your budget?</li>
+                    <li>• What&apos;s your budget?</li>
                     <li>• Office or working from home?</li>
                     <li>• When do you want to start?</li>
                   </ul>
@@ -158,7 +158,7 @@ export default function HowItWorksPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 text-base mb-2">What We DON'T Do:</h4>
+                  <h4 className="font-semibold text-gray-900 text-base mb-2">What We DON&apos;T Do:</h4>
                   <p className="text-gray-600 text-sm">Train them on YOUR business, industry, or processes</p>
                 </div>
 
@@ -200,10 +200,10 @@ export default function HowItWorksPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 text-base mb-2">What We DON'T Do:</h4>
+                  <h4 className="font-semibold text-gray-900 text-base mb-2">What We DON&apos;T Do:</h4>
                   <ul className="text-gray-600 text-sm space-y-1">
                     <li>• Make hiring decisions for you</li>
-                    <li>• Know if they're right for YOUR business</li>
+                    <li>• Know if they&apos;re right for YOUR business</li>
                     <li>• Understand YOUR industry better than you</li>
                   </ul>
                 </div>
@@ -410,7 +410,7 @@ export default function HowItWorksPage() {
               </h2>
               
               <p className="text-xl text-gray-700 mb-8 max-w-4xl mx-auto leading-relaxed">
-                We provide excellent people with great work setup. <span className="font-bold text-gray-900">YOU</span> run the business and manage their work. It's a partnership, not a takeover of your business management!
+                We provide excellent people with great work setup. <span className="font-bold text-gray-900">YOU</span> run the business and manage their work. It&apos;s a partnership, not a takeover of your business management!
               </p>
 
               <div className="flex flex-col sm:flex-row justify-center items-center gap-6">

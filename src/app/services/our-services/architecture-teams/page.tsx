@@ -114,9 +114,9 @@ export default function TechnicalTeamsPage() {
             <div className="bg-white rounded-lg shadow-lg p-8">
               <h3 className="text-2xl font-bold text-lime-900 mb-6">Stephen's Technical Team Discovery</h3>
               <div className="space-y-4 text-lime-900">
-                <p className="italic">"The thing is, technical work demands precision that goes beyond basic VA skills. We needed people who understood both the technical and creative aspects."</p>
-                <p className="italic">"So basically, we developed specialized training for technical VAs who can handle complex development projects while maintaining professional standards. Pretty cool how they integrate with existing teams!"</p>
-                <p className="italic">"Our technical team doubled their project capacity while maintaining code quality. Their clients never knew they were working with remote support."</p>
+                <p className="italic">&quot;The thing is, technical work demands precision that goes beyond basic VA skills. We needed people who understood both the technical and creative aspects.&quot;</p>
+                <p className="italic">&quot;So basically, we developed specialized training for technical VAs who can handle complex development projects while maintaining professional standards. Pretty cool how they integrate with existing teams!&quot;</p>
+                <p className="italic">&quot;Our technical team doubled their project capacity while maintaining code quality. Their clients never knew they were working with remote support.&quot;</p>
               </div>
             </div>
           </div>

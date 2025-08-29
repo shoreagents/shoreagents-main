@@ -113,16 +113,16 @@ export default function EngineeringOutsourcingPage() {
 
                 {/* Testimonial */}
                 <div className="bg-lime-50 rounded-lg p-4 border border-lime-100">
-                  <h3 className="font-semibold text-gray-900 mb-3">Stephen's Engineering Journey</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">Stephen&apos;s Engineering Journey</h3>
                   <div className="space-y-3 text-sm text-gray-700">
                     <blockquote className="italic">
-                      "Engineering work requires precision and systematic thinking that you just can't compromise on. When we started working with engineering firms, I realized they needed more than just basic support."
+                      &quot;Engineering work requires precision and systematic thinking that you just can&apos;t compromise on. When we started working with engineering firms, I realized they needed more than just basic support.&quot;
                     </blockquote>
                     <blockquote className="italic">
-                      "So basically, we developed a training program specifically for engineering professionals. These aren't just VAs who can use CAD - they're university-qualified engineers who understand complex calculations and design principles."
+                      &quot;So basically, we developed a training program specifically for engineering professionals. These aren&apos;t just VAs who can use CAD - they&apos;re university-qualified engineers who understand complex calculations and design principles.&quot;
                     </blockquote>
                     <blockquote className="italic">
-                      "Our engineering clients saw their project efficiency improve by 35% while maintaining the same quality standards. That's when I knew we had something special."
+                      &quot;Our engineering clients saw their project efficiency improve by 35% while maintaining the same quality standards. That&apos;s when I knew we had something special.&quot;
                     </blockquote>
                   </div>
                 </div>
@@ -615,7 +615,7 @@ export default function EngineeringOutsourcingPage() {
             Ready to Scale Your Engineering Capacity?
           </h2>
           <p className="text-xl text-white mb-10 leading-relaxed">
-            Join engineering firms who've tripled their project capacity while maintaining the highest technical standards.
+            Join engineering firms who&apos;ve tripled their project capacity while maintaining the highest technical standards.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

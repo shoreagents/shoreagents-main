@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { currencyApi } from './api'
-import { ipDetectionService, detectUserCurrency, getLocationInfo, LocationData } from './ipDetection'
+import { ipDetectionService, getLocationInfo, LocationData } from './ipDetection'
 
 export interface Currency {
   symbol: string
@@ -123,7 +123,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     const interval = setInterval(fetchExchangeRates, 5 * 60 * 1000) // 5 minutes
     
     return () => clearInterval(interval)
-  }, [])
+  }, [fetchExchangeRates])
 
   // Detect user location on mount
   useEffect(() => {
