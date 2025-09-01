@@ -192,27 +192,16 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // Currency display helpers
   const formatPriceWithPHP = (phpAmount: number) => {
-    // Convert PHP amount to USD using real-time exchange rate
     // If PHP is selected, show PHP amount directly
     if (selectedCurrency.code === 'PHP') {
       return `₱${phpAmount.toLocaleString()}`;
     }
     
-    // Get the PHP exchange rate from the currencies array
-    const phpCurrency = currencies.find(c => c.code === 'PHP');
-    if (!phpCurrency) {
-      console.error('PHP currency not found');
-      return `₱${phpAmount.toLocaleString()}`;
-    }
-    
-    // Convert PHP to USD using the PHP exchange rate
-    const usdAmount = phpAmount / phpCurrency.exchangeRate;
-    const converted = convertPrice(usdAmount);
+    // Convert PHP amount to selected currency
+    const converted = convertPrice(phpAmount);
     
     console.log(`Converting ${phpAmount} PHP to ${selectedCurrency.code}:`, {
       phpAmount,
-      phpExchangeRate: phpCurrency.exchangeRate,
-      usdAmount,
       selectedCurrency: selectedCurrency.code,
       selectedExchangeRate: selectedCurrency.exchangeRate,
       finalAmount: converted
@@ -222,21 +211,13 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   };
 
   const formatPriceOnly = (phpAmount: number) => {
-    // Convert PHP amount to USD using real-time exchange rate
+    // If PHP is selected, show PHP amount directly
     if (selectedCurrency.code === 'PHP') {
       return `₱${phpAmount.toLocaleString()}`;
     }
     
-    // Get the PHP exchange rate from the currencies array
-    const phpCurrency = currencies.find(c => c.code === 'PHP');
-    if (!phpCurrency) {
-      console.error('PHP currency not found');
-      return `₱${phpAmount.toLocaleString()}`;
-    }
-    
-    // Convert PHP to USD using the PHP exchange rate
-    const usdAmount = phpAmount / phpCurrency.exchangeRate;
-    const converted = convertPrice(usdAmount);
+    // Convert PHP amount to selected currency
+    const converted = convertPrice(phpAmount);
     
     return formatPrice(converted);
   };

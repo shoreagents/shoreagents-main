@@ -30,6 +30,17 @@ interface CurrencyContextType {
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
 
+// Static fallback rates (PHP to other currencies)
+const fallbackRates = {
+  USD: 0.018,   // 1 PHP = $0.018
+  AUD: 0.027,   // 1 PHP = A$0.027
+  CAD: 0.024,   // 1 PHP = C$0.024
+  GBP: 0.014,   // 1 PHP = £0.014
+  NZD: 0.029,   // 1 PHP = NZ$0.029
+  EUR: 0.016,   // 1 PHP = €0.016
+  PHP: 1.0      // 1 PHP = 1 PHP
+}
+
 const currencies: Currency[] = [
   { symbol: '$', code: 'USD', exchangeRate: 1.0 },
   { symbol: 'A$', code: 'AUD', exchangeRate: 1.52 },
@@ -55,7 +66,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const fetchExchangeRates = useCallback(async () => {
     setIsLoadingRates(true)
     try {
-      console.log('Fetching exchange rates...')
+      console.log('🔄 Fetching exchange rates...')
       const rates = await currencyApi.getExchangeRates()
       
       if (rates) {
@@ -77,14 +88,55 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
           setSelectedCurrency(currentSelected)
         }
         
-        console.log('Exchange rates updated successfully:', rates)
+        console.log('✅ Exchange rates updated successfully:', rates)
         console.log('Updated currencies:', updatedCurrencies)
       } else {
-        console.warn('No exchange rates received from API')
+        console.warn('⚠️ No exchange rates received from API, using fallback rates')
+        // Use fallback rates when API fails
+        const fallbackCurrencies = currencies.map(currency => {
+          if (currency.code === 'PHP') {
+            return { ...currency, exchangeRate: 1.0 }
+          } else {
+            // Use the fallback rate directly (PHP to target currency)
+            const fallbackRate = fallbackRates[currency.code as keyof typeof fallbackRates]
+            return { ...currency, exchangeRate: fallbackRate }
+          }
+        })
+        
+        setCurrenciesState(fallbackCurrencies)
+        
+        // Update selected currency with fallback rate
+        const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrency.code)
+        if (currentSelected) {
+          setSelectedCurrency(currentSelected)
+        }
+        
+        console.log('✅ Using fallback exchange rates:', fallbackRates)
+        console.log('Updated currencies with fallback rates:', fallbackCurrencies)
       }
     } catch (error) {
-      console.error('Failed to fetch exchange rates:', error)
-      // Fallback to static rates if API fails
+      console.error('❌ Failed to fetch exchange rates:', error)
+      // Use fallback rates when API fails
+      const fallbackCurrencies = currencies.map(currency => {
+        if (currency.code === 'PHP') {
+          return { ...currency, exchangeRate: 1.0 }
+        } else {
+          // Use the fallback rate directly (PHP to target currency)
+          const fallbackRate = fallbackRates[currency.code as keyof typeof fallbackRates]
+          return { ...currency, exchangeRate: fallbackRate }
+        }
+      })
+      
+      setCurrenciesState(fallbackCurrencies)
+      
+      // Update selected currency with fallback rate
+      const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrency.code)
+      if (currentSelected) {
+        setSelectedCurrency(currentSelected)
+      }
+      
+      console.log('✅ Using fallback exchange rates due to API error:', fallbackRates)
+      console.log('Updated currencies with fallback rates:', fallbackCurrencies)
     } finally {
       setIsLoadingRates(false)
     }
@@ -175,11 +227,17 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     };
   }, [detectUserLocation, hasUserSelectedCurrency]);
 
-  const convertPrice = (usdPrice: number): number => {
+  const convertPrice = (phpAmount: number): number => {
+    // If PHP is selected, return the amount as is
+    if (selectedCurrency.code === 'PHP') {
+      return phpAmount;
+    }
+    
     // Use the selected currency's exchange rate (which gets updated with real-time rates)
-    const rate = selectedCurrency.exchangeRate
-    console.log(`Converting ${usdPrice} USD to ${selectedCurrency.code} using rate: ${rate}`)
-    return usdPrice * rate
+    // The exchange rate is now relative to PHP, not USD
+    const rate = selectedCurrency.exchangeRate;
+    console.log(`Converting ${phpAmount} PHP to ${selectedCurrency.code} using rate: ${rate}`);
+    return phpAmount * rate;
   }
 
   const formatPrice = (price: number): string => {
