@@ -260,15 +260,27 @@ export const currencyApi = {
 
   // Get rates with fallback strategy
   async getExchangeRates(): Promise<Record<string, number> | null> {
-    // Try Open Exchange Rates API first
-    const primaryRates = await this.fetchRatesPrimary();
-    if (primaryRates) return primaryRates;
+    try {
+      // Try Open Exchange Rates API first
+      const primaryRates = await this.fetchRatesPrimary();
+      if (primaryRates) {
+        console.log('✅ Primary currency API successful');
+        return primaryRates;
+      }
 
-    // Try fallback API
-    const fallbackRates = await this.fetchRatesFallback();
-    if (fallbackRates) return fallbackRates;
+      // Try fallback API
+      const fallbackRates = await this.fetchRatesFallback();
+      if (fallbackRates) {
+        console.log('✅ Fallback currency API successful');
+        return fallbackRates;
+      }
 
-    // Return null if both fail
-    return null;
+      // Return null if both fail
+      console.warn('⚠️ All currency APIs failed, using static rates');
+      return null;
+    } catch (error) {
+      console.error('❌ Currency API error:', error);
+      return null;
+    }
   }
 };

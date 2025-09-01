@@ -54,7 +54,17 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // Currency context integration with Open Exchange Rates API
   // This provides real-time exchange rates for USD, AUD, CAD, GBP, NZD, EUR, and PHP
-  const { selectedCurrency, setSelectedCurrency, convertPrice, formatPrice, isLoadingRates, lastUpdated, refreshRates, currencies } = useCurrency();
+  const { 
+    selectedCurrency, 
+    setSelectedCurrency, 
+    convertPrice, 
+    formatPrice, 
+    isLoadingRates, 
+    lastUpdated, 
+    refreshRates, 
+    currencies,
+    setHasUserSelectedCurrency 
+  } = useCurrency();
 
   // Calculate benefits based on salary
   const calculateBenefits = (salary: number) => {
@@ -265,7 +275,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                    {currencies.map((currency) => (
                      <button
                        key={currency.code}
-                       onClick={() => setSelectedCurrency(currency)}
+                       onClick={() => {
+                         setSelectedCurrency(currency);
+                         setHasUserSelectedCurrency(true);
+                       }}
                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                          selectedCurrency.code === currency.code
                            ? 'bg-lime-600 text-white'

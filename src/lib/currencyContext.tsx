@@ -23,6 +23,9 @@ interface CurrencyContextType {
   isDetectingLocation: boolean
   detectUserLocation: () => Promise<void>
   isAutoDetected: boolean
+  setIsAutoDetected: (detected: boolean) => void
+  hasUserSelectedCurrency: boolean
+  setHasUserSelectedCurrency: (selected: boolean) => void
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
@@ -46,6 +49,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [userLocation, setUserLocation] = useState<LocationData | null>(null)
   const [isDetectingLocation, setIsDetectingLocation] = useState(false)
   const [isAutoDetected, setIsAutoDetected] = useState(false)
+  const [hasUserSelectedCurrency, setHasUserSelectedCurrency] = useState(false)
 
   // Fetch real-time exchange rates - memoized with useCallback
   const fetchExchangeRates = useCallback(async () => {
@@ -95,6 +99,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const detectUserLocation = useCallback(async () => {
     setIsDetectingLocation(true)
     try {
+      console.log('🔄 Starting location detection...')
       const locationInfo = await getLocationInfo()
       
       if (locationInfo.location) {
@@ -103,18 +108,24 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         // Find the currency in our available currencies
         const detectedCurrency = currenciesState.find(c => c.code === locationInfo.currency)
         
-        if (detectedCurrency && detectedCurrency.code !== selectedCurrency.code) {
+        if (detectedCurrency) {
           setSelectedCurrency(detectedCurrency)
           setIsAutoDetected(true)
-          console.log(`Auto-detected currency: ${detectedCurrency.code} for location: ${locationInfo.location.country}`)
+          setHasUserSelectedCurrency(false) // Reset user selection flag when auto-detecting
+          console.log(`✅ Auto-detected currency: ${detectedCurrency.code} for location: ${locationInfo.location.country}`)
+        } else {
+          console.log(`⚠️ Currency ${locationInfo.currency} not found in available currencies, keeping current selection`)
         }
+      } else {
+        console.log('⚠️ No location detected, keeping default currency')
       }
     } catch (error) {
-      console.error('Failed to detect user location:', error)
+      console.error('❌ Failed to detect user location:', error)
+      // Don't throw error, just log it
     } finally {
       setIsDetectingLocation(false)
     }
-  }, [currenciesState, selectedCurrency.code])
+  }, [currenciesState])
 
   // Fetch rates on mount and every 5 minutes
   useEffect(() => {
@@ -139,13 +150,22 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     };
   }, [fetchExchangeRates]);
 
-  // Detect user location on mount
+  // Detect user location on mount (only if user hasn't manually selected a currency)
   useEffect(() => {
     let isMounted = true;
     
     const detectLocation = async () => {
       if (!isMounted) return;
-      await detectUserLocation();
+      // Only auto-detect if user hasn't manually selected a currency
+      if (!hasUserSelectedCurrency) {
+        try {
+          console.log('🔄 Attempting to auto-detect user location...');
+          await detectUserLocation();
+        } catch (error) {
+          console.warn('⚠️ Auto-detection failed, keeping default currency:', error);
+          // Don't throw error, just log it and keep default currency
+        }
+      }
     };
     
     detectLocation();
@@ -153,7 +173,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [detectUserLocation]);
+  }, [detectUserLocation, hasUserSelectedCurrency]);
 
   const convertPrice = (usdPrice: number): number => {
     // Use the selected currency's exchange rate (which gets updated with real-time rates)
@@ -194,7 +214,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       userLocation,
       isDetectingLocation,
       detectUserLocation,
-      isAutoDetected
+      isAutoDetected,
+      setIsAutoDetected,
+      hasUserSelectedCurrency,
+      setHasUserSelectedCurrency
     }}>
       {children}
     </CurrencyContext.Provider>

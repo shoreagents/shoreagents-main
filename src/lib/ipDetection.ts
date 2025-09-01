@@ -77,34 +77,166 @@ export class IPDetectionService {
 
       console.log('🌍 Detecting user location...')
       
-      const response = await fetch('http://ip-api.com/json/', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const locationData: LocationData = await response.json()
-      
-      if (locationData.status === 'success') {
-        this.cachedLocation = locationData
-        this.lastFetchTime = now
-        
-        console.log('📍 Location detected successfully:', {
-          country: locationData.country,
-          city: locationData.city,
-          countryCode: locationData.countryCode,
-          timezone: locationData.timezone
+      // Try primary IP detection service
+      try {
+        const response = await fetch('https://ip-api.com/json/', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          // Add timeout to prevent hanging requests
+          signal: AbortSignal.timeout(10000) // 10 second timeout
         })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const locationData: LocationData = await response.json()
         
-        return locationData
-      } else {
-        console.error('❌ IP-API returned error status:', locationData)
-        return null
+        if (locationData.status === 'success') {
+          this.cachedLocation = locationData
+          this.lastFetchTime = now
+          
+          console.log('📍 Location detected successfully:', {
+            country: locationData.country,
+            city: locationData.city,
+            countryCode: locationData.countryCode,
+            timezone: locationData.timezone
+          })
+          
+          return locationData
+        } else {
+          console.error('❌ IP-API returned error status:', locationData)
+          throw new Error('IP-API returned error status')
+        }
+      } catch (primaryError) {
+        console.warn('❌ Primary IP detection failed, trying fallback...', primaryError)
+        
+        // Fallback to ipinfo.io
+        try {
+          const fallbackResponse = await fetch('https://ipinfo.io/json', {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+            // Add timeout to prevent hanging requests
+            signal: AbortSignal.timeout(10000) // 10 second timeout
+          })
+
+          if (!fallbackResponse.ok) {
+            throw new Error(`Fallback HTTP error! status: ${fallbackResponse.status}`)
+          }
+
+          const fallbackData = await fallbackResponse.json()
+          
+          // Convert ipinfo.io format to our LocationData format
+          const locationData: LocationData = {
+            status: 'success',
+            country: fallbackData.country || 'Unknown',
+            countryCode: fallbackData.country || 'US',
+            region: fallbackData.region || '',
+            regionName: fallbackData.region || '',
+            city: fallbackData.city || '',
+            zip: fallbackData.postal || '',
+            lat: parseFloat(fallbackData.loc?.split(',')[0] || '0'),
+            lon: parseFloat(fallbackData.loc?.split(',')[1] || '0'),
+            timezone: fallbackData.timezone || 'UTC',
+            isp: fallbackData.org || '',
+            org: fallbackData.org || '',
+            as: '',
+            query: fallbackData.ip || ''
+          }
+          
+          this.cachedLocation = locationData
+          this.lastFetchTime = now
+          
+          console.log('📍 Location detected successfully (fallback):', {
+            country: locationData.country,
+            city: locationData.city,
+            countryCode: locationData.countryCode,
+            timezone: locationData.timezone
+          })
+          
+          return locationData
+        } catch (fallbackError) {
+          console.error('❌ Both IP detection services failed:', fallbackError)
+          
+          // Final fallback: try to detect from browser timezone
+          try {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+            console.log('🕐 Using browser timezone as fallback:', timezone)
+            
+            // Simple timezone to country mapping for common cases
+            const timezoneToCountry: { [key: string]: string } = {
+              'America/New_York': 'US',
+              'America/Los_Angeles': 'US',
+              'America/Chicago': 'US',
+              'America/Denver': 'US',
+              'Europe/London': 'GB',
+              'Europe/Paris': 'FR',
+              'Europe/Berlin': 'DE',
+              'Europe/Rome': 'IT',
+              'Europe/Madrid': 'ES',
+              'Europe/Amsterdam': 'NL',
+              'Europe/Brussels': 'BE',
+              'Europe/Vienna': 'AT',
+              'Europe/Dublin': 'IE',
+              'Europe/Helsinki': 'FI',
+              'Europe/Lisbon': 'PT',
+              'Europe/Athens': 'GR',
+              'Europe/Nicosia': 'CY',
+              'Europe/Valletta': 'MT',
+              'Europe/Bratislava': 'SK',
+              'Europe/Ljubljana': 'SI',
+              'Europe/Tallinn': 'EE',
+              'Europe/Riga': 'LV',
+              'Europe/Vilnius': 'LT',
+              'Europe/Luxembourg': 'LU',
+              'Australia/Sydney': 'AU',
+              'Australia/Melbourne': 'AU',
+              'Australia/Brisbane': 'AU',
+              'Australia/Perth': 'AU',
+              'Australia/Adelaide': 'AU',
+              'Australia/Darwin': 'AU',
+              'Australia/Hobart': 'AU',
+              'Pacific/Auckland': 'NZ',
+              'Asia/Manila': 'PH'
+            }
+            
+            const detectedCountry = timezoneToCountry[timezone] || 'US'
+            const locationData: LocationData = {
+              status: 'success',
+              country: detectedCountry === 'US' ? 'United States' : 'Unknown',
+              countryCode: detectedCountry,
+              region: '',
+              regionName: '',
+              city: '',
+              zip: '',
+              lat: 0,
+              lon: 0,
+              timezone: timezone,
+              isp: '',
+              org: '',
+              as: '',
+              query: ''
+            }
+            
+            this.cachedLocation = locationData
+            this.lastFetchTime = now
+            
+            console.log('📍 Location detected via timezone fallback:', {
+              country: locationData.country,
+              countryCode: locationData.countryCode,
+              timezone: locationData.timezone
+            })
+            
+            return locationData
+          } catch (timezoneError) {
+            console.error('❌ All detection methods failed:', timezoneError)
+            throw fallbackError
+          }
+        }
       }
     } catch (error) {
       console.error('❌ Failed to detect location:', error)
