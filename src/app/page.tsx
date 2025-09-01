@@ -1202,7 +1202,7 @@ export default function Home() {
                                    </div>
                 </div>
                 {/* How Our AI System Works Section */}
-               <div className="bg-lime-900 py-16">
+               <div className="bg-gray-50 py-16">
                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                      <div className="text-center mb-16">
                        <div className="inline-flex items-center px-4 py-2 bg-lime-600 border border-lime-500 rounded-full text-sm font-medium text-white mb-6">
@@ -1212,11 +1212,11 @@ export default function Home() {
                          Simple Process
                        </div>
                        
-                       <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                         How Our AI System <span className="bg-gradient-to-r from-lime-400 via-lime-300 to-lime-400 bg-clip-text text-transparent">Works</span>
+                       <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                         How Our AI System <span className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 bg-clip-text text-transparent">Works</span>
                        </h2>
                        
-                       <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
+                       <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
                          Four intelligent steps that revolutionize how you find and hire top Filipino talent
                        </p>
                      </div>
@@ -1244,9 +1244,11 @@ export default function Home() {
                           </p>
                           {/* Arrow */}
                           <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
-                            <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border border-lime-200">
+                              <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
 
@@ -1271,9 +1273,11 @@ export default function Home() {
                           </p>
                           {/* Arrow */}
                           <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
-                            <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border border-lime-200">
+                              <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
 
@@ -1298,9 +1302,11 @@ export default function Home() {
                           </p>
                           {/* Arrow */}
                           <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
-                            <svg className="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border border-lime-200">
+                              <svg className="w-4 h-4 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
 
