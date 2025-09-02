@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { CurrencyProvider } from "@/lib/currencyContext";
 import { ToastProvider } from "@/lib/toast-context";
+import FloatingChatButton from '@/components/ui/floating-chat-button';
 
 // Choose one of these fonts to experiment with:
 const inter = Inter({
@@ -89,6 +90,9 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            
+            {/* AI Chat Console */}
+            <FloatingChatButton />
           </ToastProvider>
         </CurrencyProvider>
       </body>
