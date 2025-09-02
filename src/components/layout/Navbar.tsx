@@ -15,6 +15,17 @@ export function Navbar() {
   const { selectedCurrency, setSelectedCurrency, userLocation, isDetectingLocation, detectUserLocation, isAutoDetected, setIsAutoDetected, hasUserSelectedCurrency, setHasUserSelectedCurrency } = useCurrency()
   const pathname = usePathname()
 
+  // Country name mapping for currencies
+  const currencyCountryNames: Record<string, string> = {
+    USD: 'UNITED STATES',
+    AUD: 'AUSTRALIA',
+    CAD: 'CANADA',
+    GBP: 'UNITED KINGDOM',
+    NZD: 'NEW ZEALAND',
+    EUR: 'EUROPE',
+    PHP: 'PHILIPPINES'
+  }
+
   // Helper function to check if a link is active
   const isActive = (href: string) => {
     if (href === '/') {
@@ -73,8 +84,11 @@ export function Navbar() {
           <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center">
             {/* Our Services Dropdown */}
             <div className="relative group">
-              <Link href="/services" className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200">
-                <span>Our Services</span>
+              <Link href="/services" className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative ${isActive('/services') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
+                <span className="relative inline-block">
+                  Our Services
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out ${isActive('/services') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                </span>
                 <ChevronDown className="h-4 w-4 -rotate-90 transition-transform duration-200 group-hover:rotate-0" />
               </Link>
               
@@ -87,24 +101,24 @@ export function Navbar() {
                   {/* Services and Pillars Cards */}
                   <div className="grid grid-cols-2 gap-2 mb-0">
                     {/* Services Card */}
-                    <div className="relative group/services">
+                  <div className="relative group/services">
                       <div className="px-2 py-2 hover:bg-lime-50 transition-all duration-200 cursor-pointer rounded-lg">
                         <div className="flex items-center gap-1">
                           <h4 className="font-bold text-lime-700 text-base">Services</h4>
                           <ChevronDown className="w-4 h-4 text-lime-600 -rotate-90 transition-transform duration-200 group-hover/services:rotate-0" />
                         </div>
-                      </div>
-                      
+                    </div>
+                    
                       {/* Services Sub-dropdown */}
                       <div className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 w-[600px] bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover/services:opacity-100 group-hover/services:visible transition-all duration-300">
-                        <div className="p-6">
+                      <div className="p-6">
                           <div className="mb-4">
                             <h4 className="text-lg font-bold text-gray-900 mb-1">Services</h4>
                             <p className="text-sm text-gray-600">Our core service offerings</p>
                           </div>
-                          
+                        
                           {/* Top Cards Section */}
-                          <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="grid grid-cols-3 gap-4 mb-6">
                             {/* Hire One Agent Card */}
                             <Link href="/services/our-services/hire-one-agent" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                               <div className="flex items-start justify-between">
@@ -113,12 +127,12 @@ export function Navbar() {
                                   <p className="text-sm text-gray-600 mb-3">Perfect for first-time outsourcers</p>
                                   <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                                     Start conservative
-                                  </div>
-                                </div>
-                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
                               </div>
-                            </Link>
-
+                              </div>
+                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
+                            </div>
+                          </Link>
+                          
                             {/* Build a Team Card */}
                             <Link href="/services/our-services/build-a-team" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                               <div className="flex items-start justify-between">
@@ -127,12 +141,12 @@ export function Navbar() {
                                   <p className="text-sm text-gray-600 mb-3">Scale your business with 3-10 professionals</p>
                                   <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                                     3-10 people
-                                  </div>
-                                </div>
-                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
                               </div>
-                            </Link>
-
+                              </div>
+                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
+                            </div>
+                          </Link>
+                          
                             {/* Create a Workforce Card */}
                             <Link href="/services/our-services/create-workforce" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                               <div className="flex items-start justify-between">
@@ -141,86 +155,86 @@ export function Navbar() {
                                   <p className="text-sm text-gray-600 mb-3">Large operations, 10+ people</p>
                                   <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                                     Private office
-                                  </div>
-                                </div>
-                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
                               </div>
-                            </Link>
-                          </div>
+                              </div>
+                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
+                            </div>
+                          </Link>
+                        </div>
 
                           {/* Bottom Links Section */}
                           <div className="grid grid-cols-3 gap-8">
                             {/* Column 1 */}
-                            <div className="space-y-2">
+                          <div className="space-y-2">
                               <Link href="/services/our-services/real-estate-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Real Estate Virtual Assistant
-                              </Link>
+                              Real Estate Virtual Assistant
+                            </Link>
                               <Link href="/services/our-services/property-management-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Property Management Assistant
-                              </Link>
+                              Property Management Assistant
+                            </Link>
                               <Link href="/services/our-services/administrative-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Administrative Assistant
-                              </Link>
+                              Administrative Assistant
+                            </Link>
                               <Link href="/services/our-services/customer-service-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Customer Service Assistant
-                              </Link>
-                            </div>
+                              Customer Service Assistant
+                            </Link>
+                          </div>
 
                             {/* Column 2 */}
-                            <div className="space-y-2">
+                          <div className="space-y-2">
                               <Link href="/services/our-services/construction-team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Construction Team
-                              </Link>
+                              Construction Team
+                            </Link>
                               <Link href="/services/our-services/insurance-support" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Insurance Support
-                              </Link>
+                              Insurance Support
+                            </Link>
                               <Link href="/services/our-services/marketing-team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Marketing Team
-                              </Link>
+                              Marketing Team
+                            </Link>
                               <Link href="/services/our-services/finance-accounting" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Finance & Accounting
-                              </Link>
-                            </div>
+                              Finance & Accounting
+                            </Link>
+                          </div>
 
                             {/* Column 3 */}
-                            <div className="space-y-2">
+                          <div className="space-y-2">
                               <Link href="/services/our-services/architecture-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                                 Architecture Teams
-                              </Link>
+                            </Link>
                               <Link href="/services/our-services/engineering-support" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Engineering Support
-                              </Link>
+                              Engineering Support
+                            </Link>
                               <Link href="/services/our-services/legal-teams" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Legal Teams
-                              </Link>
+                              Legal Teams
+                            </Link>
                               <Link href="/services/our-services/complete-departments" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Complete Departments
-                              </Link>
-                            </div>
+                              Complete Departments
+                            </Link>
                           </div>
                         </div>
                       </div>
                     </div>
+                  </div>
 
                     {/* Pillars Card */}
-                    <div className="relative group/pillars">
+                  <div className="relative group/pillars">
                       <div className="px-2 py-2 hover:bg-lime-50 transition-all duration-200 cursor-pointer rounded-lg">
                         <div className="flex items-center gap-1">
                           <h4 className="font-bold text-lime-700 text-base">Pillars</h4>
                           <ChevronDown className="w-4 h-4 text-lime-600 -rotate-90 transition-transform duration-200 group-hover/pillars:rotate-0" />
                         </div>
-                      </div>
-                      
+                    </div>
+                    
                       {/* Pillars Sub-dropdown */}
                       <div className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 w-[600px] bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover/pillars:opacity-100 group-hover/pillars:visible transition-all duration-300">
-                        <div className="p-6">
+                      <div className="p-6">
                           <div className="mb-4">
                             <h4 className="text-lg font-bold text-gray-900 mb-1">Pillars</h4>
                             <p className="text-sm text-gray-600">37 topical pillars covering all industries and services</p>
                           </div>
                           
                           {/* Top Cards Section */}
-                          <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="grid grid-cols-3 gap-4 mb-6">
                             {/* Outsourcing Services Card */}
                             <Link href="/services/pillars/outsourcing-services" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                               <div className="flex items-start justify-between">
@@ -229,12 +243,12 @@ export function Navbar() {
                                   <p className="text-sm text-gray-600 mb-3">Complete business process outsourcing</p>
                                   <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                                     Main Pillar
-                                  </div>
-                                </div>
-                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
                               </div>
-                            </Link>
-
+                              </div>
+                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
+                            </div>
+                          </Link>
+                          
                             {/* Virtual Assistants Card */}
                             <Link href="/services/pillars/virtual-assistants" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                               <div className="flex items-start justify-between">
@@ -243,12 +257,12 @@ export function Navbar() {
                                   <p className="text-sm text-gray-600 mb-3">Specialized virtual assistant services</p>
                                   <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                                     Specialized
-                                  </div>
-                                </div>
-                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
                               </div>
-                            </Link>
-
+                              </div>
+                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
+                            </div>
+                          </Link>
+                          
                             {/* Technical & Digital Card */}
                             <Link href="/services/pillars/technical-digital" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                               <div className="flex items-start justify-between">
@@ -257,61 +271,61 @@ export function Navbar() {
                                   <p className="text-sm text-gray-600 mb-3">Technical and digital services</p>
                                   <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                                     Technical
-                                  </div>
-                                </div>
-                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
                               </div>
-                            </Link>
-                          </div>
+                              </div>
+                                <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
+                            </div>
+                          </Link>
+                        </div>
 
                           {/* Bottom Links Section */}
                           <div className="grid grid-cols-3 gap-8">
                             {/* Column 1 - Outsourcing Services */}
-                            <div className="space-y-2">
+                          <div className="space-y-2">
                               <Link href="/services/pillars/real-estate-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Real Estate Outsourcing
-                              </Link>
+                              Real Estate Outsourcing
+                            </Link>
                               <Link href="/services/pillars/property-management-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Property Management Outsourcing
-                              </Link>
+                              Property Management Outsourcing
+                            </Link>
                               <Link href="/services/pillars/construction-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Construction Outsourcing
-                              </Link>
+                              Construction Outsourcing
+                            </Link>
                               <Link href="/services/pillars/accounting-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Accounting Outsourcing
-                              </Link>
-                            </div>
+                              Accounting Outsourcing
+                            </Link>
+                          </div>
 
                             {/* Column 2 - Virtual Assistants */}
-                            <div className="space-y-2">
+                          <div className="space-y-2">
                               <Link href="/services/pillars/real-estate-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Real Estate Virtual Assistant
-                              </Link>
+                              Real Estate Virtual Assistant
+                            </Link>
                               <Link href="/services/pillars/seo-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                SEO Virtual Assistant
-                              </Link>
+                              SEO Virtual Assistant
+                            </Link>
                               <Link href="/services/pillars/ai-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                AI Virtual Assistant
-                              </Link>
+                              AI Virtual Assistant
+                            </Link>
                               <Link href="/services/pillars/social-media-virtual-assistant" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Social Media Virtual Assistant
-                              </Link>
-                            </div>
+                              Social Media Virtual Assistant
+                            </Link>
+                          </div>
 
                             {/* Column 3 - Technical & Digital */}
-                            <div className="space-y-2">
+                          <div className="space-y-2">
                               <Link href="/services/pillars/architectural-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Architectural Outsourcing
-                              </Link>
+                              Architectural Outsourcing
+                            </Link>
                               <Link href="/services/pillars/engineering-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Engineering Outsourcing
-                              </Link>
+                              Engineering Outsourcing
+                            </Link>
                               <Link href="/services/pillars/seo-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                SEO Outsourcing
-                              </Link>
+                              SEO Outsourcing
+                            </Link>
                               <Link href="/services/pillars/graphic-design-outsourcing" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                                Graphic Design Outsourcing
-                              </Link>
+                              Graphic Design Outsourcing
+                            </Link>
                             </div>
                           </div>
                         </div>
@@ -349,8 +363,11 @@ export function Navbar() {
             </Link>
             {/* About Dropdown */}
             <div className="relative group">
-              <Link href="/about" className="flex items-center space-x-1 text-gray-700 hover:text-lime-600 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200">
-                <span>About Shore</span>
+              <Link href="/about" className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative ${isActive('/about') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
+                <span className="relative inline-block">
+                  About Shore
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out ${isActive('/about') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                </span>
                 <ChevronDown className="h-4 w-4 -rotate-90 transition-transform duration-200 group-hover:rotate-0" />
               </Link>
               
@@ -361,10 +378,10 @@ export function Navbar() {
                   <div className="mb-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-1">About Shore</h3>
                     <p className="text-sm text-gray-600">Learn about our company, team, and mission</p>
-                  </div>
-
+                    </div>
+                    
                   {/* Top Cards Section */}
-                  <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="grid grid-cols-3 gap-4 mb-6">
                     {/* Our Story Card */}
                     <Link href="/about/our-story" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                       <div className="flex items-start justify-between">
@@ -372,12 +389,12 @@ export function Navbar() {
                           <h4 className="font-bold text-lime-700 mb-2">Our Story</h4>
                           <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                             Story
-                          </div>
-                        </div>
+                              </div>
+                              </div>
                         <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
-                      </div>
-                    </Link>
-
+                            </div>
+                          </Link>
+                          
                     {/* Proven Results Card */}
                     <Link href="/about/proven-results" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                       <div className="flex items-start justify-between">
@@ -385,12 +402,12 @@ export function Navbar() {
                           <h4 className="font-bold text-lime-700 mb-2">Proven Results</h4>
                           <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                             Results
-                          </div>
-                        </div>
+                              </div>
+                              </div>
                         <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
-                      </div>
-                    </Link>
-
+                            </div>
+                          </Link>
+                          
                     {/* Resources Card */}
                     <Link href="/about/resources" className="bg-lime-50 rounded-lg p-4 hover:bg-lime-100 transition-all duration-200 group">
                       <div className="flex items-start justify-between">
@@ -398,49 +415,49 @@ export function Navbar() {
                           <h4 className="font-bold text-lime-700 mb-2">Resources</h4>
                           <div className="inline-flex items-center px-2 py-1 bg-lime-100 rounded text-xs font-medium text-lime-700">
                             Resources
-                          </div>
-                        </div>
+                              </div>
+                              </div>
                         <ArrowRight className="w-4 h-4 text-lime-600 group-hover:translate-x-1 transition-transform duration-200" />
-                      </div>
-                    </Link>
-                  </div>
+                            </div>
+                          </Link>
+                        </div>
 
                   {/* Bottom Links Section */}
                   <div className="grid grid-cols-3 gap-8">
                     {/* First Column */}
-                    <div className="space-y-2">
+                          <div className="space-y-2">
                       <Link href="/howItWorks" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         How It Works
-                      </Link>
+                            </Link>
                       <Link href="/about/team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         Our Team
-                      </Link>
+                          </Link>
                       <Link href="/about/stephen-atcheler" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         Stephen Atcheler - CEO
-                      </Link>
+                          </Link>
                       <Link href="/about/find-us-clark" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         Find Us in Clark
-                      </Link>
-                    </div>
+                          </Link>
+                        </div>
 
                     {/* Second Column */}
-                    <div className="space-y-2">
+                          <div className="space-y-2">
                       <Link href="/case-studies/ballast-4-46-team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         Ballast: 4-46 Team
-                      </Link>
+                            </Link>
                       <Link href="/case-studies/gallery-group-partnership" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         Gallery Group Partnership
-                      </Link>
+                          </Link>
                       <Link href="/case-studies/jack-miller-40k-savings" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         Jack Miller: $40K Savings
-                      </Link>
+                          </Link>
                       <Link href="/case-studies" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         All Case Studies
-                      </Link>
-                    </div>
+                          </Link>
+                        </div>
 
                     {/* Third Column */}
-                    <div className="space-y-2">
+                          <div className="space-y-2">
                       <Link href="/about/complete-service-guide" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         Complete Service Guide
                       </Link>
@@ -451,13 +468,13 @@ export function Navbar() {
                         Pricing Calculator
                       </Link>
                       <Link href="/about/our-agents-demos" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
-                        Our Agents Demos
-                      </Link>
+                              Our Agents Demos
+                            </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
           </div>
 
           {/* Currency Selector - Right Side */}
@@ -480,8 +497,7 @@ export function Navbar() {
                   </>
                 ) : (
                   <>
-                    <span className="text-lg font-bold text-white">{selectedCurrency.symbol}</span>
-                    <span className="text-sm font-medium text-white">{selectedCurrency.code}</span>
+                    <span className="text-lg font-bold text-white">{selectedCurrency.code}</span>
                   </>
                 )}
                 <ChevronDown className="h-4 w-4 text-white transition-transform duration-200 group-hover:rotate-180" />
@@ -508,8 +524,10 @@ export function Navbar() {
                       className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-lime-50 transition-colors duration-200"
                       onClick={() => handleCurrencySelect(currency)}
                     >
-                      <span className="text-lg font-bold text-lime-600 w-8">{currency.symbol}</span>
-                      <span className="text-sm text-gray-700 font-medium">{currency.code}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-900">{currency.code}</span>
+                        <span className="text-xs text-gray-500">{currencyCountryNames[currency.code]}</span>
+                      </div>
                       {selectedCurrency.code === currency.code && isAutoDetected && (
                         <span className="ml-auto text-xs text-lime-600">Auto</span>
                       )}
@@ -556,7 +574,7 @@ export function Navbar() {
                   <>
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
+                                </svg>
                     <span className="text-sm font-medium text-white">{selectedCurrency.code}</span>
                   </>
                 )}
@@ -575,7 +593,7 @@ export function Navbar() {
                   >
                     <div className="w-8 h-4 flex items-center justify-center">
                       <div className="w-3 h-3 bg-lime-600 rounded-full animate-pulse"></div>
-                    </div>
+                              </div>
                     <span className="text-sm text-gray-700 font-medium">Auto-detect</span>
                   </button>
                   
@@ -596,11 +614,11 @@ export function Navbar() {
                         )}
                       </button>
                     ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-            
+
             {/* Mobile menu button */}
             <Button
               variant="ghost"
@@ -610,8 +628,8 @@ export function Navbar() {
             >
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
-          </div>
-        </div>
+                    </div>
+                              </div>
 
           {/* Mobile Navigation Menu */}
           {isMobileMenuOpen && (
@@ -621,32 +639,32 @@ export function Navbar() {
                 
                 {/* Main Navigation Items */}
                 <Link href="/howItWorks" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/howItWorks') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
-                  <span className="relative inline-block">
-                  How it works
-                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/howItWorks') ? 'w-full' : ''}`}></span>
-                  </span>
-                </Link>
+              <span className="relative inline-block">
+              How it works
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/howItWorks') ? 'w-full' : ''}`}></span>
+              </span>
+            </Link>
                 
                 <Link href="/pricing" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/pricing') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
-                  <span className="relative inline-block">
-                  Pricing
-                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/pricing') ? 'w-full' : ''}`}></span>
-                  </span>
-                </Link>
+              <span className="relative inline-block">
+              Pricing
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/pricing') ? 'w-full' : ''}`}></span>
+              </span>
+            </Link>
                 
                 <Link href="/case-studies" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/case-studies') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
-                  <span className="relative inline-block">
-                  Case Studies
-                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/case-studies') ? 'w-full' : ''}`}></span>
-                  </span>
-                </Link>
+              <span className="relative inline-block">
+              Case Studies
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/case-studies') ? 'w-full' : ''}`}></span>
+              </span>
+            </Link>
                 
                 <Link href="/blogs" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/blogs') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
-                  <span className="relative inline-block">
-                  Blogs
-                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/blogs') ? 'w-full' : ''}`}></span>
-                  </span>
-                </Link>
+              <span className="relative inline-block">
+              Blogs
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/blogs') ? 'w-full' : ''}`}></span>
+              </span>
+            </Link>
 
                 {/* Services Section */}
                 <div className="border-b border-gray-100">
@@ -777,10 +795,10 @@ export function Navbar() {
                     <div className="pl-4 space-y-1 pb-3">
                       <Link href="/about/our-story" className="block text-gray-600 hover:text-lime-600 py-2 text-sm px-3 rounded hover:bg-lime-50">
                         Our Story
-                      </Link>
+               </Link>
                       <Link href="/about/team" className="block text-gray-600 hover:text-lime-600 py-2 text-sm px-3 rounded hover:bg-lime-50">
                         Our Team
-                      </Link>
+               </Link>
                       <Link href="/about/our-mission" className="block text-gray-600 hover:text-lime-600 py-2 text-sm px-3 rounded hover:bg-lime-50">
                         Our Mission
                       </Link>
@@ -798,13 +816,13 @@ export function Navbar() {
                </Link>
                       <Link href="/about/case-studies" className="block text-gray-600 hover:text-lime-600 py-2 text-sm px-3 rounded hover:bg-lime-50">
                  Case Studies
-                      </Link>
+               </Link>
                       <Link href="/about/success-stories" className="block text-gray-600 hover:text-lime-600 py-2 text-sm px-3 rounded hover:bg-lime-50">
                         Success Stories
-                      </Link>
+               </Link>
                       <Link href="/about/client-testimonials" className="block text-gray-600 hover:text-lime-600 py-2 text-sm px-3 rounded hover:bg-lime-50">
                         Client Testimonials
-                      </Link>
+               </Link>
                       <Link href="/about/partnerships" className="block text-gray-600 hover:text-lime-600 py-2 text-sm px-3 rounded hover:bg-lime-50">
                         Partnerships
                       </Link>
@@ -861,10 +879,10 @@ export function Navbar() {
                   </button>
                 </div>
               </div>
-             </div>
-           </div>
-         )}
-       </div>
-     </nav>
-   )
- }
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  )
+}

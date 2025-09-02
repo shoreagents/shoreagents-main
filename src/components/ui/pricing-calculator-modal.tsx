@@ -52,8 +52,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     breakdown: []
   });
 
-  // Currency context integration with Open Exchange Rates API
-  // This provides real-time exchange rates for USD, AUD, CAD, GBP, NZD, EUR, and PHP
+  // Currency context integration
   const { 
     selectedCurrency, 
     setSelectedCurrency, 
@@ -80,7 +79,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     if (salary >= 20000 && salary <= 39999) return 1.43;
     if (salary >= 40000 && salary <= 99999) return 1.33;
     if (salary >= 100000) return 1.25;
-    return 1.43; // Default to entry level
+    return 1.43;
   };
 
   // Get workspace cost per person
@@ -89,7 +88,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       wfh: 8000,
       hybrid: 12000,
       office: 16000,
-      private: 0 // Covered by office lease
+      private: 0
     };
     return costs[workspaceType];
   };
@@ -110,7 +109,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     const staffCount = staff.length;
     const isPrivateOffice = staffCount >= 10 && workspaceType === 'private';
     
-    // Calculate staff costs and breakdown
     let totalStaffCost = 0;
     const breakdown = staff.map(member => {
       const multiplier = getMultiplier(member.salary);
@@ -129,18 +127,16 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       };
     });
 
-    // Calculate workspace costs
     let totalWorkspaceCost = 0;
     let officeSize = 0;
     
     if (isPrivateOffice) {
-      officeSize = Math.ceil(staffCount / 4) * 10; // Round up to nearest 10sqm
-      totalWorkspaceCost = officeSize * 2090; // Office lease
+      officeSize = Math.ceil(staffCount / 4) * 10;
+      totalWorkspaceCost = officeSize * 2090;
     } else {
       totalWorkspaceCost = getWorkspaceCostPerPerson() * staffCount;
     }
 
-    // Calculate setup costs
     const setupFeePerPerson = getSetupFeePerPerson();
     const totalSetupCost = setupFeePerPerson * staffCount;
     
@@ -151,14 +147,13 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     if (contractType === '6month') {
       monthlySetupCost = totalSetupCost / 6;
     } else if (contractType === 'monthly') {
-      totalUpfront = totalSetupCost + totalStaffCost; // Setup + 1 month security
+      totalUpfront = totalSetupCost + totalStaffCost;
     } else if (contractType === 'private') {
       totalUpfront = totalSetupCost;
-      securityDeposit = totalWorkspaceCost * 3; // 3 months office lease
+      securityDeposit = totalWorkspaceCost * 3;
       totalUpfront += securityDeposit;
     }
 
-    // Calculate totals
     const totalMonthly = totalStaffCost + totalWorkspaceCost + monthlySetupCost;
     const totalAfter6Months = totalStaffCost + totalWorkspaceCost;
 
@@ -192,40 +187,25 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // Currency display helpers
   const formatPriceWithPHP = (phpAmount: number) => {
-    // If PHP is selected, show PHP amount directly
     if (selectedCurrency.code === 'PHP') {
       return `₱${phpAmount.toLocaleString()}`;
     }
-    
-    // Convert PHP amount to selected currency
     const converted = convertPrice(phpAmount);
-    
-    console.log(`Converting ${phpAmount} PHP to ${selectedCurrency.code}:`, {
-      phpAmount,
-      selectedCurrency: selectedCurrency.code,
-      selectedExchangeRate: selectedCurrency.exchangeRate,
-      finalAmount: converted
-    });
-    
     return `${formatPrice(converted)} (₱${phpAmount.toLocaleString()})`;
   };
 
   const formatPriceOnly = (phpAmount: number) => {
-    // If PHP is selected, show PHP amount directly
     if (selectedCurrency.code === 'PHP') {
       return `₱${phpAmount.toLocaleString()}`;
     }
-    
-    // Convert PHP amount to selected currency
     const converted = convertPrice(phpAmount);
-    
     return formatPrice(converted);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className={`absolute inset-0 bg-black transition-opacity duration-300 ${
@@ -236,87 +216,75 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       
       {/* Modal */}
       <div 
-        className={`relative bg-lime-50 rounded-2xl shadow-2xl max-w-7xl w-full mx-4 max-h-[90vh] overflow-hidden transition-all duration-300 ${
+        className={`relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden transition-all duration-300 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-lime-200 bg-white">
+        <div className="flex items-center justify-between p-4 border-b border-lime-200 bg-lime-50">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-              <Calculator className="w-5 h-5 text-lime-600" />
+            <div className="w-8 h-8 bg-lime-600 rounded-lg flex items-center justify-center">
+              <Calculator className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Shore Agents Pricing Calculator
+              <h2 className="text-lg font-semibold text-gray-900">
+                Pricing Calculator
               </h2>
-                             <div className="flex items-center space-x-2 mt-1">
-                 <span className="text-sm text-gray-600">Prices shown in:</span>
-                 <div className="flex flex-wrap gap-1">
-                   {currencies.map((currency) => (
-                     <button
-                       key={currency.code}
-                       onClick={() => {
-                         setSelectedCurrency(currency);
-                         setHasUserSelectedCurrency(true);
-                       }}
-                       className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                         selectedCurrency.code === currency.code
-                           ? 'bg-lime-600 text-white'
-                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                       }`}
-                     >
-                       {currency.code}
-                     </button>
-                   ))}
-                 </div>
-                 <div className="flex items-center space-x-2 ml-2">
-                   <button
-                     onClick={refreshRates}
-                     disabled={isLoadingRates}
-                     className={`p-1 rounded text-xs transition-colors ${
-                       isLoadingRates 
-                         ? 'text-gray-400 cursor-not-allowed' 
-                         : 'text-lime-600 hover:text-lime-700 hover:bg-lime-50'
-                     }`}
-                     title="Refresh exchange rates"
-                   >
-                     <RefreshCw className={`w-3 h-3 ${isLoadingRates ? 'animate-spin' : ''}`} />
-                   </button>
-                   {isLoadingRates && (
-                     <span className="text-xs text-lime-600 animate-pulse">
-                       Updating rates...
-                     </span>
-                   )}
-                   {lastUpdated && !isLoadingRates && (
-                     <span className="text-xs text-gray-500">
-                       Updated: {lastUpdated}
-                     </span>
-                   )}
-                 </div>
-               </div>
+              <div className="flex items-center space-x-2 mt-1">
+                <span className="text-xs text-gray-600">Currency:</span>
+                <div className="flex flex-wrap gap-1">
+                  {currencies.map((currency) => (
+                    <button
+                      key={currency.code}
+                      onClick={() => {
+                        setSelectedCurrency(currency);
+                        setHasUserSelectedCurrency(true);
+                      }}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        selectedCurrency.code === currency.code
+                          ? 'bg-lime-600 text-white'
+                          : 'bg-white text-gray-600 hover:bg-lime-100 border border-lime-200'
+                      }`}
+                    >
+                      {currency.code}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={refreshRates}
+                  disabled={isLoadingRates}
+                  className={`p-1 rounded text-xs transition-colors ${
+                    isLoadingRates 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-lime-600 hover:text-lime-700 hover:bg-lime-100'
+                  }`}
+                  title="Refresh rates"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isLoadingRates ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-lime-100 rounded"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex flex-col lg:flex-row h-[calc(90vh-100px)]">
-          {/* Left Section - Your Requirements */}
-          <div className="flex-1 p-6 bg-white border-r border-lime-200 overflow-y-auto">
-            <div className="space-y-8">
+        <div className="flex flex-col lg:flex-row max-h-[calc(95vh-80px)] overflow-hidden">
+          {/* Left Section - Configuration */}
+          <div className="flex-1 p-4 bg-white overflow-y-auto">
+            <div className="space-y-6">
               {/* Staff Section */}
               <div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
-                    <Users className="w-5 h-5 text-lime-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Staff ({staff.length} person{staff.length !== 1 ? 's' : ''})
+                    <Users className="w-4 h-4 text-lime-600" />
+                    <h3 className="text-base font-semibold text-gray-900">
+                      Staff ({staff.length})
                     </h3>
                   </div>
                   <button
@@ -324,10 +292,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                       const newId = Math.max(...staff.map(s => parseInt(s.id))) + 1;
                       setStaff([...staff, { id: newId.toString(), salary: 25000 }]);
                     }}
-                    className="bg-lime-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-lime-700 transition-colors flex items-center space-x-1"
+                    className="bg-lime-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-lime-700 transition-colors flex items-center space-x-1"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Add Person</span>
+                    <span className="hidden sm:inline">Add</span>
                   </button>
                 </div>
                 
@@ -345,10 +313,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                             onChange={(e) => {
                               setStaff(staff.map(s => s.id === member.id ? { ...s, salary: parseInt(e.target.value) || 0 } : s));
                             }}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent text-sm"
                             placeholder="25000"
                           />
-                          <span className="text-sm font-medium text-lime-600">
+                          <span className="text-sm font-medium text-lime-600 bg-lime-50 px-2 py-1 rounded">
                             {getMultiplier(member.salary)}x
                           </span>
                         </div>
@@ -372,22 +340,22 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
               {/* Workspace Type Section */}
               <div>
-                <div className="flex items-center space-x-2 mb-4">
-                  <Building className="w-5 h-5 text-lime-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">Workspace Type</h3>
+                <div className="flex items-center space-x-2 mb-3">
+                  <Building className="w-4 h-4 text-lime-600" />
+                  <h3 className="text-base font-semibold text-gray-900">Workspace</h3>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     { id: 'wfh', label: 'Work From Home', price: 8000, icon: Home },
                     { id: 'hybrid', label: 'Hybrid Desk', price: 12000, icon: Zap },
-                    { id: 'office', label: 'Full Office Seat', price: 16000, icon: Building2 }
+                    { id: 'office', label: 'Office Seat', price: 16000, icon: Building2 }
                   ].map((option) => {
                     const Icon = option.icon;
                     return (
                       <label
                         key={option.id}
-                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all text-sm ${
                           workspaceType === option.id
                             ? 'border-lime-500 bg-lime-50'
                             : 'border-gray-200 hover:border-gray-300'
@@ -401,21 +369,21 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                           onChange={(e) => setWorkspaceType(e.target.value as "wfh" | "hybrid" | "office" | "private")}
                           className="sr-only"
                         />
-                        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                        <div className={`w-3 h-3 rounded-full border-2 mr-2 ${
                           workspaceType === option.id
                             ? 'border-lime-500 bg-lime-500'
                             : 'border-gray-300'
                         }`}>
                           {workspaceType === option.id && (
-                            <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                            <div className="w-1.5 h-1.5 bg-white rounded-full m-0.5" />
                           )}
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <Icon className="w-5 h-5 text-lime-600" />
+                        <div className="flex items-center space-x-2">
+                          <Icon className="w-4 h-4 text-lime-600" />
                           <div>
                             <div className="font-medium text-gray-900">{option.label}</div>
-                            <div className="text-sm text-gray-600">
-                              {formatPriceWithPHP(option.price)}/month per person
+                            <div className="text-xs text-gray-600">
+                              {formatPriceWithPHP(option.price)}/month
                             </div>
                           </div>
                         </div>
@@ -427,19 +395,19 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
               {/* Contract Type Section */}
               <div>
-                <div className="flex items-center space-x-2 mb-4">
-                  <Clock className="w-5 h-5 text-lime-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">Contract Type</h3>
+                <div className="flex items-center space-x-2 mb-3">
+                  <Clock className="w-4 h-4 text-lime-600" />
+                  <h3 className="text-base font-semibold text-gray-900">Contract</h3>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {[
-                    { id: '6month', label: '6-Month Contract', description: 'Setup fee spread over 6 months (90% choose this)' },
-                    { id: 'monthly', label: 'Month-to-Month', description: 'Pay setup fee upfront + security deposit' }
+                    { id: '6month', label: '6-Month Contract', description: 'Setup fee spread over 6 months' },
+                    { id: 'monthly', label: 'Month-to-Month', description: 'Pay setup fee upfront' }
                   ].map((option) => (
                     <label
                       key={option.id}
-                      className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
                         contractType === option.id
                           ? 'border-lime-500 bg-lime-50'
                           : 'border-gray-200 hover:border-gray-300'
@@ -453,18 +421,18 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                         onChange={(e) => setContractType(e.target.value as "6month" | "monthly")}
                         className="sr-only"
                       />
-                      <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                      <div className={`w-3 h-3 rounded-full border-2 mr-3 ${
                         contractType === option.id
                           ? 'border-lime-500 bg-lime-500'
                           : 'border-gray-300'
                       }`}>
                         {contractType === option.id && (
-                          <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                          <div className="w-1.5 h-1.5 bg-white rounded-full m-0.5" />
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">{option.label}</div>
-                        <div className="text-sm text-gray-600">{option.description}</div>
+                        <div className="font-medium text-gray-900 text-sm">{option.label}</div>
+                        <div className="text-xs text-gray-600">{option.description}</div>
                       </div>
                     </label>
                   ))}
@@ -473,21 +441,21 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
             </div>
           </div>
 
-          {/* Right Section - Your Investment Breakdown */}
-          <div className="flex-1 p-6 bg-lime-50 overflow-y-auto">
-            <div className="space-y-6">
+          {/* Right Section - Results */}
+          <div className="flex-1 p-4 bg-lime-50 overflow-y-auto border-l border-lime-200">
+            <div className="space-y-4">
               {/* Header */}
               <div className="flex items-center space-x-2">
-                <DollarSign className="w-5 h-5 text-lime-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Your Investment Breakdown</h3>
+                <DollarSign className="w-4 h-4 text-lime-600" />
+                <h3 className="text-base font-semibold text-gray-900">Investment Breakdown</h3>
               </div>
 
               {/* Staff Costs */}
-              <div className="bg-white rounded-lg p-4 border border-lime-200">
-                <h4 className="font-semibold text-gray-900 mb-3">Staff Costs</h4>
-                <div className="space-y-2">
+              <div className="bg-white rounded-lg p-3 border border-lime-200">
+                <h4 className="font-semibold text-gray-900 mb-2 text-sm">Staff Costs</h4>
+                <div className="space-y-1">
                   {calculations.breakdown.map((member, index) => (
-                    <div key={member.id} className="flex justify-between items-center">
+                    <div key={member.id} className="flex justify-between items-center text-sm">
                       <span className="text-gray-700">
                         Person {index + 1} ({formatPriceOnly(member.salary)} × {member.multiplier})
                       </span>
@@ -497,8 +465,8 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                     </div>
                   ))}
                   <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                    <span className="font-semibold text-lime-600">Total Staff Cost</span>
-                    <span className="font-semibold text-lime-600">
+                    <span className="font-semibold text-lime-600 text-sm">Total Staff Cost</span>
+                    <span className="font-semibold text-lime-600 text-sm">
                       {formatPriceOnly(calculations.totalStaffCost)}/month
                     </span>
                   </div>
@@ -506,18 +474,18 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               </div>
 
               {/* Workspace Cost */}
-              <div className="bg-white rounded-lg p-4 border border-lime-200">
-                <h4 className="font-semibold text-gray-900 mb-3">Workspace Cost</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
+              <div className="bg-white rounded-lg p-3 border border-lime-200">
+                <h4 className="font-semibold text-gray-900 mb-2 text-sm">Workspace</h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-700">
-                      {workspaceType === 'wfh' ? 'Work From Home' : workspaceType === 'hybrid' ? 'Hybrid Desk' : 'Full Office Seat'}
+                      {workspaceType === 'wfh' ? 'Work From Home' : workspaceType === 'hybrid' ? 'Hybrid Desk' : 'Office Seat'}
                     </span>
                     <span className="font-medium text-gray-900">
                       {formatPriceOnly(getWorkspaceCostPerPerson())}/month
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600">
+                  <div className="flex justify-between items-center text-xs text-gray-600">
                     <span>
                       {formatPriceOnly(getWorkspaceCostPerPerson())} × {staff.length} person{staff.length !== 1 ? 's' : ''}
                     </span>
@@ -526,22 +494,17 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               </div>
 
               {/* Setup Costs */}
-              <div className="bg-white rounded-lg p-4 border border-lime-200">
-                <h4 className="font-semibold text-gray-900 mb-3">Setup Costs</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
+              <div className="bg-white rounded-lg p-3 border border-lime-200">
+                <h4 className="font-semibold text-gray-900 mb-2 text-sm">Setup</h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-700">Total Setup Fee</span>
                     <span className="font-medium text-gray-900">
                       {formatPriceOnly(calculations.totalSetupCost)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600">
-                    <span>
-                      {formatPriceOnly(getSetupFeePerPerson())} × {staff.length} person{staff.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
                   {contractType === '6month' && (
-                    <div className="flex justify-between items-center text-sm text-gray-600">
+                    <div className="flex justify-between items-center text-xs text-gray-600">
                       <span>Spread over 6 months =</span>
                       <span>{formatPriceOnly(calculations.monthlySetupCost)}/month</span>
                     </div>
@@ -550,20 +513,20 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               </div>
 
               {/* Total Costs Summary */}
-              <div className="space-y-4">
-                <div className="bg-lime-100 rounded-lg p-4 border border-lime-300">
+              <div className="space-y-3">
+                <div className="bg-lime-100 rounded-lg p-3 border border-lime-300">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-900">First 6 Months</span>
-                    <span className="text-2xl font-bold text-lime-600">
+                    <span className="font-semibold text-gray-900 text-sm">First 6 Months</span>
+                    <span className="text-lg font-bold text-lime-600">
                       {formatPriceOnly(calculations.totalMonthly)}/month
                     </span>
                   </div>
                 </div>
                 
-                <div className="bg-blue-100 rounded-lg p-4 border border-blue-300">
+                <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-900">After 6 Months</span>
-                    <span className="text-2xl font-bold text-blue-600">
+                    <span className="font-semibold text-gray-900 text-sm">After 6 Months</span>
+                    <span className="text-lg font-bold text-blue-600">
                       {formatPriceOnly(calculations.totalAfter6Months)}/month
                     </span>
                   </div>
@@ -571,9 +534,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               </div>
 
               {/* Action Button */}
-              <button className="w-full bg-lime-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-lime-700 transition-colors flex items-center justify-center space-x-2 shadow-lg">
-                <DollarSign className="w-5 h-5" />
-                <span>Book Consultation with This Setup</span>
+              <button className="w-full bg-lime-600 text-white py-3 px-4 rounded-lg font-semibold text-base hover:bg-lime-700 transition-colors flex items-center justify-center space-x-2 shadow-lg">
+                <DollarSign className="w-4 h-4" />
+                <span>Book Consultation</span>
               </button>
             </div>
           </div>
