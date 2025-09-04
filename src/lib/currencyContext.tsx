@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react'
 import { currencyApi } from './api'
 import { ipDetectionService, getLocationInfo, LocationData } from './ipDetection'
 
@@ -61,6 +61,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [isDetectingLocation, setIsDetectingLocation] = useState(false)
   const [isAutoDetected, setIsAutoDetected] = useState(false)
   const [hasUserSelectedCurrency, setHasUserSelectedCurrency] = useState(false)
+  
+  // Use ref to track current selected currency without causing re-renders
+  const selectedCurrencyRef = useRef(selectedCurrency)
+  selectedCurrencyRef.current = selectedCurrency
 
   // Fetch real-time exchange rates - memoized with useCallback
   const fetchExchangeRates = useCallback(async () => {
@@ -83,7 +87,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setCurrenciesState(updatedCurrencies)
         
         // Update selected currency with new rate
-        const currentSelected = updatedCurrencies.find(c => c.code === selectedCurrency.code)
+        const currentSelected = updatedCurrencies.find(c => c.code === selectedCurrencyRef.current.code)
         if (currentSelected) {
           setSelectedCurrency(currentSelected)
         }
@@ -106,7 +110,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setCurrenciesState(fallbackCurrencies)
         
         // Update selected currency with fallback rate
-        const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrency.code)
+        const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrencyRef.current.code)
         if (currentSelected) {
           setSelectedCurrency(currentSelected)
         }
@@ -129,23 +133,23 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       
       setCurrenciesState(fallbackCurrencies)
       
-      // Update selected currency with fallback rate
-      const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrency.code)
-      if (currentSelected) {
-        setSelectedCurrency(currentSelected)
-      }
+              // Update selected currency with fallback rate
+        const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrencyRef.current.code)
+        if (currentSelected) {
+          setSelectedCurrency(currentSelected)
+        }
       
       console.log('✅ Using fallback exchange rates due to API error:', fallbackRates)
       console.log('Updated currencies with fallback rates:', fallbackCurrencies)
     } finally {
       setIsLoadingRates(false)
     }
-  }, [selectedCurrency.code])
+  }, [])
 
   // Refresh rates function
   const refreshRates = useCallback(async () => {
     await fetchExchangeRates()
-  }, [fetchExchangeRates])
+  }, [])
 
   // Detect user location and set appropriate currency
   const detectUserLocation = useCallback(async () => {
@@ -177,7 +181,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsDetectingLocation(false)
     }
-  }, [currenciesState])
+  }, [])
 
   // Fetch rates on mount and every 5 minutes
   useEffect(() => {
@@ -225,7 +229,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [detectUserLocation, hasUserSelectedCurrency]);
+  }, [hasUserSelectedCurrency]);
 
   const convertPrice = (phpAmount: number): number => {
     // If PHP is selected, return the amount as is

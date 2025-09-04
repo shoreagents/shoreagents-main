@@ -5,10 +5,12 @@ import { SideNav } from "@/components/layout/SideNav";
 import { PricingCalculatorModal } from "@/components/ui/pricing-calculator-modal";
 import { Calculator, Users, Building, Clock, DollarSign, ArrowRight, Star, FileText } from "lucide-react";
 import { useCurrency } from "@/lib/currencyContext";
+import { useEngagementTracking } from "@/lib/useEngagementTracking";
 
 export default function PricingPage() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const { selectedCurrency, convertPrice, formatPrice } = useCurrency();
+  const { recordInteraction } = useEngagementTracking();
 
   // Sample calculation for preview (matching the calculator logic)
   const sampleStaffCost = 25000 * 1.43; // Base salary with multiplier
@@ -66,7 +68,10 @@ export default function PricingPage() {
 
               {/* Open Calculator Button */}
               <button 
-                onClick={() => setIsCalculatorOpen(true)}
+                onClick={() => {
+                  recordInteraction('open-calculator');
+                  setIsCalculatorOpen(true);
+                }}
                 className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center cursor-pointer"
               >
                 <Calculator className="w-5 h-5 mr-2" />
@@ -346,7 +351,10 @@ export default function PricingPage() {
 
                 {/* Calculate Button */}
                 <button 
-                  onClick={() => setIsCalculatorOpen(true)}
+                  onClick={() => {
+                    recordInteraction('calculate-costs');
+                    setIsCalculatorOpen(true);
+                  }}
                   className="w-full bg-lime-600 text-white px-4 py-3 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-base cursor-pointer"
                 >
                   <Calculator className="w-4 h-4 mr-2" />
