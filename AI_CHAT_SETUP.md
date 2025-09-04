@@ -126,3 +126,4 @@ For even smarter responses:
 The AI Chat Console is now fully integrated and ready to use! Your visitors can start asking questions immediately. The system will learn from your content and provide helpful, accurate responses about ShoreAgents.
 
 For any questions or customizations, refer to the component files or modify the knowledge base as needed.
+

@@ -9,6 +9,7 @@ import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { getEmployeeCardData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/toast-context';
+import { useEngagementTracking } from '@/lib/useEngagementTracking';
 import {
   Search,
   Users,
@@ -29,6 +30,7 @@ export default function EmployeesPage() {
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [isEmployeeDetailsModalOpen, setIsEmployeeDetailsModalOpen] = useState(false);
   const { showToast } = useToast();
+  const { recordInteraction } = useEngagementTracking();
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -110,16 +112,19 @@ export default function EmployeesPage() {
   }, [filterEmployees]);
 
   const handleViewDetails = (employee: EmployeeCardData) => {
+    recordInteraction('view-details');
     setSelectedEmployee(employee);
     setIsEmployeeDetailsModalOpen(true);
   };
 
   const handleViewResume = (resume: ResumeGenerated) => {
+    recordInteraction('view-resume');
     setSelectedResume(resume);
     setIsResumeModalOpen(true);
   };
 
   const handleViewResumeFromDetails = (resume: ResumeGenerated) => {
+    recordInteraction('view-resume-from-details');
     setSelectedResume(resume);
     setIsResumeModalOpen(true);
     setIsEmployeeDetailsModalOpen(false); // Close details modal when opening resume
@@ -158,7 +163,10 @@ export default function EmployeesPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={fetchEmployees} variant="refresh" className="flex items-center space-x-2">
+          <Button onClick={() => {
+            recordInteraction('refresh-employees');
+            fetchEmployees();
+          }} variant="refresh" className="flex items-center space-x-2">
             <RefreshCw className="w-4 h-4" />
             <span>Try Again</span>
           </Button>
@@ -182,7 +190,10 @@ export default function EmployeesPage() {
                 Discover qualified candidates ready to join your team
               </p>
             </div>
-            <Button onClick={fetchEmployees} variant="refresh" className="flex items-center space-x-2">
+            <Button onClick={() => {
+              recordInteraction('refresh-employees');
+              fetchEmployees();
+            }} variant="refresh" className="flex items-center space-x-2">
               <RefreshCw className="w-4 h-4" />
               <span>Refresh</span>
             </Button>
@@ -256,14 +267,20 @@ export default function EmployeesPage() {
                 type="text"
                 placeholder="Search by name, email, position, or location..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  recordInteraction('search-employees');
+                  setSearchTerm(e.target.value);
+                }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent input-hover-effect"
               />
             </div>
             <div className="flex gap-2">
               <select
                 value={selectedFilter}
-                onChange={(e) => setSelectedFilter(e.target.value)}
+                onChange={(e) => {
+                  recordInteraction('filter-employees');
+                  setSelectedFilter(e.target.value);
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent select-hover-effect cursor-pointer"
               >
                 <option value="all">All Candidates</option>

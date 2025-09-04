@@ -1,20 +1,15 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, ChevronUp, ExternalLink, Sparkles } from 'lucide-react';
 import { colors } from '@/lib/colors';
-import { renderChatComponent } from './chat-components';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  components?: Array<{
-    type: string;
-    id: string;
-    [key: string]: any;
-  }>;
+  components?: React.ReactNode[];
   relatedContent?: Array<{
     title: string;
     content: string;
@@ -28,30 +23,18 @@ interface ChatConsoleProps {
 }
 
 const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  // Generate dynamic initial greeting
-  useEffect(() => {
-    if (messages.length === 0) {
-      const greetings = [
-        "Hi there! I'm here to help with ShoreAgents information. What would you like to know?",
-        "Hello! I can share details about our services, team, pricing, and processes. What interests you?",
-        "Welcome! I'm ready to help with ShoreAgents details. What would you like to explore?",
-        "Hi! I can provide information about our outsourcing services and team. What questions do you have?"
-      ];
-      const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-      
-      setMessages([{
-        id: '1',
-        role: 'assistant',
-        content: randomGreeting,
-        timestamp: new Date(),
-      }]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: "Hello! I'm Maya Santos, your ShoreAgents AI assistant. I can help you with information about our services, team, pricing, and more. How can I assist you today?",
+      timestamp: new Date(),
     }
-  }, []);
+  ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -64,6 +47,16 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
   }, [messages]);
 
   useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+    } else {
+      // Add delay before hiding to allow closing animation
+      const timer = setTimeout(() => setIsVisible(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
@@ -71,7 +64,6 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
 
   const generateAIResponse = async (userMessage: string, conversationHistory: Message[]) => {
     try {
-      // Call the Claude API endpoint
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -79,62 +71,30 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
         },
         body: JSON.stringify({
           message: userMessage,
-          conversationHistory: conversationHistory,
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response from Claude API');
+        throw new Error(`API request failed: ${response.status}`);
       }
 
       const data = await response.json();
       
-      // Extract related content from the knowledge base for display
-      const { searchKnowledge } = await import('@/lib/knowledge-base');
-      const relevantContent = searchKnowledge(userMessage);
-      
-      const relatedContent = relevantContent.slice(1).map(item => ({
-        title: item.title,
-        content: item.content.substring(0, 150) + '...',
-        url: item.url
-      }));
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      return { 
-        response: data.content, 
-        relatedContent: relatedContent.length > 0 ? relatedContent : undefined,
-        components: data.components
+      return {
+        response: data.content || 'I apologize, but I encountered an error processing your request.',
+        relatedContent: data.components || [],
       };
     } catch (error) {
-      console.error('API call failed, falling back to local response:', error);
-      
-      // Fallback to local knowledge base if API fails
-      const { searchKnowledge } = await import('@/lib/knowledge-base');
-      const relevantContent = searchKnowledge(userMessage);
-      
-      let response = '';
-      let relatedContent: Array<{ title: string; content: string; url?: string }> = [];
-      
-      if (relevantContent.length > 0) {
-        const primaryContent = relevantContent[0];
-        response = `${primaryContent.content}\n\n`;
-        
-        if (relevantContent.length > 1) {
-          const otherItems = relevantContent.slice(1).map(item => item.title);
-          response += `I also found information about: ${otherItems.join(', ')}. `;
-        }
-        
-        response += `What would you like to know more about?`;
-        
-        relatedContent = relevantContent.slice(1).map(item => ({
-          title: item.title,
-          content: item.content.substring(0, 150) + '...',
-          url: item.url
-        }));
-      } else {
-        response = `I can help you with information about ShoreAgents' services, team, pricing, or processes. What would you like to explore?`;
-      }
-      
-      return { response, relatedContent };
+      console.error('API call error:', error);
+      throw error;
     }
   };
 
@@ -154,15 +114,14 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      const { response, relatedContent, components } = await generateAIResponse(inputValue, messages);
+      const { response, relatedContent } = await generateAIResponse(inputValue, messages);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: response,
         timestamp: new Date(),
-        relatedContent: relatedContent && relatedContent.length > 0 ? relatedContent : undefined,
-        components: components,
+        relatedContent: relatedContent.length > 0 ? relatedContent : undefined,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -189,12 +148,23 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
         className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
       >
         <div className={`flex items-start gap-3 max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${
             isUser 
               ? 'bg-gradient-to-br from-lime-400 to-lime-600 text-white' 
-              : 'bg-gradient-to-br from-ocean-400 to-ocean-600 text-white'
+              : 'border-2 border-lime-200'
           }`}>
-            {isUser ? <User size={16} /> : <Bot size={16} />}
+            {isUser ? <User size={16} /> : (
+              <div className="relative w-full h-full">
+                <img 
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=32"
+                  alt="Maya Santos Avatar"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute -top-1 -right-1">
+                  <Sparkles className="w-3 h-3 text-lime-500 animate-pulse" />
+                </div>
+              </div>
+            )}
           </div>
           
           <div className={`rounded-2xl px-4 py-3 shadow-lg ${
@@ -205,17 +175,6 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
             <div className="text-sm leading-relaxed whitespace-pre-wrap">
               {message.content}
             </div>
-            
-            {message.components && message.components.length > 0 && (
-              <div className="mt-3 space-y-2">
-                <div className="text-xs font-medium text-gray-600 mb-2">Interactive Elements:</div>
-                {message.components.map((componentData: any, index: number) => (
-                  <div key={componentData.id || index}>
-                    {renderChatComponent(componentData)}
-                  </div>
-                ))}
-              </div>
-            )}
             
             {message.relatedContent && message.relatedContent.length > 0 && (
               <div className="mt-3 space-y-2">
@@ -251,27 +210,57 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col">
+    <div 
+      className={`fixed bottom-4 right-4 z-50 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col transition-all duration-400 ease-out ${
+        isVisible 
+          ? 'opacity-100 translate-y-0 scale-100' 
+          : 'opacity-0 translate-y-8 scale-90'
+      }`}
+      style={{ height: isMinimized ? '80px' : '600px' }}
+    >
       {/* Header */}
       <div className="bg-gradient-to-r from-lime-500 to-lime-600 text-white p-4 rounded-t-2xl flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Bot size={20} />
+          {/* Maya Santos Avatar */}
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full shadow-lg border-2 border-white overflow-hidden">
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=40"
+                alt="Maya Santos Avatar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Online indicator */}
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+            </div>
+            {/* Sparkle effect */}
+            <div className="absolute -top-1 -right-1">
+              <Sparkles className="w-3 h-3 text-lime-200 animate-pulse" />
+            </div>
+          </div>
           <div>
-            <h3 className="font-semibold text-lg">ShoreAgents AI</h3>
-            <p className="text-lime-100 text-sm">Your virtual assistant</p>
+            <h3 className="font-semibold text-lg">Maya Santos</h3>
+            <p className="text-lime-100 text-sm">Your ShoreAgents AI Assistant</p>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1 hover:bg-lime-400 rounded transition-colors"
+            className="p-1 hover:bg-lime-400 rounded transition-colors duration-300 ease-out"
+            title={isMinimized ? "Expand chat" : "Minimize chat"}
           >
             {isMinimized ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
           <button
-            onClick={onClose}
-            className="p-1 hover:bg-lime-400 rounded transition-colors"
+            onClick={() => {
+              setIsVisible(false);
+              // Delay the actual close to allow animation to complete
+              setTimeout(() => onClose(), 300);
+            }}
+            className="p-1 hover:bg-lime-400 rounded transition-colors duration-200"
+            title="Close chat"
           >
             <X size={16} />
           </button>
@@ -281,18 +270,22 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
       {!isMinimized && (
         <>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 transition-all duration-300 ease-out">
             {messages.map(renderMessage)}
             {isLoading && (
               <div className="flex justify-start mb-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ocean-400 to-ocean-600 text-white flex items-center justify-center">
-                    <Bot size={16} />
+                  <div className="w-8 h-8 rounded-full border-2 border-lime-200 overflow-hidden">
+                    <img 
+                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=32"
+                      alt="Maya Santos Avatar"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="bg-white rounded-2xl px-4 py-3 border border-gray-200">
                     <div className="flex items-center gap-2">
-                      <Loader2 size={16} className="animate-spin text-ocean-500" />
-                      <span className="text-sm text-gray-600">Thinking...</span>
+                      <Loader2 size={16} className="animate-spin text-lime-500" />
+                      <span className="text-sm text-gray-600">Maya is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -302,15 +295,15 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Input */}
-          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
+          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 transition-all duration-300 ease-out">
             <div className="flex gap-2">
               <input
                 ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask me anything about ShoreAgents..."
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent text-sm"
+                placeholder="Ask Maya anything about ShoreAgents..."
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent text-sm transition-all duration-200"
                 disabled={isLoading}
               />
               <button
