@@ -1,20 +1,89 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
+// Simple in-memory rate limiting (in production, use Redis or similar)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+
 export async function POST(request: NextRequest) {
   try {
-    // Debug: Check if API key is loaded
-    console.log('API Key loaded:', !!process.env.ANTHROPIC_API_KEY);
-    console.log('API Key length:', process.env.ANTHROPIC_API_KEY?.length || 0);
+    // Rate limiting
+    const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const now = Date.now();
+    const rateLimitKey = clientIP;
     
-    const { message, conversationHistory, userId }: { message: string; conversationHistory: Array<{ role: string; content: string }>; userId?: string } = await request.json();
+    const rateLimitData = rateLimitMap.get(rateLimitKey);
+    if (rateLimitData) {
+      if (now < rateLimitData.resetTime) {
+        if (rateLimitData.count >= RATE_LIMIT_MAX_REQUESTS) {
+          return NextResponse.json(
+            { error: 'Rate limit exceeded. Please try again later.' },
+            { status: 429 }
+          );
+        }
+        rateLimitData.count++;
+      } else {
+        rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+      }
+    } else {
+      rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    }
+
+    // Check if API key is available (without logging sensitive information)
+    const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
+    
+    // Validate request method
+    if (request.method !== 'POST') {
+      return NextResponse.json(
+        { error: 'Method not allowed' },
+        { status: 405 }
+      );
+    }
+
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    const { message, conversationHistory, userId }: { message: string; conversationHistory: Array<{ role: string; content: string }>; userId?: string } = requestBody;
+
+    // Validate required fields
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Message is required and must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    // Validate message length
+    if (message.length > 4000) {
+      return NextResponse.json(
+        { error: 'Message too long. Please keep it under 4000 characters.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate conversation history
+    if (!Array.isArray(conversationHistory)) {
+      return NextResponse.json(
+        { error: 'Conversation history must be an array' },
+        { status: 400 }
+      );
+    }
 
     // Check if API key is available
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY is not set');
+    if (!hasApiKey) {
+      console.error('API key not configured');
       return NextResponse.json(
-        { error: 'API key not configured. Please check your environment variables.' },
-        { status: 500 }
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 }
       );
     }
 
@@ -52,59 +121,73 @@ Be professional, helpful, and knowledgeable about ShoreAgents' business. If you 
 
 Keep responses concise but informative, and always maintain a helpful and professional tone.`;
 
-    console.log('Sending request to Anthropic API...');
-    console.log('Message:', message);
+    // Log request details (without sensitive information)
+    console.log('Processing chat request...');
+    console.log('Message length:', message.length);
     console.log('Conversation history length:', conversationHistory.length);
 
     // Call Anthropic API
-    const response = await anthropic.messages.create({
+    const anthropicResponse = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
       max_tokens: 1000,
       system: systemPrompt,
       messages: messages,
     });
 
-    console.log('Anthropic API response received');
+    console.log('API response received successfully');
 
     // Extract the response content
-    const aiResponse = response.content[0];
+    const aiResponse = anthropicResponse.content[0];
     if (aiResponse.type !== 'text') {
       throw new Error('Unexpected response type from Anthropic API');
     }
 
-    return NextResponse.json({
+    const nextResponse = NextResponse.json({
       content: aiResponse.text,
       components: [],
     });
 
+    // Add security headers
+    nextResponse.headers.set('X-Content-Type-Options', 'nosniff');
+    nextResponse.headers.set('X-Frame-Options', 'DENY');
+    nextResponse.headers.set('X-XSS-Protection', '1; mode=block');
+    nextResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+    return nextResponse;
+
   } catch (error) {
-    console.error('Chat API error:', error);
+    console.error('Chat API error occurred');
     
-    // Log more detailed error information
+    // Log error details without exposing sensitive information
     if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Error type:', error.constructor.name);
+      // Only log error message if it doesn't contain sensitive information
+      if (!error.message.toLowerCase().includes('key') && !error.message.toLowerCase().includes('token')) {
+        console.error('Error message:', error.message);
+      }
     }
     
-    // Check if it's an API key issue
-    if (error instanceof Error && error.message.includes('401')) {
-      return NextResponse.json(
-        { error: 'Invalid API key. Please check your Anthropic API key.' },
-        { status: 401 }
-      );
+    // Handle specific error types without exposing details
+    if (error instanceof Error) {
+      if (error.message.includes('401') || error.message.includes('unauthorized')) {
+        return NextResponse.json(
+          { error: 'Service temporarily unavailable. Please try again later.' },
+          { status: 503 }
+        );
+      }
+      
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        return NextResponse.json(
+          { error: 'Rate limit exceeded. Please try again later.' },
+          { status: 429 }
+        );
+      }
     }
     
-    // Check if it's a rate limit issue
-    if (error instanceof Error && error.message.includes('429')) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
-        { status: 429 }
-      );
-    }
-    
+    // Generic error response
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { error: 'Service temporarily unavailable. Please try again later.' },
+      { status: 503 }
     );
   }
 }
