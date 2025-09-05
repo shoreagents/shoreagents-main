@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
+import { Lock, Unlock } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -31,8 +32,15 @@ function DrawerClose({
 
 function DrawerOverlay({
   className,
+  showOverlay = true,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Overlay>) {
+}: React.ComponentProps<typeof DrawerPrimitive.Overlay> & {
+  showOverlay?: boolean
+}) {
+  if (!showOverlay) {
+    return null
+  }
+  
   return (
     <DrawerPrimitive.Overlay
       data-slot="drawer-overlay"
@@ -48,11 +56,16 @@ function DrawerOverlay({
 function DrawerContent({
   className,
   children,
+  showOverlay = true,
+  isLocked = false,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+}: React.ComponentProps<typeof DrawerPrimitive.Content> & {
+  showOverlay?: boolean
+  isLocked?: boolean
+}) {
   return (
     <DrawerPortal data-slot="drawer-portal">
-      <DrawerOverlay />
+      <DrawerOverlay showOverlay={showOverlay} />
       <DrawerPrimitive.Content
         data-slot="drawer-content"
         className={cn(
@@ -61,11 +74,12 @@ function DrawerContent({
           "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-lg data-[vaul-drawer-direction=bottom]:border-t",
           "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=right]:sm:max-w-sm",
           "data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 data-[vaul-drawer-direction=left]:border-r data-[vaul-drawer-direction=left]:sm:max-w-sm",
+          isLocked && "pointer-events-none",
           className
         )}
+        style={isLocked ? { pointerEvents: 'auto' } : undefined}
         {...props}
       >
-        <div className="bg-muted mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
         {children}
       </DrawerPrimitive.Content>
     </DrawerPortal>
@@ -121,6 +135,35 @@ function DrawerDescription({
   )
 }
 
+function DrawerLockToggle({
+  isLocked,
+  onToggle,
+  className,
+  ...props
+}: {
+  isLocked: boolean
+  onToggle: () => void
+  className?: string
+} & React.ComponentProps<"button">) {
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        "absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-sm hover:bg-white transition-colors duration-200",
+        className
+      )}
+      title={isLocked ? "Unlock drawer" : "Lock drawer"}
+      {...props}
+    >
+      {isLocked ? (
+        <Lock className="w-4 h-4 text-gray-600" />
+      ) : (
+        <Unlock className="w-4 h-4 text-gray-600" />
+      )}
+    </button>
+  )
+}
+
 export {
   Drawer,
   DrawerPortal,
@@ -132,4 +175,5 @@ export {
   DrawerFooter,
   DrawerTitle,
   DrawerDescription,
+  DrawerLockToggle,
 }
