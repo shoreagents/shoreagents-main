@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle, Calculator, Users, Calendar, Target, TrendingUp, Award, FileText, Phone, Clock, BarChart3 } from 'lucide-react'
+import { ArrowRight, CheckCircle, Users, Target, TrendingUp, Award, FileText, Phone, Clock } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 
 export default function AdministrativeAssistantPage() {

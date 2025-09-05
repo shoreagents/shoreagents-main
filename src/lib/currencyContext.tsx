@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react'
 import { currencyApi } from './api'
-import { ipDetectionService, getLocationInfo, LocationData } from './ipDetection'
+import { getLocationInfo, LocationData } from './ipDetection'
 
 export interface Currency {
   symbol: string
@@ -56,7 +56,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[0])
   const [isLoadingRates, setIsLoadingRates] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
-  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({})
+  const [, setExchangeRates] = useState<Record<string, number>>({})
   const [userLocation, setUserLocation] = useState<LocationData | null>(null)
   const [isDetectingLocation, setIsDetectingLocation] = useState(false)
   const [isAutoDetected, setIsAutoDetected] = useState(false)

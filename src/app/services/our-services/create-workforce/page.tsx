@@ -8,7 +8,7 @@ import { useCurrency } from '@/lib/currencyContext';
 
 export default function CreateWorkforcePage() {
   const router = useRouter();
-  const { selectedCurrency, convertPrice, formatPrice } = useCurrency();
+  const { convertPrice, formatPrice } = useCurrency();
 
   const handleBookWorkforcePlanning = () => {
     router.push('/gettingstart');
