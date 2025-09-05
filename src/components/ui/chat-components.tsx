@@ -84,8 +84,18 @@ export const ContactForm: React.FC<ContactFormProps> = ({ service }) => {
   );
 };
 
+// Component data type definition
+interface ComponentData {
+  type: 'service_card' | 'team_member' | 'case_study' | 'pricing' | 'contact_form';
+  id: string;
+  serviceName?: string;
+  memberName?: string;
+  title?: string;
+  service?: string;
+}
+
 // Component renderer function
-export const renderChatComponent = (componentData: any) => {
+export const renderChatComponent = (componentData: ComponentData) => {
   switch (componentData.type) {
     case 'service_card':
       return <ServiceCard key={componentData.id} serviceName={componentData.serviceName} />;

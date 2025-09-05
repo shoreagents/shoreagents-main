@@ -13,7 +13,7 @@ import { useEngagementTracking } from "@/lib/useEngagementTracking";
 
 export default function Home() {
   const [isShoreAgentsWay, setIsShoreAgentsWay] = useState(true);
-  const { selectedCurrency, convertPrice, formatPrice } = useCurrency();
+  const { convertPrice, formatPrice } = useCurrency();
   const { recordInteraction } = useEngagementTracking();
   
   // State for top employees

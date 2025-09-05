@@ -45,14 +45,14 @@ export async function POST(request: NextRequest) {
     let requestBody;
     try {
       requestBody = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid JSON in request body' },
         { status: 400 }
       );
     }
 
-    const { message, conversationHistory, userId }: { message: string; conversationHistory: Array<{ role: string; content: string }>; userId?: string } = requestBody;
+    const { message, conversationHistory }: { message: string; conversationHistory: Array<{ role: string; content: string }>; userId?: string } = requestBody;
 
     // Validate required fields
     if (!message || typeof message !== 'string' || message.trim().length === 0) {

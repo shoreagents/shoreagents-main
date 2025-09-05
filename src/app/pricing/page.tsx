@@ -9,7 +9,7 @@ import { useEngagementTracking } from "@/lib/useEngagementTracking";
 
 export default function PricingPage() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const { selectedCurrency, convertPrice, formatPrice } = useCurrency();
+  const { convertPrice, formatPrice } = useCurrency();
   const { recordInteraction } = useEngagementTracking();
 
   // Sample calculation for preview (matching the calculator logic)
