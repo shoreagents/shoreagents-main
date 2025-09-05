@@ -8,7 +8,8 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
-  DrawerTrigger
+  DrawerTrigger,
+  DrawerLockToggle
 } from '@/components/ui/drawer'
 import { 
   Users, 
@@ -33,6 +34,8 @@ export function BottomNav() {
   const [isVisible, setIsVisible] = useState(false)
   const [isClient, setIsClient] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isDrawerLocked, setIsDrawerLocked] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   
   // Use the engagement tracking hook only on client side
   const { activeTime, contentRead, interaction, interestScore, recordInteraction } = useEngagementTracking()
@@ -70,6 +73,26 @@ export function BottomNav() {
     router.push('/pricing')
   }
 
+  const handleLockToggle = () => {
+    if (!isDrawerLocked) {
+      // When locking, open the drawer and keep it open
+      setIsDrawerLocked(true)
+      setIsDrawerOpen(true)
+    } else {
+      // When unlocking, close the drawer and restore normal behavior
+      setIsDrawerLocked(false)
+      setIsDrawerOpen(false)
+    }
+  }
+
+  const handleDrawerOpenChange = (open: boolean) => {
+    // If drawer is locked, prevent it from closing
+    if (isDrawerLocked && !open) {
+      return
+    }
+    setIsDrawerOpen(open)
+  }
+
   return (
     <div 
       className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out ${
@@ -77,39 +100,46 @@ export function BottomNav() {
       }`}
     >
       {/* Clean Bottom Navigation Bar - Entirely Clickable */}
-      <Drawer>
-        <DrawerTrigger asChild>
-          <div className="relative bg-white/95 backdrop-blur-md border-t-2 border-lime-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] py-4 cursor-pointer hover:bg-lime-50/95 transition-colors duration-200">
-            {/* Blank Clickable Area */}
-            <div className="w-full h-full"></div>
-          </div>
-        </DrawerTrigger>
+      <Drawer open={isDrawerOpen} onOpenChange={handleDrawerOpenChange}>
+        {!isDrawerLocked && (
+          <DrawerTrigger asChild>
+            <div className="relative bg-white/95 backdrop-blur-md border-t-2 border-lime-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] py-4 cursor-pointer hover:bg-lime-50/95 transition-colors duration-200">
+              {/* Blank Clickable Area */}
+              <div className="w-full h-full"></div>
+            </div>
+          </DrawerTrigger>
+        )}
         
-        <DrawerContent className="max-h-[80vh] shadow-lg border-t-2 border-lime-200">
-          <DrawerHeader className="pb-2">
+        <DrawerContent 
+          className={`max-h-[80vh] shadow-lg border-t-2 border-lime-200 ${
+            isDrawerLocked ? 'fixed bottom-0 left-0 right-0 z-50' : ''
+          }`}
+          showOverlay={!isDrawerLocked}
+          isLocked={isDrawerLocked}
+        >
+          <DrawerHeader className="bg-lime-50 border-b border-lime-200 px-6 py-4 relative">
             <DrawerTitle className="text-lime-800 text-lg">AI Recommendations</DrawerTitle>
-            <DrawerDescription className="text-sm">
-              Personalized suggestions based on your activity
-            </DrawerDescription>
+            <DrawerLockToggle 
+              isLocked={isDrawerLocked} 
+              onToggle={handleLockToggle}
+            />
           </DrawerHeader>
           
-          {/* AI-Powered Sections - Grid Layout */}
-          <div className="px-3 pb-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          {/* AI-Powered Sections - Simple Grid Layout */}
+          <div className="px-6 pb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Section 1: Next Step CTA */}
-              <div className="bg-gradient-to-r from-lime-50 to-lime-100 border border-lime-200 rounded-md p-3 shadow-sm">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-7 h-7 bg-lime-200 rounded-full flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 text-lime-700" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-lime-800">Next Step</h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex flex-col h-full space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <TrendingUp className="w-5 h-5 text-lime-600" />
+                    <h3 className="text-base font-semibold text-gray-900">Next Step</h3>
                   </div>
-                  <p className="text-xs text-lime-600 mb-2 flex-grow">Based on your browsing:</p>
+                  <p className="text-sm text-gray-700 flex-grow">Based on your browsing:</p>
                   <Button
                     onClick={handleSeePricing}
                     size="sm"
-                    className="bg-lime-500 hover:bg-lime-600 text-white w-full h-7 text-xs"
+                    className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors"
                   >
                     View Pricing
                   </Button>
@@ -117,20 +147,18 @@ export function BottomNav() {
               </div>
 
               {/* Section 2: Suggested Case Study */}
-              <div className="bg-gradient-to-r from-lime-50 to-lime-100 border border-lime-200 rounded-md p-3 shadow-sm">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-7 h-7 bg-lime-200 rounded-full flex items-center justify-center">
-                      <BookOpen className="w-4 h-4 text-lime-700" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-lime-800">Case Study</h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex flex-col h-full space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <BookOpen className="w-5 h-5 text-lime-600" />
+                    <h3 className="text-base font-semibold text-gray-900">Case Study</h3>
                   </div>
-                  <p className="text-xs text-lime-600 mb-2 flex-grow">Gallery Group Success</p>
+                  <p className="text-sm text-gray-700 flex-grow">Gallery Group Success</p>
                   <Button
                     onClick={() => router.push('/case-studies')}
                     size="sm"
                     variant="outline"
-                    className="border-lime-300 text-lime-700 hover:bg-lime-100 w-full h-7 text-xs"
+                    className="w-full border-lime-600 text-lime-600 hover:bg-lime-600 hover:text-white transition-colors"
                   >
                     Read More
                   </Button>
@@ -138,20 +166,18 @@ export function BottomNav() {
               </div>
 
               {/* Section 3: Suggested Candidate */}
-              <div className="bg-gradient-to-r from-lime-50 to-lime-100 border border-lime-200 rounded-md p-3 shadow-sm">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-7 h-7 bg-lime-200 rounded-full flex items-center justify-center">
-                      <Users className="w-4 h-4 text-lime-700" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-lime-800">Top Candidate</h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex flex-col h-full space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Users className="w-5 h-5 text-lime-600" />
+                    <h3 className="text-base font-semibold text-gray-900">Top Candidate</h3>
                   </div>
-                  <p className="text-xs text-lime-600 mb-2 flex-grow">Sarah Johnson - RE Specialist</p>
+                  <p className="text-sm text-gray-700 flex-grow">Sarah Johnson - RE Specialist</p>
                   <Button
                     onClick={handleBrowseTalent}
                     size="sm"
                     variant="outline"
-                    className="border-lime-300 text-lime-700 hover:bg-lime-100 w-full h-7 text-xs"
+                    className="w-full border-lime-600 text-lime-600 hover:bg-lime-600 hover:text-white transition-colors"
                   >
                     View Profile
                   </Button>
@@ -159,20 +185,18 @@ export function BottomNav() {
               </div>
 
               {/* Section 4: Suggested Blog */}
-              <div className="bg-gradient-to-r from-lime-50 to-lime-100 border border-lime-200 rounded-md p-3 shadow-sm">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-7 h-7 bg-lime-200 rounded-full flex items-center justify-center">
-                      <BookOpen className="w-4 h-4 text-lime-700" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-lime-800">Learn More</h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex flex-col h-full space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <BookOpen className="w-5 h-5 text-lime-600" />
+                    <h3 className="text-base font-semibold text-gray-900">Learn More</h3>
                   </div>
-                  <p className="text-xs text-lime-600 mb-2 flex-grow">"5 Tips for RE Success"</p>
+                  <p className="text-sm text-gray-700 flex-grow">"5 Tips for RE Success"</p>
                   <Button
                     onClick={() => router.push('/blogs')}
                     size="sm"
                     variant="outline"
-                    className="border-lime-300 text-lime-700 hover:bg-lime-100 w-full h-7 text-xs"
+                    className="w-full border-lime-600 text-lime-600 hover:bg-lime-600 hover:text-white transition-colors"
                   >
                     Read Blog
                   </Button>
@@ -180,34 +204,25 @@ export function BottomNav() {
               </div>
 
               {/* Section 5: Empty/Reserved */}
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-md p-3 shadow-sm">
-                <div className="flex flex-col h-full items-center justify-center text-center">
-                  <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center mb-2">
-                    <span className="text-gray-500 text-xs">?</span>
-                  </div>
-                  <p className="text-xs text-gray-500">More suggestions soon...</p>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex flex-col h-full items-center justify-center text-center space-y-2">
+                  <span className="text-gray-500 text-lg">?</span>
+                  <p className="text-sm text-gray-600">More suggestions soon...</p>
                 </div>
               </div>
 
               {/* Section 6: AI Chat CTA */}
-              <div className="bg-gradient-to-r from-lime-50 to-lime-100 border border-lime-200 rounded-md p-3 shadow-sm">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="relative">
-                      <div className="w-7 h-7 bg-lime-200 rounded-full flex items-center justify-center">
-                        <MessageCircle className="w-4 h-4 text-lime-700" />
-                      </div>
-                      <div className="absolute -top-0.5 -right-0.5">
-                        <Sparkles className="w-3 h-3 text-lime-500 animate-pulse" />
-                      </div>
-                    </div>
-                    <h3 className="text-sm font-semibold text-lime-800">Chat with Maya</h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex flex-col h-full space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <MessageCircle className="w-5 h-5 text-lime-600" />
+                    <h3 className="text-base font-semibold text-gray-900">Chat with Maya</h3>
                   </div>
-                  <p className="text-xs text-lime-600 mb-2 flex-grow">Get personalized help</p>
+                  <p className="text-sm text-gray-700 flex-grow">Get personalized help</p>
                   <Button
                     onClick={handleChatWithClaude}
                     size="sm"
-                    className="bg-gradient-to-r from-lime-500 to-lime-600 hover:from-lime-600 hover:to-lime-700 text-white w-full h-7 text-xs"
+                    className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors"
                   >
                     Start Chat
                   </Button>

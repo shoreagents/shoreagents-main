@@ -13,20 +13,18 @@ export function useEngagementTracking() {
     lastActivityTime: 0, // Start with 0 to prevent hydration mismatch
     scrollDepth: 0,
     totalScrollHeight: 0,
-    interactionCount: 0
+    interactionCount: 0,
+    sessionStartTime: 0
   })
 
   useEffect(() => {
     // Reset tracking when pathname changes
-    userEngagementTracker.resetForNewPage()
+    userEngagementTracker.resetForNewPage(pathname)
 
     // Subscribe to updates
     const unsubscribe = userEngagementTracker.subscribe((data: UserEngagementData) => {
       setEngagementData(data)
     })
-
-    // Start tracking
-    userEngagementTracker.startTracking()
 
     return () => {
       unsubscribe()
@@ -50,14 +48,21 @@ export function useEngagementTracking() {
     return userEngagementTracker.getFormattedMetrics()
   }
 
+  // Get formatted metrics that include current session time
+  const formattedMetrics = userEngagementTracker.getFormattedMetrics()
+
   return {
     engagementData,
     recordInteraction,
     getFormattedMetrics,
-    // Individual metrics for easy access
-    activeTime: engagementData.activeTime,
+    // Individual metrics for easy access (using formatted metrics for activeTime)
+    activeTime: formattedMetrics.activeTime,
     contentRead: engagementData.contentRead,
     interaction: engagementData.interaction,
-    interestScore: engagementData.interestScore
+    interestScore: engagementData.interestScore,
+    // Page-specific data methods
+    getAllPageData: () => userEngagementTracker.getAllPageData(),
+    getPageData: (pathname: string) => userEngagementTracker.getPageData(pathname),
+    clearAllPageData: () => userEngagementTracker.clearAllPageData()
   }
 }
