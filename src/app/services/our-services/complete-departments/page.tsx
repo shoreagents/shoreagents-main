@@ -3,12 +3,12 @@
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle, XCircle, Target, Key, Users, Briefcase, Trophy, Users as UsersIcon, Shield, TrendingUp, Building, Star, Globe, FileText, Calendar, CreditCard, Database, Award, Lock, Heart, Eye, Activity, UserCheck, Phone, Video, Brain, Users as UsersGroup } from 'lucide-react'
+import { ArrowRight, CheckCircle, XCircle, Target, Key, Users, Briefcase, Trophy, Users as UsersIcon, Shield, TrendingUp, Building, Star, Globe, Calendar, CreditCard, Heart, Activity, Phone } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 import { useCurrency } from '@/lib/currencyContext'
 
 export default function CompleteDepartmentsPage() {
-  const { selectedCurrency, convertPrice, formatPrice } = useCurrency()
+  const { convertPrice, formatPrice } = useCurrency()
   
   return (
     <>

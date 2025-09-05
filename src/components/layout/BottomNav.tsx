@@ -37,12 +37,6 @@ export function BottomNav() {
   // Use the engagement tracking hook only on client side
   const { activeTime, contentRead, interaction, interestScore, recordInteraction } = useEngagementTracking()
   
-  const interestMetrics: InterestMetrics = {
-    activeTime: isClient ? activeTime : 0,
-    contentRead: isClient ? contentRead : 0,
-    interaction: isClient ? interaction : 0,
-    interestScore: isClient ? interestScore : 0
-  }
 
   useEffect(() => {
     // Set client-side flag to prevent hydration mismatch

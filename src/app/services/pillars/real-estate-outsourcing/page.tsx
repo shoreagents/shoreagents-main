@@ -1,13 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { colors } from "@/lib/colors";
 import { useCurrency } from "@/lib/currencyContext";
 import { SideNav } from "@/components/layout/SideNav";
 
 export default function RealEstateOutsourcingPage() {
-  const { selectedCurrency, convertPrice, formatPrice } = useCurrency();
+  const { convertPrice, formatPrice } = useCurrency();
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-lime-50 to-ocean-50">

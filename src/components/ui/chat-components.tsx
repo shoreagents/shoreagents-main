@@ -98,15 +98,15 @@ interface ComponentData {
 export const renderChatComponent = (componentData: ComponentData) => {
   switch (componentData.type) {
     case 'service_card':
-      return <ServiceCard key={componentData.id} serviceName={componentData.serviceName} />;
+      return <ServiceCard key={componentData.id} serviceName={componentData.serviceName || 'Service'} />;
     case 'team_member':
-      return <TeamMemberCard key={componentData.id} memberName={componentData.memberName} />;
+      return <TeamMemberCard key={componentData.id} memberName={componentData.memberName || 'Team Member'} />;
     case 'case_study':
-      return <CaseStudyCard key={componentData.id} title={componentData.title} />;
+      return <CaseStudyCard key={componentData.id} title={componentData.title || 'Case Study'} />;
     case 'pricing':
-      return <PricingCard key={componentData.id} service={componentData.service} />;
+      return <PricingCard key={componentData.id} service={componentData.service || 'Service'} />;
     case 'contact_form':
-      return <ContactForm key={componentData.id} service={componentData.service} />;
+      return <ContactForm key={componentData.id} service={componentData.service || 'Service'} />;
     default:
       return null;
   }
