@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 interface CarouselProps {
   children: React.ReactNode
@@ -22,9 +22,9 @@ export function Carousel({
   const childrenArray = React.Children.toArray(children)
   const totalSlides = Math.ceil(childrenArray.length / itemsPerSlide)
   
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides)
-  }
+  }, [totalSlides])
   
   const goToSlide = (slideIndex: number) => {
     setCurrentSlide(slideIndex)
@@ -39,7 +39,7 @@ export function Carousel({
     }, autoPlayInterval)
     
     return () => clearInterval(interval)
-  }, [autoPlay, autoPlayInterval, currentSlide])
+  }, [autoPlay, autoPlayInterval, nextSlide])
   
   return (
     <div className={`relative ${className}`}>

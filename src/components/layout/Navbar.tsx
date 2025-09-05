@@ -5,14 +5,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { ChevronDown, Menu, X, Star, ArrowRight } from 'lucide-react'
 import { useCurrency, currencies, Currency } from '@/lib/currencyContext'
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState<string[]>([])
-  const { selectedCurrency, setSelectedCurrency, userLocation, isDetectingLocation, detectUserLocation, isAutoDetected, setIsAutoDetected, hasUserSelectedCurrency, setHasUserSelectedCurrency } = useCurrency()
+  const { selectedCurrency, setSelectedCurrency, isDetectingLocation, detectUserLocation, isAutoDetected, setIsAutoDetected, hasUserSelectedCurrency, setHasUserSelectedCurrency } = useCurrency()
   const pathname = usePathname()
 
   // Country name mapping for currencies

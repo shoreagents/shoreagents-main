@@ -8,20 +8,14 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
-  DrawerTrigger,
-  DrawerClose
+  DrawerTrigger
 } from '@/components/ui/drawer'
 import { 
   Users, 
-  DollarSign, 
   TrendingUp, 
-  Clock, 
   BookOpen, 
-  MousePointer, 
   MessageCircle, 
-  Calendar, 
-  Sparkles, 
-  Menu
+  Sparkles
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEngagementTracking } from '@/lib/useEngagementTracking'
@@ -76,43 +70,10 @@ export function BottomNav() {
     router.push('/employees')
   }
 
-  const handleMeetAgents = () => {
-    recordInteraction('navigation')
-    console.log('Meet Agents button clicked - interaction recorded')
-    router.push('/about/team')
-  }
-
   const handleSeePricing = () => {
     recordInteraction('navigation')
     console.log('See Pricing button clicked - interaction recorded')
     router.push('/pricing')
-  }
-
-  const handleBookCall = () => {
-    recordInteraction('navigation')
-    console.log('Book Call button clicked - interaction recorded')
-    router.push('/gettingstart')
-  }
-
-
-
-  const getInterestLevel = () => {
-    const total = (interestMetrics.activeTime + interestMetrics.contentRead + interestMetrics.interaction + interestMetrics.interestScore) / 4
-    return Math.round(total)
-  }
-
-  const getProgressColor = (value: number) => {
-    if (value >= 80) return 'bg-lime-500'
-    if (value >= 60) return 'bg-lime-400'
-    if (value >= 40) return 'bg-yellow-400'
-    return 'bg-gray-300'
-  }
-
-  const formatActiveTime = (seconds: number): string => {
-    if (seconds < 60) return `${seconds}s`
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}m ${remainingSeconds}s`
   }
 
   return (

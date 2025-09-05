@@ -149,7 +149,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   // Refresh rates function
   const refreshRates = useCallback(async () => {
     await fetchExchangeRates()
-  }, [])
+  }, [fetchExchangeRates])
 
   // Detect user location and set appropriate currency
   const detectUserLocation = useCallback(async () => {
@@ -181,7 +181,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsDetectingLocation(false)
     }
-  }, [])
+  }, [currenciesState])
 
   // Fetch rates on mount and every 5 minutes
   useEffect(() => {
@@ -229,7 +229,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [hasUserSelectedCurrency]);
+  }, [hasUserSelectedCurrency, detectUserLocation]);
 
   const convertPrice = (phpAmount: number): number => {
     // If PHP is selected, return the amount as is
