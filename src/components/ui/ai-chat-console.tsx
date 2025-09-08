@@ -178,17 +178,19 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
             
             {message.relatedContent && message.relatedContent.length > 0 && (
               <div className="mt-3 space-y-2">
-                <div className="text-xs font-medium text-gray-600 mb-2">Related Information:</div>
+                <div className="text-xs font-medium text-gray-600 mb-2">🔗 Related Links:</div>
                 {message.relatedContent.map((item, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                  <div key={index} className="bg-gradient-to-r from-lime-50 to-lime-100 rounded-lg p-3 border border-lime-200 shadow-sm hover:shadow-md transition-all duration-200">
                     <div className="font-medium text-sm text-gray-800 mb-1">{item.title}</div>
-                    <div className="text-xs text-gray-600 mb-2">{item.content}</div>
+                    <div className="text-xs text-gray-600 mb-2 line-clamp-2">{item.content}</div>
                     {item.url && (
                       <a 
                         href={item.url}
-                        className="inline-flex items-center gap-1 text-xs text-ocean-600 hover:text-ocean-800 transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-lime-700 hover:text-lime-800 hover:bg-lime-200 px-2 py-1 rounded-md transition-all duration-200"
                       >
-                        Learn More <ExternalLink size={12} />
+                        Visit Page <ExternalLink size={12} />
                       </a>
                     )}
                   </div>

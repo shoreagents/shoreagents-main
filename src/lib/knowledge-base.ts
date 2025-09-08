@@ -134,6 +134,134 @@ export const knowledgeBase: KnowledgeItem[] = [
     keywords: ['getting started', 'start', 'begin', 'consultation', 'onboarding'],
     category: 'process',
     url: '/gettingstart'
+  },
+
+  // Talent Pool and Team Information
+  {
+    id: 'talent-pool',
+    title: 'Our Talent Pool',
+    content: 'ShoreAgents has a diverse and skilled talent pool of professionals across various industries. Our team includes experts in real estate, construction, engineering, marketing, finance, and more. All team members are carefully vetted and trained to meet our high standards.',
+    keywords: ['talent pool', 'team', 'staff', 'employees', 'professionals', 'where is the talent pool', 'talent', 'workforce'],
+    category: 'team',
+    url: '/about/team'
+  },
+
+  {
+    id: 'team-location',
+    title: 'Team Location & Office',
+    content: 'Our team is primarily located in the Philippines, providing cost-effective solutions while maintaining high-quality standards. We have a main office and multiple satellite locations to ensure comprehensive coverage and support.',
+    keywords: ['team location', 'office location', 'where are you located', 'philippines', 'office', 'location'],
+    category: 'team',
+    url: '/about/office-location'
+  },
+
+  {
+    id: 'hire-team',
+    title: 'Hire a Team',
+    content: 'We offer comprehensive team building services where we can assemble a complete team for your business needs. Whether you need a small specialized team or a large department, we can provide the right professionals.',
+    keywords: ['hire team', 'build team', 'team building', 'complete team', 'department', 'hire a team'],
+    category: 'service',
+    url: '/services/build-a-team'
+  },
+
+  {
+    id: 'hire-one-agent',
+    title: 'Hire One Agent',
+    content: 'Need just one dedicated professional? We can provide individual agents for specific roles like virtual assistants, customer service representatives, or specialized professionals.',
+    keywords: ['hire one agent', 'single agent', 'one person', 'individual', 'dedicated agent'],
+    category: 'service',
+    url: '/services/hire-one-agent'
+  },
+
+  {
+    id: 'case-studies',
+    title: 'Success Stories & Case Studies',
+    content: 'Explore our success stories and case studies to see how we\'ve helped businesses achieve their goals. From real estate companies to construction firms, our clients have seen significant improvements in efficiency and cost savings.',
+    keywords: ['case studies', 'success stories', 'examples', 'results', 'clients', 'stories'],
+    category: 'company',
+    url: '/about/case-studies'
+  },
+
+  {
+    id: 'testimonials',
+    title: 'Client Testimonials',
+    content: 'Read what our clients have to say about working with ShoreAgents. Our testimonials showcase the quality of our services and the positive impact we\'ve had on businesses worldwide.',
+    keywords: ['testimonials', 'reviews', 'feedback', 'client feedback', 'what clients say'],
+    category: 'company',
+    url: '/about/testimonials'
+  },
+
+  {
+    id: 'contact-us',
+    title: 'Contact Us',
+    content: 'Ready to get started? Contact our team to discuss your outsourcing needs. We offer free consultations and can provide customized solutions for your business.',
+    keywords: ['contact', 'contact us', 'get in touch', 'reach out', 'consultation', 'talk to us'],
+    category: 'company',
+    url: '/about/contact'
+  },
+
+  // Additional specific entries for common questions
+  {
+    id: 'virtual-assistant',
+    title: 'Virtual Assistant Services',
+    content: 'Our virtual assistants can handle administrative tasks, customer service, data entry, scheduling, and more. They work as an extension of your team, providing cost-effective support.',
+    keywords: ['virtual assistant', 'va', 'admin assistant', 'administrative', 'customer service assistant'],
+    category: 'service',
+    url: '/services/our-services/administrative-assistant'
+  },
+
+  {
+    id: 'real-estate-va',
+    title: 'Real Estate Virtual Assistant',
+    content: 'Specialized virtual assistants for real estate professionals. They can handle lead generation, client communication, property research, transaction coordination, and administrative tasks.',
+    keywords: ['real estate virtual assistant', 'real estate va', 'property va', 'realty assistant'],
+    category: 'service',
+    url: '/services/our-services/real-estate-virtual-assistant'
+  },
+
+  {
+    id: 'property-management-va',
+    title: 'Property Management Assistant',
+    content: 'Dedicated assistants for property management companies. They handle tenant communication, maintenance coordination, rent collection, property inspections, and administrative tasks.',
+    keywords: ['property management assistant', 'property management va', 'property management support'],
+    category: 'service',
+    url: '/services/our-services/property-management-assistant'
+  },
+
+  {
+    id: 'customer-service',
+    title: 'Customer Service Assistant',
+    content: 'Professional customer service representatives who can handle inquiries, complaints, support tickets, and provide excellent customer experience for your business.',
+    keywords: ['customer service', 'customer support', 'client service', 'support assistant'],
+    category: 'service',
+    url: '/services/our-services/customer-service-assistant'
+  },
+
+  {
+    id: 'engineering-support',
+    title: 'Engineering Support',
+    content: 'Technical engineering support for various industries including CAD design, technical documentation, project management, and engineering administrative tasks.',
+    keywords: ['engineering support', 'engineering assistant', 'technical support', 'cad design'],
+    category: 'service',
+    url: '/services/our-services/engineering-support'
+  },
+
+  {
+    id: 'marketing-team',
+    title: 'Marketing Team',
+    content: 'Complete marketing teams including digital marketing specialists, content creators, social media managers, SEO experts, and graphic designers.',
+    keywords: ['marketing team', 'digital marketing', 'marketing support', 'marketing services'],
+    category: 'service',
+    url: '/services/our-services/marketing-team'
+  },
+
+  {
+    id: 'finance-accounting',
+    title: 'Finance & Accounting Team',
+    content: 'Professional finance and accounting teams for bookkeeping, payroll, financial reporting, tax preparation, and accounting support services.',
+    keywords: ['finance', 'accounting', 'bookkeeping', 'payroll', 'financial reporting'],
+    category: 'service',
+    url: '/services/our-services/finance-accounting'
   }
 ];
 
