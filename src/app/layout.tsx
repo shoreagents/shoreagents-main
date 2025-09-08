@@ -5,7 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
-import { StickyInterestLevel } from "@/components/ui/sticky-interest-level";
+import { DevToolsWrapper } from "@/components/layout/DevToolsWrapper";
 import { CurrencyProvider } from "@/lib/currencyContext";
 import { ToastProvider } from "@/lib/toast-context";
 
@@ -38,7 +38,10 @@ export default function RootLayout({
           <ToastProvider>
             <ScrollToTop />
             <Navbar />
-            <StickyInterestLevel />
+            
+            {/* Dev Tools Wrapper - Client Component */}
+            <DevToolsWrapper />
+            
             <main>
               {children}
             </main>
