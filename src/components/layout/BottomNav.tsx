@@ -95,16 +95,16 @@ export function BottomNav() {
 
   return (
     <div 
-      className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out ${
+      className={`fixed bottom-0 left-0 right-0 z-[100] transition-all duration-700 ease-in-out ${
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
       }`}
     >
       {/* Clean Bottom Navigation Bar - Entirely Clickable */}
       <Drawer open={isDrawerOpen} onOpenChange={handleDrawerOpenChange}>
-        {!isDrawerLocked && (
+        {!isDrawerLocked && !isDrawerOpen && (
           <DrawerTrigger asChild>
-            <div className="relative bg-white/95 backdrop-blur-md border-t-2 border-lime-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] py-4 cursor-pointer hover:bg-lime-50/95 transition-colors duration-200">
-              {/* Blank Clickable Area */}
+            <div className="relative bg-lime-700/60 backdrop-blur-md border-t-2 border-lime-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] py-1 cursor-pointer hover:bg-lime-700 transition-all duration-300 ease-in-out">
+              {/* Blank Clickable Area */}<p className='text-lime-50 text-center'>AI Recommendations</p>
               <div className="w-full h-full"></div>
             </div>
           </DrawerTrigger>
@@ -112,13 +112,18 @@ export function BottomNav() {
         
         <DrawerContent 
           className={`max-h-[80vh] shadow-lg border-t-2 border-lime-200 ${
-            isDrawerLocked ? 'fixed bottom-0 left-0 right-0 z-50' : ''
+            isDrawerLocked ? 'fixed bottom-0 left-0 right-0 z-[100]' : ''
           }`}
           showOverlay={!isDrawerLocked}
           isLocked={isDrawerLocked}
+          style={{
+            // Force scrollbar to always be visible to prevent content shift
+            '--vaul-overlay-bg': 'transparent',
+            scrollbarGutter: 'stable'
+          } as React.CSSProperties}
         >
-          <DrawerHeader className="bg-lime-50 border-b border-lime-200 px-6 py-4 relative">
-            <DrawerTitle className="text-lime-800 text-lg">AI Recommendations</DrawerTitle>
+          <DrawerHeader className="bg-lime-700 border-b border-lime-200 px-6 py-2 relative">
+            <DrawerTitle className="text-lime-50 ">AI Recommendations</DrawerTitle>
             <DrawerLockToggle 
               isLocked={isDrawerLocked} 
               onToggle={handleLockToggle}
@@ -126,7 +131,7 @@ export function BottomNav() {
           </DrawerHeader>
           
           {/* AI-Powered Sections - Simple Grid Layout */}
-          <div className="px-6 pb-6">
+          <div className="px-6 py-6 bg-lime-200 drawer-content-scrollable">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Section 1: Next Step CTA */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">

@@ -91,12 +91,12 @@ html {
 
 /* Bottom Navigation spacing */
 body {
-  padding-bottom: 120px; /* Adjust based on BottomNav height */
+  padding-bottom: 20px; /* Minimal padding to prevent content overlap */
 }
 
 @media (min-width: 1024px) {
   body {
-    padding-bottom: 140px; /* Slightly more padding on larger screens */
+    padding-bottom: 20px; /* Minimal padding on larger screens */
   }
 }
 
@@ -279,6 +279,42 @@ button, a, [role="button"] {
   * {
     scrollbar-color: var(--color-lime-700) var(--color-lime-900);
   }
+}
+
+/* Drawer Scrollbar Fix - Prevent Content Shift */
+.drawer-content-scrollable {
+  scrollbar-gutter: stable;
+  overflow-y: auto;
+}
+
+.drawer-content-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.drawer-content-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.drawer-content-scrollable::-webkit-scrollbar-thumb {
+  background: var(--color-lime-400);
+  border-radius: 3px;
+  opacity: 0.8;
+}
+
+.drawer-content-scrollable::-webkit-scrollbar-thumb:hover {
+  background: var(--color-lime-500);
+  opacity: 1;
+}
+
+/* Ensure drawer content always reserves space for scrollbar */
+[data-vaul-drawer] .drawer-content-scrollable {
+  scrollbar-gutter: stable;
+}
+
+/* Prevent page shift when drawer opens */
+body[data-vaul-drawer-visible] {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
 }
 
 /* Brand Logos Infinite Scroll Animation */

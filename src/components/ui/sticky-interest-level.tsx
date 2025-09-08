@@ -1,8 +1,9 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { TrendingUp, Clock, BookOpen, MousePointer, RotateCcw, Database } from 'lucide-react'
+import { TrendingUp, Clock, BookOpen, MousePointer, RotateCcw, Database, Globe, MapPin } from 'lucide-react'
 import { useEngagementTracking } from '@/lib/useEngagementTracking'
+import { ipDetectionService, type LocationData } from '@/lib/ipDetection'
 
 interface InterestMetrics {
   activeTime: number
@@ -11,9 +12,19 @@ interface InterestMetrics {
   interestScore: number
 }
 
+interface LocationInfo {
+  location: LocationData | null
+  currency: string
+  timezone: string
+  ip: string
+}
+
 export function StickyInterestLevel() {
   const [isClient, setIsClient] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [serverDown, setServerDown] = useState(false)
+  const [locationInfo, setLocationInfo] = useState<LocationInfo | null>(null)
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false)
   
   // Use the engagement tracking hook only on client side
   const { activeTime, contentRead, interaction, interestScore, clearAllPageData } = useEngagementTracking()
@@ -28,6 +39,9 @@ export function StickyInterestLevel() {
   useEffect(() => {
     // Set client-side flag to prevent hydration mismatch
     setIsClient(true)
+    
+    // Load location info
+    loadLocationInfo()
     
     // Check if server is down by testing basic connectivity
     const checkServerStatus = async () => {
@@ -50,6 +64,29 @@ export function StickyInterestLevel() {
     
     return () => clearInterval(interval)
   }, [])
+
+  const loadLocationInfo = async () => {
+    setIsLoadingLocation(true)
+    try {
+      const info = await ipDetectionService.getLocationInfo()
+      setLocationInfo({
+        location: info.location,
+        currency: info.currency,
+        timezone: info.timezone,
+        ip: info.location?.query || 'Unknown'
+      })
+    } catch (error) {
+      console.error('Error loading location info:', error)
+      setLocationInfo({
+        location: null,
+        currency: 'USD',
+        timezone: 'UTC',
+        ip: 'Unknown'
+      })
+    } finally {
+      setIsLoadingLocation(false)
+    }
+  }
 
 
   const getInterestLevel = () => {
@@ -96,8 +133,12 @@ export function StickyInterestLevel() {
   }
 
   return (
-    <div className="fixed top-20 left-4 z-40 bg-white/95 backdrop-blur-md border border-lime-200 rounded-lg p-3 shadow-lg">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-white/95 backdrop-blur-md border border-lime-200 rounded-lg shadow-lg">
+      {/* Header - Clickable to toggle */}
+      <div 
+        className="flex items-center justify-between p-3 cursor-pointer hover:bg-lime-50/50 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="flex items-center space-x-2">
           <TrendingUp className="w-3 h-3 text-lime-600" />
           <span className="text-sm font-medium text-gray-700">Interest Level</span>
@@ -109,23 +150,66 @@ export function StickyInterestLevel() {
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-lg font-bold text-lime-600">{getInterestLevel()}%</span>
-          <button
-            onClick={showStoredData}
-            className="p-1 rounded transition-colors bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600"
-            title="Show stored data in console"
-            type="button"
-          >
-            <Database className="w-3 h-3" />
-          </button>
-          <button
-            onClick={handleResetAllData}
-            className="p-1 rounded transition-colors bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600"
-            title="Reset all interest data"
-            type="button"
-          >
-            <RotateCcw className="w-3 h-3" />
-          </button>
+          <div className={`w-2 h-2 rounded-full ${isExpanded ? 'bg-lime-500' : 'bg-gray-400'}`} />
         </div>
+      </div>
+
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div className="border-t border-lime-200 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-gray-700">Controls</span>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  showStoredData()
+                }}
+                className="p-1 rounded transition-colors bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600"
+                title="Show stored data in console"
+                type="button"
+              >
+                <Database className="w-3 h-3" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleResetAllData()
+                }}
+                className="p-1 rounded transition-colors bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600"
+                title="Reset all interest data"
+                type="button"
+              >
+                <RotateCcw className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+      {/* IP Address and Location Info */}
+      <div className="mb-2 p-2 bg-gray-50 rounded-lg">
+        <div className="flex items-center space-x-2 mb-1">
+          <Globe className="w-3 h-3 text-lime-600" />
+          <span className="text-xs font-medium text-gray-700">Location</span>
+        </div>
+        {isLoadingLocation ? (
+          <div className="text-xs text-gray-500">Loading...</div>
+        ) : locationInfo ? (
+          <div className="text-xs text-gray-600 space-y-1">
+            <div className="flex items-center space-x-1">
+              <MapPin className="w-2 h-2 text-lime-500" />
+              <span>IP: {locationInfo.ip}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <span>📍 {locationInfo.location?.city || 'Unknown'}, {locationInfo.location?.country || 'Unknown'}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <span>💰 {locationInfo.currency}</span>
+              <span>🕐 {locationInfo.timezone}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="text-xs text-red-500">Failed to load location</div>
+        )}
       </div>
       
       {/* Progress Bar */}
@@ -155,6 +239,8 @@ export function StickyInterestLevel() {
           <span>Score: {interestMetrics.interestScore}%</span>
         </div>
       </div>
+        </div>
+      )}
     </div>
   )
 }
