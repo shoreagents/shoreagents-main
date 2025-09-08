@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { searchKnowledge, knowledgeBase } from '@/lib/knowledge-base';
 
 // Simple in-memory rate limiting (in production, use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -104,7 +105,50 @@ export async function POST(request: NextRequest) {
       content: message
     });
 
-    // Create system prompt for ShoreAgents context
+    // Search knowledge base for relevant information
+    const relevantKnowledge = searchKnowledge(message);
+    
+    // Also search for specific trigger phrases that should always include links
+    const triggerPhrases = [
+      { phrase: 'talent pool', knowledgeId: 'talent-pool' },
+      { phrase: 'team location', knowledgeId: 'team-location' },
+      { phrase: 'where are you located', knowledgeId: 'team-location' },
+      { phrase: 'hire team', knowledgeId: 'hire-team' },
+      { phrase: 'case studies', knowledgeId: 'case-studies' },
+      { phrase: 'testimonials', knowledgeId: 'testimonials' },
+      { phrase: 'contact', knowledgeId: 'contact-us' },
+      { phrase: 'pricing', knowledgeId: 'pricing-overview' },
+      { phrase: 'how it works', knowledgeId: 'how-it-works' },
+      { phrase: 'virtual assistant', knowledgeId: 'virtual-assistant' },
+      { phrase: 'real estate virtual assistant', knowledgeId: 'real-estate-va' },
+      { phrase: 'property management assistant', knowledgeId: 'property-management-va' },
+      { phrase: 'customer service', knowledgeId: 'customer-service' },
+      { phrase: 'engineering support', knowledgeId: 'engineering-support' },
+      { phrase: 'marketing team', knowledgeId: 'marketing-team' },
+      { phrase: 'finance', knowledgeId: 'finance-accounting' },
+      { phrase: 'accounting', knowledgeId: 'finance-accounting' }
+    ];
+    
+    // Add specific knowledge items based on trigger phrases
+    const messageLower = message.toLowerCase();
+    const triggeredKnowledge = triggerPhrases
+      .filter(trigger => messageLower.includes(trigger.phrase))
+      .map(trigger => knowledgeBase.find(item => item.id === trigger.knowledgeId))
+      .filter(Boolean);
+    
+    // Combine search results with triggered knowledge, removing duplicates
+    const allRelevantKnowledge = [...relevantKnowledge];
+    triggeredKnowledge.forEach(item => {
+      if (item && !allRelevantKnowledge.find(existing => existing.id === item.id)) {
+        allRelevantKnowledge.push(item);
+      }
+    });
+    
+    // Create system prompt for ShoreAgents context with knowledge base information
+    const knowledgeContext = allRelevantKnowledge.length > 0 
+      ? `\n\nRelevant information from our knowledge base:\n${allRelevantKnowledge.map(item => `- ${item.title}: ${item.content}`).join('\n')}`
+      : '';
+
     const systemPrompt = `You are ShoreAgents AI, a virtual assistant for ShoreAgents - a company that provides outsourcing services for real estate, construction, engineering, and other industries. 
 
 Your role is to help users understand ShoreAgents' services, answer questions about their offerings, and provide helpful information about:
@@ -119,7 +163,9 @@ Your role is to help users understand ShoreAgents' services, answer questions ab
 
 Be professional, helpful, and knowledgeable about ShoreAgents' business. If you don't know specific details about their services, suggest they contact the company directly or visit their website for more information.
 
-Keep responses concise but informative, and always maintain a helpful and professional tone.`;
+When providing information about services, team members, or processes, mention that users can learn more by visiting the relevant pages on our website.
+
+Keep responses concise but informative, and always maintain a helpful and professional tone.${knowledgeContext}`;
 
     // Log request details (without sensitive information)
     console.log('Processing chat request...');
@@ -142,9 +188,18 @@ Keep responses concise but informative, and always maintain a helpful and profes
       throw new Error('Unexpected response type from Anthropic API');
     }
 
+    // Prepare related content with clickable links
+    const relatedContent = allRelevantKnowledge
+      .filter(item => item.url) // Only include items with URLs
+      .map(item => ({
+        title: item.title,
+        content: item.content,
+        url: item.url
+      }));
+
     const nextResponse = NextResponse.json({
       content: aiResponse.text,
-      components: [],
+      components: relatedContent,
     });
 
     // Add security headers

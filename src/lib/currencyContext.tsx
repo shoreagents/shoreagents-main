@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef, useMemo } from 'react'
 import { currencyApi } from './api'
 import { getLocationInfo, LocationData } from './ipDetection'
 
@@ -66,6 +66,17 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const selectedCurrencyRef = useRef(selectedCurrency)
   selectedCurrencyRef.current = selectedCurrency
 
+  // Cache for converted prices to avoid repeated calculations
+  const priceCacheRef = useRef<Map<string, number>>(new Map())
+  
+  // Track if we've completed initial currency setup after IP detection
+  const hasInitializedCurrency = useRef(false)
+
+  // Clear price cache when currency changes
+  const clearPriceCache = useCallback(() => {
+    priceCacheRef.current.clear()
+  }, [])
+
   // Fetch real-time exchange rates - memoized with useCallback
   const fetchExchangeRates = useCallback(async () => {
     setIsLoadingRates(true)
@@ -90,6 +101,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         const currentSelected = updatedCurrencies.find(c => c.code === selectedCurrencyRef.current.code)
         if (currentSelected) {
           setSelectedCurrency(currentSelected)
+          // Clear price cache when exchange rates are updated
+          clearPriceCache()
         }
         
         console.log('✅ Exchange rates updated successfully:', rates)
@@ -113,6 +126,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrencyRef.current.code)
         if (currentSelected) {
           setSelectedCurrency(currentSelected)
+          // Clear price cache when fallback rates are used
+          clearPriceCache()
         }
         
         console.log('✅ Using fallback exchange rates:', fallbackRates)
@@ -137,6 +152,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         const currentSelected = fallbackCurrencies.find(c => c.code === selectedCurrencyRef.current.code)
         if (currentSelected) {
           setSelectedCurrency(currentSelected)
+          // Clear price cache when fallback rates are used
+          clearPriceCache()
         }
       
       console.log('✅ Using fallback exchange rates due to API error:', fallbackRates)
@@ -168,15 +185,19 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
           setSelectedCurrency(detectedCurrency)
           setIsAutoDetected(true)
           setHasUserSelectedCurrency(false) // Reset user selection flag when auto-detecting
+          hasInitializedCurrency.current = true // Mark that we've completed initial setup
           console.log(`✅ Auto-detected currency: ${detectedCurrency.code} for location: ${locationInfo.location.country}`)
         } else {
           console.log(`⚠️ Currency ${locationInfo.currency} not found in available currencies, keeping current selection`)
+          hasInitializedCurrency.current = true // Mark as initialized even if no currency found
         }
       } else {
         console.log('⚠️ No location detected, keeping default currency')
+        hasInitializedCurrency.current = true // Mark as initialized even if no location detected
       }
     } catch (error) {
       console.error('❌ Failed to detect user location:', error)
+      hasInitializedCurrency.current = true // Mark as initialized even on error
       // Don't throw error, just log it
     } finally {
       setIsDetectingLocation(false)
@@ -231,18 +252,41 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     };
   }, [hasUserSelectedCurrency, detectUserLocation]);
 
-  const convertPrice = (phpAmount: number): number => {
+  // Clear price cache when currency changes
+  useEffect(() => {
+    clearPriceCache()
+  }, [selectedCurrency.code, clearPriceCache])
+
+  const convertPrice = useCallback((phpAmount: number): number => {
     // If PHP is selected, return the amount as is
     if (selectedCurrency.code === 'PHP') {
       return phpAmount;
     }
     
+    // Create cache key for this conversion
+    const cacheKey = `${phpAmount}-${selectedCurrency.code}-${selectedCurrency.exchangeRate}`;
+    
+    // Check if we have this conversion cached
+    if (priceCacheRef.current.has(cacheKey)) {
+      return priceCacheRef.current.get(cacheKey)!;
+    }
+    
     // Use the selected currency's exchange rate (which gets updated with real-time rates)
     // The exchange rate is now relative to PHP, not USD
     const rate = selectedCurrency.exchangeRate;
-    console.log(`Converting ${phpAmount} PHP to ${selectedCurrency.code} using rate: ${rate}`);
-    return phpAmount * rate;
-  }
+    const convertedAmount = phpAmount * rate;
+    
+    // Cache the result
+    priceCacheRef.current.set(cacheKey, convertedAmount);
+    
+    // Only log conversions after initial setup is complete and only once per unique conversion
+    if (hasInitializedCurrency.current && !priceCacheRef.current.has(`${phpAmount}-${selectedCurrency.code}-logged`)) {
+      console.log(`Converting ${phpAmount} PHP to ${selectedCurrency.code} using rate: ${rate}`);
+      priceCacheRef.current.set(`${phpAmount}-${selectedCurrency.code}-logged`, 1);
+    }
+    
+    return convertedAmount;
+  }, [selectedCurrency.code, selectedCurrency.exchangeRate])
 
   const formatPrice = (price: number): string => {
     if (selectedCurrency.code === 'PHP') {
