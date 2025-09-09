@@ -1,13 +1,14 @@
+import { savePageVisit, getUserIPAddress } from './userEngagementService'
+
 interface UserEngagementData {
   activeTime: number // Total accumulated time spent on this page across all visits (in seconds)
   contentRead: number // Scroll percentage (0-100)
-  interaction: number // Number of clicks/interactions
+  interactionCount: number // Number of clicks/interactions
   interestScore: number // Calculated interest score
   pageStartTime: number // Start time of current session
   lastActivityTime: number
   scrollDepth: number
   totalScrollHeight: number
-  interactionCount: number
   sessionStartTime: number // When current session started
 }
 
@@ -21,18 +22,20 @@ class UserEngagementTracker {
   private currentPage: string = ''
   private pageData: Map<string, UserEngagementData> = new Map()
   private lastClickTime: number = 0
+  private supabaseEnabled: boolean = true
+  private lastSupabaseSave: number = 0
+  private supabaseSaveInterval: number = 30000 // Save to Supabase every 30 seconds
 
   private constructor() {
     this.engagementData = {
       activeTime: 0,
       contentRead: 0,
-      interaction: 0,
+      interactionCount: 0,
       interestScore: 0,
       pageStartTime: 0, // Start with 0 to prevent hydration mismatch
       lastActivityTime: 0, // Start with 0 to prevent hydration mismatch
       scrollDepth: 0,
       totalScrollHeight: 0,
-      interactionCount: 0,
       sessionStartTime: 0
     }
     this.loadPageDataFromStorage()
@@ -82,7 +85,7 @@ class UserEngagementTracker {
       return
     }
     
-    console.log('Tracker: Starting tracking for page:', pathname)
+    console.log('🚀 Tracker: Starting tracking for page:', pathname)
     this.isTracking = true
     this.currentPage = pathname
     
@@ -91,40 +94,37 @@ class UserEngagementTracker {
     const existingData = this.pageData.get(pageKey)
     
     if (existingData) {
-      // Load existing data for this page
       this.engagementData = { ...existingData }
-      console.log('Tracker: Loaded existing data for page:', pageKey)
+      console.log('📊 Tracker: Loaded existing data for page:', pageKey, 'Active time:', this.engagementData.activeTime)
     } else {
       // Create new data for this page
       const now = Date.now()
       this.engagementData = {
         activeTime: 0,
         contentRead: 0,
-        interaction: 0,
-        interestScore: 0,
-        pageStartTime: now,
-        lastActivityTime: now,
         scrollDepth: 0,
         totalScrollHeight: 0,
         interactionCount: 0,
         sessionStartTime: now
       }
-      console.log('Tracker: Created new data for page:', pageKey)
+      console.log('🆕 Tracker: Created new data for page:', pageKey, 'Session start time:', now)
     }
-    
-    // Always update timestamps for current session
+
     const now = Date.now()
     this.engagementData.pageStartTime = now
     this.engagementData.lastActivityTime = now
     this.engagementData.sessionStartTime = now
     
+    console.log('⏰ Tracker: Set session start time to:', now, 'Current time:', Date.now())
+    console.log('⏰ Tracker: Session start time is valid:', this.engagementData.sessionStartTime > 0)
+    
     this.setupEventListeners()
     this.startActivityTimer()
-    this.calculateInitialMetrics()
-    console.log('Tracker: Tracking started successfully')
+    
+    console.log('✅ Tracker: Tracking started successfully for:', pathname)
   }
 
-  public stopTracking(): void {
+  public async stopTracking(): Promise<void> {
     if (this.isTracking && this.currentPage) {
       // Calculate and add current session time to accumulated time
       const now = Date.now()
@@ -141,6 +141,12 @@ class UserEngagementTracker {
       const pageKey = this.getPageKey(this.currentPage)
       this.pageData.set(pageKey, { ...this.engagementData })
       this.savePageDataToStorage()
+      
+      // Save to Supabase before stopping
+      if (this.supabaseEnabled) {
+        await this.saveToSupabase()
+      }
+      
       console.log('Tracker: Saved data for page:', pageKey, 'Total active time:', this.engagementData.activeTime)
     }
     
@@ -245,7 +251,6 @@ class UserEngagementTracker {
         
         // Increment interaction count by exactly 1
         this.engagementData.interactionCount++
-        this.engagementData.interaction = this.engagementData.interactionCount
         this.engagementData.lastActivityTime = now
         console.log('Tracker: Button click detected, interaction count:', this.engagementData.interactionCount)
         this.updateMetrics()
@@ -269,7 +274,37 @@ class UserEngagementTracker {
   }
 
   private handlePageUnload(): void {
-    this.stopTracking()
+    // Use synchronous version for page unload to avoid issues
+    if (this.isTracking && this.currentPage) {
+      // Calculate and add current session time to accumulated time
+      const now = Date.now()
+      if (this.engagementData.sessionStartTime > 0) {
+        const sessionTime = Math.floor((now - this.engagementData.sessionStartTime) / 1000)
+        this.engagementData.activeTime += sessionTime
+        
+        // Cap the accumulated time
+        const maxActiveTime = 7200
+        this.engagementData.activeTime = Math.min(this.engagementData.activeTime, maxActiveTime)
+      }
+      
+      // Save current page data before stopping
+      const pageKey = this.getPageKey(this.currentPage)
+      this.pageData.set(pageKey, { ...this.engagementData })
+      this.savePageDataToStorage()
+      
+      // Try to save to Supabase synchronously (may not complete)
+      if (this.supabaseEnabled) {
+        this.saveToSupabase().catch(error => {
+          console.warn('Tracker: Failed to save to Supabase on page unload:', error)
+        })
+      }
+      
+      console.log('Tracker: Saved data for page on unload:', pageKey, 'Total active time:', this.engagementData.activeTime)
+    }
+    
+    this.isTracking = false
+    this.clearTimers()
+    this.removeEventListeners()
   }
 
   private handleVisibilityChange(): void {
@@ -381,14 +416,66 @@ class UserEngagementTracker {
     this.notifySubscribers()
   }
 
+  private async saveToSupabase(): Promise<void> {
+    if (!this.supabaseEnabled || !this.isTracking || !this.currentPage) {
+      console.log('🔍 saveToSupabase skipped:', { 
+        supabaseEnabled: this.supabaseEnabled, 
+        isTracking: this.isTracking, 
+        currentPage: this.currentPage 
+      })
+      return
+    }
+
+    try {
+      const ipAddress = await getUserIPAddress()
+      
+      // Calculate ONLY the current session time (not accumulated)
+      let currentSessionTime = 0
+      if (this.engagementData.sessionStartTime > 0) {
+        const now = Date.now()
+        currentSessionTime = Math.floor((now - this.engagementData.sessionStartTime) / 1000)
+      }
+      
+      console.log('🔍 saveToSupabase debug:', {
+        currentPage: this.currentPage,
+        sessionStartTime: this.engagementData.sessionStartTime,
+        currentSessionTime,
+        activeTime: this.engagementData.activeTime,
+        ipAddress,
+        timeDifference: Date.now() - this.engagementData.sessionStartTime
+      })
+      
+      // Save ONLY the current session time - let the database handle accumulation
+      const result = await savePageVisit(this.currentPage, ipAddress, currentSessionTime)
+
+      if (result.success) {
+        console.log('✅ Tracker: Successfully saved page visit to Supabase:', this.currentPage, 'Current session time:', currentSessionTime)
+        this.lastSupabaseSave = Date.now()
+      } else {
+        console.warn('❌ Tracker: Failed to save to Supabase:', result.error)
+      }
+    } catch (error) {
+      console.error('❌ Tracker: Error saving to Supabase:', error)
+    }
+  }
+
+  private shouldSaveToSupabase(): boolean {
+    const now = Date.now()
+    return this.supabaseEnabled && 
+           (now - this.lastSupabaseSave) >= this.supabaseSaveInterval
+  }
+
   private notifySubscribers(): void {
     console.log('Tracker: Notifying subscribers, interaction count:', this.engagementData.interactionCount)
     
-    // Save current page data periodically
+    // Save current page data periodically (but NOT to Supabase)
     if (this.isTracking && this.currentPage) {
       const pageKey = this.getPageKey(this.currentPage)
       this.pageData.set(pageKey, { ...this.engagementData })
       this.savePageDataToStorage()
+
+      // REMOVED: Periodic Supabase saving to prevent duplicates
+      // Only save to Supabase when leaving a page, not during active tracking
     }
     
     this.updateCallbacks.forEach(callback => {
@@ -403,7 +490,6 @@ class UserEngagementTracker {
   // Public method to manually trigger interaction (for programmatic interactions)
   public recordInteraction(type: string = 'click'): void {
     this.engagementData.interactionCount++
-    this.engagementData.interaction = this.engagementData.interactionCount // Sync the fields
     this.engagementData.lastActivityTime = Date.now()
     console.log('Tracker: Interaction recorded, count now:', this.engagementData.interactionCount)
     this.updateMetrics()
@@ -411,13 +497,25 @@ class UserEngagementTracker {
 
   // Public method to reset tracking for new page
   public resetForNewPage(pathname: string): void {
+    console.log(' Tracker: Reset for new page:', pathname, 'Current page:', this.currentPage)
+    
+    // Only reset if we're actually changing pages
+    if (this.currentPage === pathname) {
+      console.log(' Tracker: Same page, no need to reset')
+      return
+    }
+    
     // Stop current tracking first (this will save current page data and accumulate session time)
-    this.stopTracking()
+    if (this.isTracking) {
+      console.log('🔄 Tracker: Stopping current tracking for page:', this.currentPage)
+      this.stopTracking()
+    }
     
     // Start tracking for the new page
+    console.log('🔄 Tracker: Starting tracking for new page:', pathname)
     this.startTracking(pathname)
     
-    console.log('Tracker: Reset for new page:', pathname)
+    console.log('✅ Tracker: Reset completed for new page:', pathname)
   }
 
   // Get current total active time (accumulated + current session)
@@ -435,7 +533,7 @@ class UserEngagementTracker {
     return {
       activeTime: this.getCurrentTotalActiveTime(),
       contentRead: this.engagementData.contentRead,
-      interaction: this.engagementData.interactionCount,
+      interactionCount: this.engagementData.interactionCount, // Changed from 'interaction' to 'interactionCount'
       interestScore: this.engagementData.interestScore
     }
   }
@@ -466,9 +564,9 @@ class UserEngagementTracker {
   }
 
   // Method to clear all page data (for testing or reset)
-  public clearAllPageData(): void {
+  public async clearAllPageData(): Promise<void> {
     // Stop current tracking first
-    this.stopTracking()
+    await this.stopTracking()
     
     // Clear all page data
     this.pageData.clear()
@@ -477,13 +575,12 @@ class UserEngagementTracker {
     this.engagementData = {
       activeTime: 0,
       contentRead: 0,
-      interaction: 0,
+      interactionCount: 0,
       interestScore: 0,
       pageStartTime: 0,
       lastActivityTime: 0,
       scrollDepth: 0,
       totalScrollHeight: 0,
-      interactionCount: 0,
       sessionStartTime: 0
     }
     
@@ -507,6 +604,27 @@ class UserEngagementTracker {
     
     console.log('Tracker: Cleared all page data and restarted tracking')
   }
+
+  // Public methods for Supabase integration control
+  public enableSupabase(): void {
+    this.supabaseEnabled = true
+    console.log('Tracker: Supabase integration enabled')
+  }
+
+  public disableSupabase(): void {
+    this.supabaseEnabled = false
+    console.log('Tracker: Supabase integration disabled')
+  }
+
+  public isSupabaseEnabled(): boolean {
+    return this.supabaseEnabled
+  }
+
+  public setSupabaseSaveInterval(intervalMs: number): void {
+    this.supabaseSaveInterval = intervalMs
+    console.log('Tracker: Supabase save interval set to', intervalMs, 'ms')
+  }
+
 }
 
 // Export singleton instance

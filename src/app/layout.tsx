@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { DevToolsWrapper } from "@/components/layout/DevToolsWrapper";
+import { GlobalEngagementTracker } from "@/components/layout/GlobalEngagementTracker";
 import { CurrencyProvider } from "@/lib/currencyContext";
 import { ToastProvider } from "@/lib/toast-context";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       >
         <CurrencyProvider>
           <ToastProvider>
+            <GlobalEngagementTracker />
             <ScrollToTop />
             <Navbar />
             
