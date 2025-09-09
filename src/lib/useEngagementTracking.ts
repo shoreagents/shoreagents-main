@@ -7,13 +7,12 @@ export function useEngagementTracking() {
   const [engagementData, setEngagementData] = useState<UserEngagementData>({
     activeTime: 0,
     contentRead: 0,
-    interaction: 0,
+    interactionCount: 0, // Changed from 'interaction' to 'interactionCount'
     interestScore: 0,
     pageStartTime: 0, // Start with 0 to prevent hydration mismatch
     lastActivityTime: 0, // Start with 0 to prevent hydration mismatch
     scrollDepth: 0,
     totalScrollHeight: 0,
-    interactionCount: 0,
     sessionStartTime: 0
   })
 
@@ -38,8 +37,7 @@ export function useEngagementTracking() {
     // Immediately update local state to reflect the new interaction
     setEngagementData(prev => ({
       ...prev,
-      interaction: prev.interaction + 1,
-      interactionCount: prev.interactionCount + 1
+      interactionCount: prev.interactionCount + 1 // Removed the redundant interaction field
     }))
   }
 
@@ -58,7 +56,7 @@ export function useEngagementTracking() {
     // Individual metrics for easy access (using formatted metrics for activeTime)
     activeTime: formattedMetrics.activeTime,
     contentRead: engagementData.contentRead,
-    interaction: engagementData.interaction,
+    interactionCount: engagementData.interactionCount, // Changed from 'interaction' to 'interactionCount'
     interestScore: engagementData.interestScore,
     // Page-specific data methods
     getAllPageData: () => userEngagementTracker.getAllPageData(),
