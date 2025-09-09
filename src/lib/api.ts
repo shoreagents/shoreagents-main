@@ -9,14 +9,50 @@ import {
   WorkStatus,
   WorkStatusResponse
 } from '@/types/api';
+import { BPOCUser, BPOCApiResponse } from './bpocApiService';
 
 const API_BASE_URL = 'https://www.bpoc.io/api/public';
 
+// Updated to use the single user-data endpoint
+export async function fetchAllUserData(): Promise<BPOCUser[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user-data`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data: BPOCApiResponse = await response.json();
+    
+    if (!data.success) {
+      throw new Error('API returned unsuccessful response');
+    }
+    
+    console.log('✅ Fetched all user data:', data.data.length, 'users');
+    return data.data;
+  } catch (error) {
+    console.error('❌ Error fetching user data:', error);
+    return [];
+  }
+}
+
+// Legacy functions - now using the single endpoint
 export async function fetchUsers(): Promise<User[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/users`);
-    const data: ApiResponse<User> = await response.json();
-    return data.items;
+    const bpocUsers = await fetchAllUserData();
+    // Convert BPOCUser to User format for backward compatibility
+    return bpocUsers.map(bpocUser => ({
+      id: bpocUser.user_id,
+      name: bpocUser.full_name,
+      email: '', // Not available in BPOC data
+      position: bpocUser.position || bpocUser.current_position || '',
+      location: bpocUser.location,
+      avatar: bpocUser.avatar_url,
+      bio: bpocUser.bio,
+      work_status: bpocUser.work_status,
+      created_at: bpocUser.user_created_at,
+      updated_at: bpocUser.user_updated_at
+    }));
   } catch (error) {
     console.error('Error fetching users:', error);
     return [];
@@ -24,32 +60,39 @@ export async function fetchUsers(): Promise<User[]> {
 }
 
 export async function fetchApplications(): Promise<Application[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/applications`);
-    const data: ApiResponse<Application> = await response.json();
-    return data.items;
-  } catch (error) {
-    console.error('Error fetching applications:', error);
-    return [];
-  }
+  // Applications data is not available in the new single endpoint
+  // Return empty array for now
+  console.warn('Applications data not available in new API structure');
+  return [];
 }
 
 export async function fetchJobs(): Promise<Job[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/jobs`);
-    const data: ApiResponse<Job> = await response.json();
-    return data.items;
-  } catch (error) {
-    console.error('Error fetching jobs:', error);
-    return [];
-  }
+  // Jobs data is not available in the new single endpoint
+  // Return empty array for now
+  console.warn('Jobs data not available in new API structure');
+  return [];
 }
 
 export async function fetchAIAnalysisResults(): Promise<AIAnalysisResult[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/ai-analysis-results`);
-    const data: ApiResponse<AIAnalysisResult> = await response.json();
-    return data.items;
+    const bpocUsers = await fetchAllUserData();
+    // Convert BPOCUser analysis data to AIAnalysisResult format
+    return bpocUsers
+      .filter(user => user.analysis_id !== null)
+      .map(user => ({
+        id: user.analysis_id!,
+        user_id: user.user_id,
+        overall_score: user.overall_score || 0,
+        ats_compatibility_score: user.ats_compatibility_score || 0,
+        content_quality_score: user.content_quality_score || 0,
+        professional_presentation_score: user.professional_presentation_score || 0,
+        skills_alignment_score: user.skills_alignment_score || 0,
+        key_strengths: user.key_strengths || [],
+        improvements: user.improvements || [],
+        recommendations: user.recommendations || [],
+        created_at: user.analysis_created_at || '',
+        updated_at: user.analysis_updated_at || ''
+      }));
   } catch (error) {
     console.error('Error fetching AI analysis results:', error);
     return [];
@@ -57,131 +100,96 @@ export async function fetchAIAnalysisResults(): Promise<AIAnalysisResult[]> {
 }
 
 export async function fetchResumesGenerated(): Promise<ResumeGenerated[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/resumes-generated`);
-    const data: ApiResponse<ResumeGenerated> = await response.json();
-    return data.items;
-  } catch (error) {
-    console.error('Error fetching resumes:', error);
-    return [];
-  }
-}
-
-// Helper function to check if API is available
-async function checkApiHealth(): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user-work-status`, {
-      method: 'HEAD', // Just check if endpoint exists
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-// Helper function to retry API calls
-async function retryFetch<T>(
-  fetchFn: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 1000
-): Promise<T> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await fetchFn();
-    } catch (error) {
-      if (attempt === maxRetries) {
-        throw error;
-      }
-      console.warn(`Work status API attempt ${attempt} failed, retrying in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      delay *= 2; // Exponential backoff
-    }
-  }
-  throw new Error('Max retries exceeded');
+  // Resume data is not available in the new single endpoint
+  // Return empty array for now
+  console.warn('Resume data not available in new API structure');
+  return [];
 }
 
 export async function fetchWorkStatus(): Promise<WorkStatus[]> {
   try {
-    // First check if API is available
-    const isApiAvailable = await checkApiHealth();
-    if (!isApiAvailable) {
-      console.warn('Work status API is not available, skipping work status data');
-      return [];
-    }
-
-    // Create the fetch function with retry logic
-    const fetchWorkStatusData = async (): Promise<WorkStatus[]> => {
-      const response = await fetch(`${API_BASE_URL}/user-work-status`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data: WorkStatusResponse = await response.json();
-      
-      if (!data || !data.results) {
-        throw new Error('Invalid work status API response format');
-      }
-      
-      return data.results;
-    };
-
-    // Retry the fetch with exponential backoff
-    const results = await retryFetch(fetchWorkStatusData, 3, 1000);
-    
-    console.log(`Successfully fetched ${results.length} work status records`);
-    return results;
+    const bpocUsers = await fetchAllUserData();
+    // Convert BPOCUser work status data to WorkStatus format
+    return bpocUsers
+      .filter(user => user.work_status_id !== null)
+      .map(user => ({
+        id: user.work_status_id!,
+        userId: user.user_id,
+        currentEmployer: user.current_employer || '',
+        currentPosition: user.current_position || '',
+        workStatus: user.work_status || '',
+        preferredShift: user.preferred_shift || '',
+        workSetup: user.work_setup || '',
+        currentMood: user.current_mood || '',
+        noticePeriodDays: user.notice_period_days || 0,
+        expectedSalary: user.expected_salary || '',
+        completed: user.work_status_completed || false,
+        createdAt: user.work_status_created_at || '',
+        updatedAt: user.work_status_updated_at || ''
+      }));
   } catch (error) {
-    console.error('Error fetching work status after retries:', error);
-    // Return empty array instead of throwing to prevent app crashes
+    console.error('Error fetching work status:', error);
     return [];
   }
 }
 
 export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
   try {
-    // Fetch all data in parallel, but handle work status separately to prevent failures
-    const [users, applications, jobs, aiAnalysisResults, resumes] = await Promise.all([
-      fetchUsers(),
-      fetchApplications(),
-      fetchJobs(),
-      fetchAIAnalysisResults(),
-      fetchResumesGenerated()
-    ]);
+    // Use the single endpoint to get all data
+    const bpocUsers = await fetchAllUserData();
+    
+    // Convert BPOCUser data to EmployeeCardData format
+    return bpocUsers.map(bpocUser => {
+      const user: User = {
+        id: bpocUser.user_id,
+        name: bpocUser.full_name,
+        email: '', // Not available in BPOC data
+        position: bpocUser.position || bpocUser.current_position || '',
+        location: bpocUser.location,
+        avatar: bpocUser.avatar_url,
+        bio: bpocUser.bio,
+        work_status: bpocUser.work_status,
+        created_at: bpocUser.user_created_at,
+        updated_at: bpocUser.user_updated_at
+      };
 
-    // Try to fetch work status separately to prevent it from breaking the entire function
-    let workStatuses: WorkStatus[] = [];
-    try {
-      workStatuses = await fetchWorkStatus();
-    } catch (workStatusError) {
-      console.warn('Failed to fetch work status data, continuing without it:', workStatusError);
-      workStatuses = [];
-    }
+      const aiAnalysis: AIAnalysisResult | undefined = bpocUser.analysis_id ? {
+        id: bpocUser.analysis_id,
+        user_id: bpocUser.user_id,
+        overall_score: bpocUser.overall_score || 0,
+        ats_compatibility_score: bpocUser.ats_compatibility_score || 0,
+        content_quality_score: bpocUser.content_quality_score || 0,
+        professional_presentation_score: bpocUser.professional_presentation_score || 0,
+        skills_alignment_score: bpocUser.skills_alignment_score || 0,
+        key_strengths: bpocUser.key_strengths || [],
+        improvements: bpocUser.improvements || [],
+        recommendations: bpocUser.recommendations || [],
+        created_at: bpocUser.analysis_created_at || '',
+        updated_at: bpocUser.analysis_updated_at || ''
+      } : undefined;
 
-    return users.map(user => {
-      const userApplications = applications.filter(app => app.user_id === user.id);
-      const appliedJobs = jobs.filter(job => 
-        userApplications.some(app => app.job_id === job.id.toString())
-      );
-      const aiAnalysis = aiAnalysisResults.find(analysis => analysis.user_id === user.id);
-      const resume = resumes.find(res => res.user_id === user.id);
-      const workStatus = workStatuses.find(status => status.userId === user.id);
+      const workStatus: WorkStatus | undefined = bpocUser.work_status_id ? {
+        id: bpocUser.work_status_id,
+        userId: bpocUser.user_id,
+        currentEmployer: bpocUser.current_employer || '',
+        currentPosition: bpocUser.current_position || '',
+        workStatus: bpocUser.work_status || '',
+        preferredShift: bpocUser.preferred_shift || '',
+        workSetup: bpocUser.work_setup || '',
+        currentMood: bpocUser.current_mood || '',
+        noticePeriodDays: bpocUser.notice_period_days || 0,
+        expectedSalary: bpocUser.expected_salary || '',
+        completed: bpocUser.work_status_completed || false,
+        createdAt: bpocUser.work_status_created_at || '',
+        updatedAt: bpocUser.work_status_updated_at || ''
+      } : undefined;
 
       return {
         user,
-        applications: userApplications,
-        appliedJobs,
+        applications: [], // Not available in new API structure
+        appliedJobs: [], // Not available in new API structure
         aiAnalysis,
-        resume,
+        resume: undefined, // Not available in new API structure
         workStatus
       };
     });

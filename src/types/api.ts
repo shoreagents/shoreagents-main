@@ -1,11 +1,14 @@
 export interface User {
   id: string;
-  full_name: string;
+  name: string; // Changed from full_name to name for consistency
   email: string;
   location: string;
-  position: string | null;
-  avatar_url: string | null;
+  position: string;
+  avatar: string | null; // Changed from avatar_url to avatar
+  bio: string | null; // Added bio field
+  work_status: string | null; // Added work_status field
   created_at: string;
+  updated_at: string; // Added updated_at field
 }
 
 export interface Application {
@@ -37,9 +40,16 @@ export interface Job {
 export interface AIAnalysisResult {
   id: string;
   user_id: string;
-  resume_id: string;
-  analysis_data: Record<string, unknown>;
+  overall_score: number;
+  ats_compatibility_score: number;
+  content_quality_score: number;
+  professional_presentation_score: number;
+  skills_alignment_score: number;
+  key_strengths: string[];
+  improvements: string[];
+  recommendations: string[];
   created_at: string;
+  updated_at: string;
 }
 
 export interface ResumeGenerated {
@@ -84,15 +94,17 @@ export interface ResumeGenerated {
 }
 
 export interface WorkStatus {
+  id: string;
   userId: string;
   currentEmployer: string;
   currentPosition: string;
-  currentSalary: string;
-  noticePeriod: number;
-  salaryGoal: string;
-  currentMood: string;
   workStatus: string;
-  employmentType: string;
+  preferredShift: string;
+  workSetup: string;
+  currentMood: string;
+  noticePeriodDays: number;
+  expectedSalary: string;
+  completed: boolean;
   createdAt: string;
   updatedAt: string;
 }

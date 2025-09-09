@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Menu, X, Star, ArrowRight } from 'lucide-react'
+import { ChevronDown, Menu, X, Star, ArrowRight, Shield } from 'lucide-react'
 import { useCurrency, currencies, Currency } from '@/lib/currencyContext'
 
 export function Navbar() {
@@ -475,6 +475,15 @@ export function Navbar() {
                 </div>
               </div>
           </div>
+
+          {/* Admin Link - Only visible to admins */}
+          <Link 
+            href="/admin/login" 
+            className="px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group text-gray-500 hover:text-lime-600"
+            title="Admin Dashboard"
+          >
+            <Shield className="w-4 h-4" />
+          </Link>
 
           {/* Currency Selector - Right Side */}
           <div className="hidden md:flex items-center pr-4">
