@@ -31,7 +31,7 @@ export default function RealEstateOutsourcingPage() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
-                  variant="primary" 
+                  variant="default" 
                   size="lg"
                   className="text-lg px-8 py-4 font-semibold"
                 >
@@ -328,7 +328,7 @@ export default function RealEstateOutsourcingPage() {
           {/* Call to Action */}
           <div className="text-center mt-12">
             <Button 
-              variant="primary" 
+              variant="default" 
               size="lg"
               className="text-lg px-8 py-4 font-semibold"
             >
@@ -351,14 +351,14 @@ export default function RealEstateOutsourcingPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
-                variant="secondaryBtn" 
+                variant="secondary" 
                 size="lg"
                 className="text-lg px-8 py-4 font-semibold bg-white text-lime-600 hover:bg-gray-50"
               >
                 Get Your Real Estate Quote →
               </Button>
               <Button 
-                variant="secondaryBtn" 
+                variant="secondary" 
                 size="lg"
                 className="text-lg px-8 py-4 font-semibold bg-white text-lime-600 hover:bg-gray-50"
               >

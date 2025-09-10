@@ -164,7 +164,7 @@ export async function getUserPageVisits(userId?: string): Promise<UserPageVisit[
 
 
 // Get aggregated page analytics
-export async function getPageAnalytics(): Promise<any[]> {
+export async function getPageAnalytics(): Promise<Record<string, unknown>[]> {
   try {
     if (!supabase) {
       console.warn('Supabase client not available. Returning empty array.')
@@ -189,7 +189,7 @@ export async function getPageAnalytics(): Promise<any[]> {
 }
 
 // Get user visit analytics
-export async function getUserVisitAnalytics(): Promise<any[]> {
+export async function getUserVisitAnalytics(): Promise<Record<string, unknown>[]> {
   try {
     if (!supabase) {
       console.warn('Supabase client not available. Returning empty array.')
@@ -258,7 +258,7 @@ export async function batchSavePageVisits(
 }
 
 // Get page analytics with visit counts and time spent
-export async function getPageAnalyticsWithTime(): Promise<any[]> {
+export async function getPageAnalyticsWithTime(): Promise<Record<string, unknown>[]> {
   try {
     if (!supabase) {
       console.warn('Supabase client not available. Returning empty array.')
@@ -309,7 +309,7 @@ export async function getPageAnalyticsWithTime(): Promise<any[]> {
 }
 
 // Get user analytics with visit counts and time spent
-export async function getUserAnalyticsWithTime(): Promise<any[]> {
+export async function getUserAnalyticsWithTime(): Promise<Record<string, unknown>[]> {
   try {
     if (!supabase) {
       console.warn('Supabase client not available. Returning empty array.')

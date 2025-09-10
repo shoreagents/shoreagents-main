@@ -38,17 +38,17 @@ export interface BPOCUser {
   professional_presentation_score: number | null
   skills_alignment_score: number | null
   key_strengths: string[] | null
-  strengths_analysis: any | null
+  strengths_analysis: Record<string, unknown> | null
   improvements: string[] | null
   recommendations: string[] | null
   improved_summary: string | null
-  salary_analysis: any | null
-  career_path: any | null
-  section_analysis: any | null
-  candidate_profile: any | null
+  salary_analysis: Record<string, unknown> | null
+  career_path: Record<string, unknown> | null
+  section_analysis: Record<string, unknown> | null
+  candidate_profile: Record<string, unknown> | null
   skills_snapshot: string[] | null
-  experience_snapshot: any[] | null
-  education_snapshot: any[] | null
+  experience_snapshot: Record<string, unknown>[] | null
+  education_snapshot: Record<string, unknown>[] | null
   portfolio_links: string[] | null
   analysis_created_at: string | null
   analysis_updated_at: string | null

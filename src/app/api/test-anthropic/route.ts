@@ -39,7 +39,7 @@ export async function GET() {
   } catch (error) {
     console.error('Anthropic API test error:', error);
     
-    let errorDetails = {
+    let errorDetails: Record<string, unknown> = {
       success: false,
       hasApiKey: !!process.env.ANTHROPIC_API_KEY,
       environment: process.env.NODE_ENV,

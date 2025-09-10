@@ -38,7 +38,7 @@ export default function EngineeringOutsourcingPage() {
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button 
-                  variant="primary" 
+                  variant="default" 
                   size="lg"
                   className="text-lg px-8 py-4 font-semibold"
                 >

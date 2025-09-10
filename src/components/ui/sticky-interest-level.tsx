@@ -27,12 +27,12 @@ export function StickyInterestLevel() {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
   
   // Use the engagement tracking hook only on client side
-  const { activeTime, contentRead, interaction, interestScore, clearAllPageData } = useEngagementTracking()
+  const { activeTime, contentRead, interactionCount, interestScore, clearAllPageData } = useEngagementTracking()
   
   const interestMetrics: InterestMetrics = {
     activeTime: !serverDown ? activeTime : 0,
     contentRead: !serverDown ? contentRead : 0,
-    interaction: !serverDown ? interaction : 0,
+    interaction: !serverDown ? interactionCount : 0,
     interestScore: !serverDown ? interestScore : 0
   }
 

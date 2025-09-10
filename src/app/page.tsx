@@ -113,7 +113,7 @@ export default function Home() {
   }, []);
 
   const handleViewDetails = (employee: EmployeeCardData) => {
-    console.log('View details for:', employee.user.full_name);
+    console.log('View details for:', employee.user.name);
   };
 
   const handleViewResume = (resume: ResumeGenerated) => {

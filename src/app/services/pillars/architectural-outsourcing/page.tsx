@@ -37,7 +37,7 @@ export default function ArchitecturalOutsourcingPage() {
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button 
-                  variant="primary" 
+                  variant="default" 
                   size="lg"
                   className="text-lg px-8 py-4 font-semibold"
                 >
@@ -365,7 +365,7 @@ export default function ArchitecturalOutsourcingPage() {
               {/* CTA Button */}
               <div className="text-center">
                 <Button 
-                  variant="primary" 
+                  variant="default" 
                   size="lg"
                   className="text-lg px-8 py-4 font-semibold"
                 >
@@ -456,7 +456,7 @@ export default function ArchitecturalOutsourcingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              variant="secondaryBtn" 
+              variant="secondary" 
               size="lg"
               className="text-lg px-8 py-4 font-semibold bg-white text-lime-600 hover:bg-gray-50"
             >

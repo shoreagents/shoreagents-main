@@ -82,7 +82,7 @@ export class IPDetectionService {
         {
           name: 'ipapi.co',
           url: 'https://ipapi.co/json/',
-          transform: (data: any) => ({
+          transform: (data: Record<string, unknown>) => ({
             status: 'success',
             country: data.country_name || 'Unknown',
             countryCode: data.country_code || 'US',
@@ -102,7 +102,7 @@ export class IPDetectionService {
         {
           name: 'ipinfo.io',
           url: 'https://ipinfo.io/json',
-          transform: (data: any) => ({
+          transform: (data: Record<string, unknown>) => ({
             status: 'success',
             country: data.country || 'Unknown',
             countryCode: data.country || 'US',
@@ -110,8 +110,8 @@ export class IPDetectionService {
             regionName: data.region || '',
             city: data.city || '',
             zip: data.postal || '',
-            lat: parseFloat(data.loc?.split(',')[0] || '0'),
-            lon: parseFloat(data.loc?.split(',')[1] || '0'),
+            lat: parseFloat((data.loc as string)?.split(',')[0] || '0'),
+            lon: parseFloat((data.loc as string)?.split(',')[1] || '0'),
             timezone: data.timezone || 'UTC',
             isp: data.org || '',
             org: data.org || '',
@@ -122,7 +122,7 @@ export class IPDetectionService {
         {
           name: 'ip-api.com',
           url: 'https://ip-api.com/json/',
-          transform: (data: any) => data
+          transform: (data: Record<string, unknown>) => data
         }
       ]
 
@@ -144,7 +144,7 @@ export class IPDetectionService {
           }
 
           const rawData = await response.json()
-          const locationData: LocationData = service.transform(rawData)
+          const locationData: LocationData = service.transform(rawData) as LocationData
           
           if (locationData.status === 'success') {
             this.cachedLocation = locationData

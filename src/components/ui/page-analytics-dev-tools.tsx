@@ -53,7 +53,7 @@ export function PageAnalyticsDevTools() {
         pathname: pathname === 'home' ? '/' : `/${pathname}`,
         activeTime: data.activeTime,
         contentRead: data.contentRead,
-        interaction: data.interaction,
+        interaction: data.interactionCount,
         interestScore: data.interestScore,
         lastVisit: new Date().toLocaleString(),
         visitCount: 1 // This would need to be tracked separately for accurate counts

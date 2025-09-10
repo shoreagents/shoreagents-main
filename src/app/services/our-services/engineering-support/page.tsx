@@ -46,7 +46,7 @@ export default function EngineeringSupportPage() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
-                variant="primary" 
+                variant="default" 
                 size="lg"
                 className="px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl"
               >
@@ -274,7 +274,7 @@ export default function EngineeringSupportPage() {
             
             <div className="text-center">
               <Button 
-                variant="primary" 
+                variant="default" 
                 size="lg"
                 className="px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl"
               >
@@ -301,7 +301,7 @@ export default function EngineeringSupportPage() {
             
             <div className="lg:flex-shrink-0 space-y-4 lg:space-y-0 lg:space-x-4 lg:flex lg:flex-row">
               <Button 
-                variant="primary"
+                variant="default"
                 size="lg"
                 className="w-full lg:w-auto px-8 py-4 text-lg font-semibold border-white text-white hover:bg-white hover:text-lime-600 shadow-lg hover:shadow-xl"
               >

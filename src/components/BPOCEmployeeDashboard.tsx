@@ -6,7 +6,7 @@ import { type BPOCUser } from '@/lib/bpocApiService'
 
 export function BPOCEmployeeDashboard() {
   const { employees, loading, error, getStats } = useBPOCEmployees()
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null)
   const [selectedEmployee, setSelectedEmployee] = useState<BPOCUser | null>(null)
 
   useEffect(() => {
@@ -45,19 +45,19 @@ export function BPOCEmployeeDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold">Total Employees</h3>
-            <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+            <p className="text-2xl font-bold text-blue-600">{stats.total as number}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold">Active</h3>
-            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+            <p className="text-2xl font-bold text-green-600">{stats.active as number}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold">Employed</h3>
-            <p className="text-2xl font-bold text-purple-600">{stats.employed}</p>
+            <p className="text-2xl font-bold text-purple-600">{stats.employed as number}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold">Average Score</h3>
-            <p className="text-2xl font-bold text-orange-600">{stats.averageScore}</p>
+            <p className="text-2xl font-bold text-orange-600">{stats.averageScore as number}</p>
           </div>
         </div>
       )}

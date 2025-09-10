@@ -65,7 +65,7 @@ export default function CreateWorkforcePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
                 onClick={handleBookWorkforcePlanning}
-                variant="primary"
+                variant="default"
                 size="lg"
                 className="px-8 py-4 text-lg font-semibold"
               >
@@ -484,7 +484,7 @@ export default function CreateWorkforcePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Button
                 onClick={handleBuildTeamFirst}
-                variant="primary"
+                variant="default"
                 size="lg"
                 className="px-8 py-4 text-lg font-semibold"
               >
