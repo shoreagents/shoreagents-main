@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -11,6 +11,7 @@ import { useCurrency, currencies, Currency } from '@/lib/currencyContext'
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState<string[]>([])
+  const [isScrolled, setIsScrolled] = useState(false)
   const { selectedCurrency, setSelectedCurrency, isDetectingLocation, detectUserLocation, isAutoDetected, setIsAutoDetected, hasUserSelectedCurrency, setHasUserSelectedCurrency } = useCurrency()
   const pathname = usePathname()
 
@@ -24,6 +25,17 @@ export function Navbar() {
     EUR: 'EUROPE',
     PHP: 'PHILIPPINES'
   }
+
+  // Scroll event listener to track scroll state
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      setIsScrolled(scrollTop > 0)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Helper function to check if a link is active
   const isActive = (href: string) => {
@@ -54,7 +66,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className={`bg-white sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-sm' : 'shadow-none'}`}>
              <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0 relative">
         <div className="flex items-center h-16">
           {/* Logo */}
@@ -86,7 +98,7 @@ export function Navbar() {
               <Link href="/services" className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative ${isActive('/services') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
                 <span className="relative inline-block">
                   Our Services
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out ${isActive('/services') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                  <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/services') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </span>
                 <ChevronDown className="h-4 w-4 -rotate-90 transition-transform duration-200 group-hover:rotate-0" />
               </Link>
@@ -339,25 +351,25 @@ export function Navbar() {
             <Link href="/howItWorks" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isActive('/howItWorks') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
               <span className="relative inline-block">
               How it works
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/howItWorks') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/howItWorks') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
             <Link href="/pricing" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isActive('/pricing') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
               <span className="relative inline-block">
               Pricing
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/pricing') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/pricing') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
             <Link href="/case-studies" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isActive('/case-studies') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
               <span className="relative inline-block">
               Case Studies
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/case-studies') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/case-studies') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
             <Link href="/blogs" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isActive('/blogs') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
               <span className="relative inline-block">
               Blogs
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/blogs') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/blogs') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
             {/* About Dropdown */}
@@ -365,7 +377,7 @@ export function Navbar() {
               <Link href="/about" className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative ${isActive('/about') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
                 <span className="relative inline-block">
                   About Shore
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out ${isActive('/about') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                  <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/about') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </span>
                 <ChevronDown className="h-4 w-4 -rotate-90 transition-transform duration-200 group-hover:rotate-0" />
               </Link>
@@ -649,28 +661,28 @@ export function Navbar() {
                 <Link href="/howItWorks" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/howItWorks') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
               <span className="relative inline-block">
               How it works
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/howItWorks') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/howItWorks') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
                 
                 <Link href="/pricing" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/pricing') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
               <span className="relative inline-block">
               Pricing
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/pricing') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/pricing') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
                 
                 <Link href="/case-studies" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/case-studies') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
               <span className="relative inline-block">
               Case Studies
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/case-studies') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/case-studies') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
                 
                 <Link href="/blogs" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/blogs') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
               <span className="relative inline-block">
               Blogs
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-lime-600 transition-all duration-300 ease-out group-hover:w-full ${isActive('/blogs') ? 'w-full' : ''}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/blogs') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
 
