@@ -6,7 +6,7 @@ import { useEngagementTracking } from '@/lib/useEngagementTracking'
 import { userEngagementTracker } from '@/lib/userEngagementTracker'
 
 export function EngagementDemo() {
-  const { activeTime, contentRead, interaction, interestScore, recordInteraction } = useEngagementTracking()
+  const { activeTime, contentRead, interactionCount, interestScore, recordInteraction } = useEngagementTracking()
 
   const handleTestInteraction = () => {
     recordInteraction('test-button')
@@ -33,7 +33,7 @@ export function EngagementDemo() {
         
         <div className="flex justify-between">
           <span className="text-gray-600">Interactions:</span>
-          <span className="font-medium">{interaction}</span>
+          <span className="font-medium">{interactionCount}</span>
         </div>
         
         <div className="flex justify-between">

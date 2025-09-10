@@ -7,44 +7,32 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
-  DrawerTrigger,
-  DrawerLockToggle
+  DrawerTrigger
 } from '@/components/ui/drawer'
 import { 
   Users, 
   TrendingUp, 
   BookOpen, 
   MessageCircle, 
-  Sparkles
+  Lock,
+  Unlock
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEngagementTracking } from '@/lib/useEngagementTracking'
 import ChatConsole from '@/components/ui/ai-chat-console'
 
-interface InterestMetrics {
-  activeTime: number
-  contentRead: number
-  interaction: number
-  interestScore: number
-}
-
 export function BottomNav() {
   const router = useRouter()
   const [isVisible, setIsVisible] = useState(false)
-  const [isClient, setIsClient] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isDrawerLocked, setIsDrawerLocked] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   
   // Use the engagement tracking hook only on client side
-  const { activeTime, contentRead, interaction, interestScore, recordInteraction } = useEngagementTracking()
+  const { recordInteraction } = useEngagementTracking()
   
 
   useEffect(() => {
-    // Set client-side flag to prevent hydration mismatch
-    setIsClient(true)
-    
     // Show the nav after a delay for smooth entrance
     const timer = setTimeout(() => {
       setIsVisible(true)
@@ -114,8 +102,6 @@ export function BottomNav() {
           className={`max-h-[80vh] shadow-lg border-t-2 border-lime-200 ${
             isDrawerLocked ? 'fixed bottom-0 left-0 right-0 z-[100]' : ''
           }`}
-          showOverlay={!isDrawerLocked}
-          isLocked={isDrawerLocked}
           style={{
             // Force scrollbar to always be visible to prevent content shift
             '--vaul-overlay-bg': 'transparent',
@@ -124,10 +110,18 @@ export function BottomNav() {
         >
           <DrawerHeader className="bg-lime-700 border-b border-lime-200 px-6 py-2 relative">
             <DrawerTitle className="text-lime-50 ">AI Recommendations</DrawerTitle>
-            <DrawerLockToggle 
-              isLocked={isDrawerLocked} 
-              onToggle={handleLockToggle}
-            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLockToggle}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-lime-50 hover:bg-lime-600"
+            >
+              {isDrawerLocked ? (
+                <Unlock className="w-4 h-4" />
+              ) : (
+                <Lock className="w-4 h-4" />
+              )}
+            </Button>
           </DrawerHeader>
           
           {/* AI-Powered Sections - Simple Grid Layout */}
