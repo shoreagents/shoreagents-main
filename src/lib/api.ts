@@ -29,6 +29,7 @@ export async function fetchAllUserData(): Promise<BPOCUser[]> {
     }
     
     console.log('✅ Fetched all user data:', data.data.length, 'users');
+    console.log('📊 Sample user data:', data.data[0]);
     return data.data;
   } catch (error) {
     console.error('❌ Error fetching user data:', error);
@@ -106,6 +107,75 @@ export async function fetchResumesGenerated(): Promise<ResumeGenerated[]> {
   return [];
 }
 
+// Fetch resume for a specific user
+export async function fetchUserResume(userId: string): Promise<ResumeGenerated | null> {
+  try {
+    console.log('🔍 Fetching resume for user:', userId);
+    
+    // Try different possible resume endpoints
+    const possibleEndpoints = [
+      `${API_BASE_URL}/user-data/${userId}/resume`,
+      `${API_BASE_URL}/resume/${userId}`,
+      `${API_BASE_URL}/user/${userId}/resume`,
+      `${API_BASE_URL}/public/resume/${userId}`
+    ];
+
+    for (const endpoint of possibleEndpoints) {
+      try {
+        console.log('🔄 Trying endpoint:', endpoint);
+        const response = await fetch(endpoint);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Resume found at:', endpoint);
+          return data;
+        }
+      } catch (error) {
+        console.log('❌ Endpoint failed:', endpoint, error);
+        continue;
+      }
+    }
+
+    // If no resume endpoint works, try to get resume data from the user data
+    const userData = await fetchAllUserData();
+    const user = userData.find(u => u.user_id === userId);
+    
+    if (user && user.analysis_id) {
+      // Create a mock resume from the analysis data
+      const mockResume: ResumeGenerated = {
+        id: user.analysis_id,
+        user_id: userId,
+        original_resume_id: null,
+        template_used: 'ai-generated',
+        generation_metadata: {
+          userAgent: 'ShoreAgents-TalentCard',
+          templateUsed: 'ai-generated',
+          originalResumeData: {
+            name: user.full_name,
+            email: (user.candidate_profile as any)?.email || '',
+            phone: (user.candidate_profile as any)?.phone || '',
+            skills: user.skills_snapshot || [],
+            summary: user.improved_summary || user.bio || 'No resume content available',
+            education: user.education_snapshot || [],
+            experience: user.experience_snapshot || []
+          }
+        },
+        created_at: user.analysis_created_at || user.user_created_at,
+        updated_at: user.analysis_updated_at || user.user_updated_at
+      };
+      
+      console.log('📄 Created mock resume from analysis data');
+      return mockResume;
+    }
+
+    console.warn('⚠️ No resume data found for user:', userId);
+    return null;
+  } catch (error) {
+    console.error('❌ Error fetching resume for user:', userId, error);
+    return null;
+  }
+}
+
 export async function fetchWorkStatus(): Promise<WorkStatus[]> {
   try {
     const bpocUsers = await fetchAllUserData();
@@ -138,12 +208,18 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
     // Use the single endpoint to get all data
     const bpocUsers = await fetchAllUserData();
     
+    console.log('🔄 Converting BPOC data to EmployeeCardData format...');
+    
     // Convert BPOCUser data to EmployeeCardData format
     return bpocUsers.map(bpocUser => {
+      // Extract email from candidate_profile if available
+      const candidateProfile = bpocUser.candidate_profile as any;
+      const email = candidateProfile?.email || '';
+
       const user: User = {
         id: bpocUser.user_id,
         name: bpocUser.full_name,
-        email: '', // Not available in BPOC data
+        email: email,
         position: bpocUser.position || bpocUser.current_position || '',
         location: bpocUser.location,
         avatar: bpocUser.avatar_url,
@@ -189,7 +265,7 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
         applications: [], // Not available in new API structure
         appliedJobs: [], // Not available in new API structure
         aiAnalysis,
-        resume: undefined, // Not available in new API structure
+        resume: undefined, // Resume data not available in current API structure
         workStatus
       };
     });
