@@ -150,18 +150,18 @@ export async function fetchUserResume(userId: string): Promise<ResumeGenerated |
         generation_metadata: {
           userAgent: 'ShoreAgents-TalentCard',
           templateUsed: 'ai-generated',
+          generationTimestamp: new Date().toISOString(),
           originalResumeData: {
             name: user.full_name,
-            email: (user.candidate_profile as any)?.email || '',
-            phone: (user.candidate_profile as any)?.phone || '',
+            email: (user.candidate_profile as Record<string, unknown>)?.email as string || '',
+            phone: (user.candidate_profile as Record<string, unknown>)?.phone as string || '',
             skills: user.skills_snapshot || [],
             summary: user.improved_summary || user.bio || 'No resume content available',
             education: user.education_snapshot || [],
             experience: user.experience_snapshot || []
           }
         },
-        created_at: user.analysis_created_at || user.user_created_at,
-        updated_at: user.analysis_updated_at || user.user_updated_at
+        created_at: user.analysis_created_at || user.user_created_at
       };
       
       console.log('📄 Created mock resume from analysis data');
@@ -213,8 +213,8 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
     // Convert BPOCUser data to EmployeeCardData format
     return bpocUsers.map(bpocUser => {
       // Extract email from candidate_profile if available
-      const candidateProfile = bpocUser.candidate_profile as any;
-      const email = candidateProfile?.email || '';
+      const candidateProfile = bpocUser.candidate_profile as Record<string, unknown>;
+      const email = candidateProfile?.email as string || '';
 
       const user: User = {
         id: bpocUser.user_id,

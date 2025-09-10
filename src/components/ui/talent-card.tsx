@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { Button } from './button';
-import { Card, CardContent, CardHeader } from './card';
+import { Card, CardContent } from './card';
 import { Badge } from './badge';
 import { fetchUserResume } from '@/lib/api';
 import { 
@@ -14,8 +14,6 @@ import {
   FileText, 
   Eye,
   Trophy,
-  Award,
-  Clock,
   Loader2
 } from 'lucide-react';
 
