@@ -412,7 +412,7 @@ export default function VirtualAssistantsPage() {
             </Button>
             
             <Button 
-              variant="primary" 
+              variant="default" 
               size="lg"
               className="border-2 border-white text-white hover:bg-white hover:text-lime-600 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
             >

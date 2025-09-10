@@ -62,7 +62,7 @@ export default function EmployeesPage() {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(employee =>
-        employee.user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.user.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.user.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -166,7 +166,7 @@ export default function EmployeesPage() {
           <Button onClick={() => {
             recordInteraction('refresh-employees');
             fetchEmployees();
-          }} variant="refresh" className="flex items-center space-x-2">
+          }} variant="outline" className="flex items-center space-x-2">
             <RefreshCw className="w-4 h-4" />
             <span>Try Again</span>
           </Button>
@@ -193,7 +193,7 @@ export default function EmployeesPage() {
             <Button onClick={() => {
               recordInteraction('refresh-employees');
               fetchEmployees();
-            }} variant="refresh" className="flex items-center space-x-2">
+            }} variant="outline" className="flex items-center space-x-2">
               <RefreshCw className="w-4 h-4" />
               <span>Refresh</span>
             </Button>

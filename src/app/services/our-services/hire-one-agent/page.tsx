@@ -79,7 +79,7 @@ export default function HireOneAgentPage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
-            <Button variant="primary" size="lg" className="text-lg px-8 py-4">
+            <Button variant="default" size="lg" className="text-lg px-8 py-4">
               Start with One Agent
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -309,7 +309,7 @@ export default function HireOneAgentPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary" size="lg" className="text-lg px-8 py-4 bg-gradient-to-r from-lime-500 to-lime-600">
+            <Button variant="default" size="lg" className="text-lg px-8 py-4 bg-gradient-to-r from-lime-500 to-lime-600">
               Book Free Consultation
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

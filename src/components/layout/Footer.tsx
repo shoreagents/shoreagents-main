@@ -192,7 +192,7 @@ export function Footer() {
             {/* Call-to-Action Buttons */}
             <div className="space-y-4">
               <Button 
-                variant="philippines"
+                variant="outline"
                 className="w-full flex items-center justify-center group"
                 asChild
               >
@@ -203,7 +203,7 @@ export function Footer() {
               </Button>
               
               <Button 
-                variant="philippines"
+                variant="outline"
                 className="w-full flex items-center justify-center group"
                 asChild
               >

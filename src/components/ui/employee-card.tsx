@@ -64,10 +64,10 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
         <div className="p-6 pb-4">
           <div className="flex items-start space-x-4">
             <div className="w-16 h-16 bg-gradient-to-br from-lime-400 to-lime-600 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 avatar-hover-effect">
-              {data.user.avatar_url ? (
-                <img 
-                  src={data.user.avatar_url} 
-                  alt={data.user.full_name}
+              {data.user.avatar ? (
+                <img
+                  src={data.user.avatar}
+                  alt={data.user.name}
                   className="w-16 h-16 rounded-full object-cover"
                 />
               ) : (
@@ -76,7 +76,7 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-lime-700 transition-colors duration-200">
-                {data.user.full_name}
+                {data.user.name}
               </h3>
               <p className="text-sm text-gray-600 truncate">
                 {hasWorkStatus && data.workStatus ? data.workStatus.currentPosition : (data.user.position || 'Position not specified')}
@@ -108,18 +108,18 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
                 <div className="flex items-center space-x-1">
                   <DollarSign className="w-3 h-3 text-green-600" />
                   <span className="text-green-700">
-                    {formatSalary(String(data.workStatus?.currentSalary || 0))}
+                    {formatSalary(String(data.workStatus?.expectedSalary || 0))}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Clock className="w-3 h-3 text-orange-600" />
                   <span className="text-orange-700">
-                    {data.workStatus?.noticePeriod || 0} days notice
+                    {data.workStatus?.noticePeriodDays || 0} days notice
                   </span>
                 </div>
               </div>
               <div className="text-xs text-blue-700">
-                Goal: {formatSalary(String(data.workStatus?.salaryGoal || 0))} • {data.workStatus?.employmentType || 'Unknown'}
+                Goal: {formatSalary(String(data.workStatus?.expectedSalary || 0))} • {data.workStatus?.workSetup || 'Unknown'}
               </div>
             </div>
           </div>
@@ -173,8 +173,8 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-sm font-medium text-gray-900">Recent Applications</h4>
               <Button
-                variant="employeeGhost"
-                size="xs"
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowApplications(!showApplications)}
                 className="p-1 h-auto"
               >
@@ -211,7 +211,7 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
             
             {!showApplications && (
               <Button
-                variant="employeeSecondary"
+                variant="secondary"
                 size="sm"
                 onClick={() => setIsApplicationsModalOpen(true)}
                 className="w-full mt-auto"
@@ -227,7 +227,7 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
           <div className="flex space-x-2">
             {data.resume && (
               <Button
-                variant="employeeSecondary"
+                variant="secondary"
                 size="sm"
                 onClick={() => onViewResume?.(data.resume!)}
                 className="flex items-center space-x-1 flex-1"
@@ -237,7 +237,7 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
               </Button>
             )}
             <Button
-              variant="employeePrimary"
+              variant="default"
               size="sm"
               onClick={() => onViewDetails?.(data)}
               className="flex items-center space-x-1 flex-1"
@@ -255,7 +255,7 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
         appliedJobs={data.appliedJobs}
         isOpen={isApplicationsModalOpen}
         onClose={() => setIsApplicationsModalOpen(false)}
-        employeeName={data.user.full_name}
+        employeeName={data.user.name}
       />
     </>
   );

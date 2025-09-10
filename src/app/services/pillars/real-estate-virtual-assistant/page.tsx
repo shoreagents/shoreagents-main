@@ -72,7 +72,7 @@ export default function RealEstateVirtualAssistantPage() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <Button 
-                variant="primary"
+                variant="default"
                 size="lg"
                 className="px-8 py-3 text-base font-semibold"
               >
@@ -182,7 +182,7 @@ export default function RealEstateVirtualAssistantPage() {
             {/* CTA Button */}
             <div className="text-center">
               <Button 
-                variant="primary"
+                variant="default"
                 size="lg"
                 className="px-8 py-4 text-lg font-semibold w-full md:w-auto"
               >
@@ -216,7 +216,7 @@ export default function RealEstateVirtualAssistantPage() {
             </Button>
             
             <Button 
-              variant="secondaryBtn"
+              variant="secondary"
               size="lg"
               className="border-white text-lime-600 hover:bg-white hover:text-lime-600 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl"
             >

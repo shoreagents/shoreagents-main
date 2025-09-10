@@ -105,7 +105,10 @@ class UserEngagementTracker {
         scrollDepth: 0,
         totalScrollHeight: 0,
         interactionCount: 0,
-        sessionStartTime: now
+        sessionStartTime: now,
+        interestScore: 0,
+        pageStartTime: now,
+        lastActivityTime: now
       }
       console.log('🆕 Tracker: Created new data for page:', pageKey, 'Session start time:', now)
     }
