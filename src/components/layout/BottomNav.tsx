@@ -117,16 +117,16 @@ export function BottomNav() {
               className="absolute right-4 top-1/2 transform -translate-y-1/2 text-lime-50 hover:bg-lime-600"
             >
               {isDrawerLocked ? (
-                <Unlock className="w-4 h-4" />
-              ) : (
                 <Lock className="w-4 h-4" />
+              ) : (
+                <Unlock className="w-4 h-4" />
               )}
             </Button>
           </DrawerHeader>
           
           {/* AI-Powered Sections - Simple Grid Layout */}
           <div className="px-6 py-6 bg-lime-200 drawer-content-scrollable">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
               {/* Section 1: Next Step CTA */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex flex-col h-full space-y-3">

@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { EmployeeCard } from '@/components/ui/employee-card';
+import { TalentCard } from '@/components/ui/talent-card';
 import { ResumeModal } from '@/components/ui/resume-modal';
 import { EmployeeDetailsModal } from '@/components/ui/employee-details-modal';
 import { SideNav } from '@/components/layout/SideNav';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { getEmployeeCardData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/lib/toast-context';
 import { useEngagementTracking } from '@/lib/useEngagementTracking';
 import {
@@ -100,7 +102,36 @@ export default function EmployeesPage() {
         break;
     }
 
-    setFilteredEmployees(filtered);
+    // Sort employees by score (highest to lowest)
+    const sortedEmployees = filtered.sort((a, b) => {
+      // Calculate scores for comparison
+      const getScore = (employee: EmployeeCardData) => {
+        // Use AI analysis score if available
+        if (employee.aiAnalysis?.overall_score) {
+          return employee.aiAnalysis.overall_score;
+        }
+        
+        // Calculate score based on various factors
+        let score = 0;
+        if (employee.resume) score += 20;
+        if (employee.aiAnalysis) score += 15;
+        if (employee.workStatus) score += 25;
+        if (employee.applications.length > 0) score += 10;
+        if (employee.user.position) score += 10;
+        if (employee.user.location) score += 10;
+        if (employee.user.avatar) score += 10;
+        
+        return Math.min(score, 100);
+      };
+      
+      const scoreA = getScore(a);
+      const scoreB = getScore(b);
+      
+      // Sort from highest to lowest
+      return scoreB - scoreA;
+    });
+
+    setFilteredEmployees(sortedEmployees);
   }, [employees, searchTerm, selectedFilter]);
 
   useEffect(() => {
@@ -151,7 +182,7 @@ export default function EmployeesPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-lime-600" />
           <p className="text-gray-600">Loading employee data...</p>
         </div>
       </div>
@@ -189,6 +220,9 @@ export default function EmployeesPage() {
               <p className="text-gray-600 mt-2">
                 Discover qualified candidates ready to join your team
               </p>
+              <p className="text-sm text-lime-600 mt-1">
+                📊 Sorted by AI analysis score (highest to lowest)
+              </p>
             </div>
             <Button onClick={() => {
               recordInteraction('refresh-employees');
@@ -201,69 +235,69 @@ export default function EmployeesPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-lime-50 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
               <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Total</span>
+                <Users className="w-5 h-5 text-lime-600" />
+                <span className="text-sm font-medium text-lime-900">Total</span>
               </div>
-              <p className="text-2xl font-bold text-blue-900">{stats.total}</p>
+              <p className="text-2xl font-bold text-lime-900">{stats.total}</p>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-lime-100 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
               <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-green-900">Applied</span>
+                <Briefcase className="w-5 h-5 text-lime-600" />
+                <span className="text-sm font-medium text-lime-900">Applied</span>
               </div>
-              <p className="text-2xl font-bold text-green-900">{stats.withApplications}</p>
+              <p className="text-2xl font-bold text-lime-900">{stats.withApplications}</p>
             </div>
-            <div className="bg-purple-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-blue-50 p-4 rounded-lg stat-card-hover shadow-sm border border-blue-200">
               <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">Qualified</span>
+                <Briefcase className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Qualified</span>
               </div>
-              <p className="text-2xl font-bold text-purple-900">{stats.qualified}</p>
+              <p className="text-2xl font-bold text-blue-900">{stats.qualified}</p>
             </div>
-            <div className="bg-yellow-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-lime-50 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
               <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-900">Resume</span>
+                <Briefcase className="w-5 h-5 text-lime-600" />
+                <span className="text-sm font-medium text-lime-900">Resume</span>
               </div>
-              <p className="text-2xl font-bold text-yellow-900">{stats.withResume}</p>
+              <p className="text-2xl font-bold text-lime-900">{stats.withResume}</p>
             </div>
-            <div className="bg-orange-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-orange-50 p-4 rounded-lg stat-card-hover shadow-sm border border-orange-200">
               <div className="flex items-center space-x-2">
                 <Briefcase className="w-5 h-5 text-orange-600" />
                 <span className="text-sm font-medium text-orange-900">AI Analyzed</span>
               </div>
               <p className="text-2xl font-bold text-orange-900">{stats.aiAnalyzed}</p>
             </div>
-            <div className="bg-indigo-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-blue-100 p-4 rounded-lg stat-card-hover shadow-sm border border-blue-200">
               <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-indigo-600" />
-                <span className="text-sm font-medium text-indigo-900">Work Status</span>
+                <Briefcase className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Work Status</span>
               </div>
-              <p className="text-2xl font-bold text-indigo-900">{stats.withWorkStatus}</p>
+              <p className="text-2xl font-bold text-blue-900">{stats.withWorkStatus}</p>
             </div>
-            <div className="bg-emerald-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-lime-100 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
               <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-emerald-600" />
-                <span className="text-sm font-medium text-emerald-900">Employed</span>
+                <Briefcase className="w-5 h-5 text-lime-600" />
+                <span className="text-sm font-medium text-lime-900">Employed</span>
               </div>
-              <p className="text-2xl font-bold text-emerald-900">{stats.employed}</p>
+              <p className="text-2xl font-bold text-lime-900">{stats.employed}</p>
             </div>
-            <div className="bg-rose-50 p-4 rounded-lg stat-card-hover">
+            <div className="bg-orange-100 p-4 rounded-lg stat-card-hover shadow-sm border border-orange-200">
               <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-rose-600" />
-                <span className="text-sm font-medium text-rose-900">Available</span>
+                <Briefcase className="w-5 h-5 text-orange-600" />
+                <span className="text-sm font-medium text-orange-900">Available</span>
               </div>
-              <p className="text-2xl font-bold text-rose-900">{stats.available}</p>
+              <p className="text-2xl font-bold text-orange-900">{stats.available}</p>
             </div>
           </div>
 
           {/* Search and Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+              <Input
                 type="text"
                 placeholder="Search by name, email, position, or location..."
                 value={searchTerm}
@@ -271,27 +305,31 @@ export default function EmployeesPage() {
                   recordInteraction('search-employees');
                   setSearchTerm(e.target.value);
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent input-hover-effect"
+                className="pl-10 focus:ring-2 focus:ring-lime-500 focus:border-lime-500"
               />
             </div>
             <div className="flex gap-2">
-              <select
+              <Select
                 value={selectedFilter}
-                onChange={(e) => {
+                onValueChange={(value) => {
                   recordInteraction('filter-employees');
-                  setSelectedFilter(e.target.value);
+                  setSelectedFilter(value);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent select-hover-effect cursor-pointer"
               >
-                <option value="all">All Candidates</option>
-                <option value="with-applications">With Applications</option>
-                <option value="qualified">Qualified</option>
-                <option value="with-resume">With Resume</option>
-                <option value="ai-analyzed">AI Analyzed</option>
-                <option value="with-work-status">With Work Status</option>
-                <option value="employed">Currently Employed</option>
-                <option value="available">Available for Work</option>
-              </select>
+                <SelectTrigger className="w-[200px] focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <SelectValue placeholder="Filter candidates" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Candidates</SelectItem>
+                  <SelectItem value="with-applications">With Applications</SelectItem>
+                  <SelectItem value="qualified">Qualified</SelectItem>
+                  <SelectItem value="with-resume">With Resume</SelectItem>
+                  <SelectItem value="ai-analyzed">AI Analyzed</SelectItem>
+                  <SelectItem value="with-work-status">With Work Status</SelectItem>
+                  <SelectItem value="employed">Currently Employed</SelectItem>
+                  <SelectItem value="available">Available for Work</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -308,13 +346,14 @@ export default function EmployeesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEmployees.map((employee) => (
-              <EmployeeCard
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredEmployees.map((employee, index) => (
+              <TalentCard
                 key={employee.user.id}
                 data={employee}
                 onViewDetails={handleViewDetails}
                 onViewResume={handleViewResume}
+                rank={index + 1}
               />
             ))}
           </div>
