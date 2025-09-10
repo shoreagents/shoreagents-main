@@ -15,7 +15,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { 
-  Activity, 
   Users, 
   Eye, 
   Clock, 
@@ -25,9 +24,7 @@ import {
   Smartphone,
   Monitor,
   RefreshCw,
-  AlertTriangle,
   CheckCircle,
-  XCircle,
   LogOut,
   Table as TableIcon
 } from 'lucide-react'
