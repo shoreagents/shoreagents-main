@@ -36,7 +36,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-lime-50 to-green-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md flex flex-col items-center justify-center">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-lime-600 rounded-full mb-4">
@@ -46,7 +46,7 @@ export default function AdminLogin() {
           <p className="text-gray-600">Admin Dashboard</p>
         </div>
 
-        <Card className="border-lime-200 shadow-lg">
+        <Card className="border-lime-200 shadow-xl bg-white/95 backdrop-blur-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center text-lime-700">
               Sign in to Admin
@@ -60,7 +60,7 @@ export default function AdminLogin() {
               <div className="space-y-2">
                 <ShadcnLabel htmlFor="email">Email</ShadcnLabel>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <ShadcnInput
                     id="email"
                     type="email"
@@ -76,7 +76,7 @@ export default function AdminLogin() {
               <div className="space-y-2">
                 <ShadcnLabel htmlFor="password">Password</ShadcnLabel>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <ShadcnInput
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -89,9 +89,9 @@ export default function AdminLogin() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {showPassword ? <EyeOff /> : <Eye />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -118,14 +118,7 @@ export default function AdminLogin() {
               </ShadcnButton>
             </form>
 
-            {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-lime-50 border border-lime-200 rounded-md">
-              <h3 className="text-sm font-medium text-lime-800 mb-2">Demo Credentials:</h3>
-              <div className="text-xs text-lime-700 space-y-1">
-                <div><strong>Email:</strong> admin@shoreagents.com</div>
-                <div><strong>Password:</strong> admin123</div>
-              </div>
-            </div>
+            
           </CardContent>
         </Card>
 

@@ -137,6 +137,11 @@ export async function savePageVisit(
 // Get page visits for a specific user
 export async function getUserPageVisits(userId?: string): Promise<UserPageVisit[]> {
   try {
+    if (!supabase) {
+      console.warn('Supabase client not available. Returning empty array.')
+      return []
+    }
+
     const targetUserId = userId || generateUserId()
     
     const { data, error } = await supabase
@@ -161,6 +166,11 @@ export async function getUserPageVisits(userId?: string): Promise<UserPageVisit[
 // Get aggregated page analytics
 export async function getPageAnalytics(): Promise<any[]> {
   try {
+    if (!supabase) {
+      console.warn('Supabase client not available. Returning empty array.')
+      return []
+    }
+
     const { data, error } = await supabase
       .from('page_analytics')
       .select('*')
@@ -181,6 +191,11 @@ export async function getPageAnalytics(): Promise<any[]> {
 // Get user visit analytics
 export async function getUserVisitAnalytics(): Promise<any[]> {
   try {
+    if (!supabase) {
+      console.warn('Supabase client not available. Returning empty array.')
+      return []
+    }
+
     const { data, error } = await supabase
       .from('user_visit_analytics')
       .select('*')
@@ -208,6 +223,11 @@ export async function batchSavePageVisits(
   }>
 ): Promise<{ success: boolean; error?: string; savedCount?: number }> {
   try {
+    if (!supabase) {
+      console.warn('Supabase client not available. Skipping batch save.')
+      return { success: false, error: 'Supabase client not configured' }
+    }
+
     const userId = generateUserId()
     
     const visitsToInsert = pageVisits.map(({ pagePath, ipAddress }) => ({
