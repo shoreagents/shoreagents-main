@@ -13,11 +13,7 @@ export function ScrollToTop() {
     }
 
     // Scroll to top on route change
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth'
-    })
+    window.scrollTo(0, 0)
 
     // Add event listener for page refresh
     window.addEventListener('beforeunload', handleBeforeUnload)

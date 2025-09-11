@@ -220,9 +220,7 @@ export default function EmployeesPage() {
               <p className="text-gray-600 mt-2">
                 Discover qualified candidates ready to join your team
               </p>
-              <p className="text-sm text-lime-600 mt-1">
-                📊 Sorted by AI analysis score (highest to lowest)
-              </p>
+
             </div>
             <Button onClick={() => {
               recordInteraction('refresh-employees');

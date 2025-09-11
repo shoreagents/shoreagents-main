@@ -169,8 +169,7 @@ export function TalentCard({ data, onViewDetails, onViewResume, rank }: TalentCa
         {/* Status Badges */}
         <div className="space-y-3 mb-6">
           {/* Resume Status */}
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Resume Status:</span>
+          <div className="flex justify-center">
             <Badge 
               variant={hasResume ? "default" : "secondary"} 
               className={hasResume ? "bg-lime-100 text-lime-800 border-lime-200" : "bg-orange-100 text-orange-800 border-orange-200"}
@@ -180,8 +179,7 @@ export function TalentCard({ data, onViewDetails, onViewResume, rank }: TalentCa
           </div>
 
           {/* Profile Completion */}
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Profile:</span>
+          <div className="flex justify-center">
             <Badge 
               variant={score >= 70 ? "default" : "secondary"} 
               className={score >= 70 ? "bg-lime-100 text-lime-800 border-lime-200" : "bg-orange-100 text-orange-800 border-orange-200"}
