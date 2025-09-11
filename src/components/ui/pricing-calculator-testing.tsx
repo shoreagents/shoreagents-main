@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calculator, Users, Building, Clock, DollarSign, Home, Zap, Building2, Plus, Minus, RefreshCw, Eye } from 'lucide-react';
-import { useCurrency, currencies } from '@/lib/currencyContext';
+import { X, Calculator, Users, Building, Clock, Plus, Minus, Eye } from 'lucide-react';
+import { useCurrency } from '@/lib/currencyContext';
 
 interface StaffMember {
   id: string;
@@ -55,14 +55,8 @@ export function PricingCalculatorTesting({ isOpen, onClose }: PricingCalculatorT
   // Currency context integration
   const { 
     selectedCurrency, 
-    setSelectedCurrency, 
     convertPrice, 
-    formatPrice, 
-    isLoadingRates, 
-    lastUpdated, 
-    refreshRates, 
-    currencies,
-    setHasUserSelectedCurrency 
+    formatPrice
   } = useCurrency();
 
   // Get multiplier based on role
@@ -225,27 +219,7 @@ export function PricingCalculatorTesting({ isOpen, onClose }: PricingCalculatorT
               <h2 className="text-base font-semibold text-gray-900">
                 Testing & Debug View
               </h2>
-              <div className="flex items-center space-x-2 mt-1">
-                <span className="text-xs text-gray-600">Currency:</span>
-                <div className="flex flex-wrap gap-1">
-                  {currencies.map((currency) => (
-                    <button
-                      key={currency.code}
-                      onClick={() => {
-                        setSelectedCurrency(currency);
-                        setHasUserSelectedCurrency(true);
-                      }}
-                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                        selectedCurrency.code === currency.code
-                          ? 'bg-lime-600 text-white'
-                          : 'bg-white text-gray-600 hover:bg-lime-100 border border-lime-200'
-                      }`}
-                    >
-                      {currency.code}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <p className="text-xs text-gray-600 mt-1">Detailed pricing breakdown</p>
             </div>
           </div>
           <button
