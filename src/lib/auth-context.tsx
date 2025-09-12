@@ -1,0 +1,150 @@
+"use client"
+
+import { createContext, useContext, useEffect, useState } from 'react'
+import { supabase } from './supabase'
+import type { User } from '@supabase/supabase-js'
+
+export interface AppUser {
+  id: string
+  user_id: string
+  first_name?: string
+  last_name?: string
+  email?: string
+  phone_number?: string
+  company?: string
+  country?: string
+  created_at: string
+  updated_at: string
+  auth_user_id?: string
+  user_type: 'Anonymous' | 'Regular' | 'Admin'
+}
+
+interface AuthContextType {
+  user: User | null
+  appUser: AppUser | null
+  userType: 'Anonymous' | 'Regular' | 'Admin' | null
+  isAdmin: boolean
+  isRegular: boolean
+  isAnonymous: boolean
+  isAuthenticated: boolean
+  loading: boolean
+  signOut: () => Promise<void>
+  refreshUser: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [appUser, setAppUser] = useState<AppUser | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Fetch app user data from our custom users table
+  const fetchAppUser = async (authUser: User | null) => {
+    if (!authUser || !supabase) {
+      setAppUser(null)
+      return
+    }
+
+    try {
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_user_id', authUser.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching app user:', error)
+        setAppUser(null)
+      } else {
+        setAppUser(userData)
+      }
+    } catch (error) {
+      console.error('Error in fetchAppUser:', error)
+      setAppUser(null)
+    }
+  }
+
+  useEffect(() => {
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase?.auth.getSession() || { data: { session: null } }
+      setUser(session?.user ?? null)
+      await fetchAppUser(session?.user ?? null)
+      setLoading(false)
+    }
+
+    getInitialSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null)
+        await fetchAppUser(session?.user ?? null)
+        setLoading(false)
+      }
+    ) || { data: { subscription: null } }
+
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [])
+
+  const signOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut()
+      setAppUser(null)
+    }
+  }
+
+  const refreshUser = async () => {
+    if (supabase) {
+      // Try getting session first, then user
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session?.user) {
+        setUser(session.user)
+        await fetchAppUser(session.user)
+      } else {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+        await fetchAppUser(user)
+      }
+    }
+  }
+
+  // Computed values
+  const userType = appUser?.user_type || (user ? 'Regular' : 'Anonymous')
+  const isAdmin = userType === 'Admin'
+  const isRegular = userType === 'Regular'
+  const isAnonymous = userType === 'Anonymous'
+  const isAuthenticated = !!user
+
+
+  const value = {
+    user,
+    appUser,
+    userType,
+    isAdmin,
+    isRegular,
+    isAnonymous,
+    isAuthenticated,
+    loading,
+    signOut,
+    refreshUser,
+  }
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}

@@ -8,6 +8,7 @@ import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { GlobalEngagementTracker } from "@/components/layout/GlobalEngagementTracker";
 import { CurrencyProvider } from "@/lib/currencyContext";
 import { ToastProvider } from "@/lib/toast-context";
+import { AuthProvider } from "@/lib/auth-context";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -36,15 +37,17 @@ export default function RootLayout({
       >
         <CurrencyProvider>
           <ToastProvider>
-            <GlobalEngagementTracker />
-            <ScrollToTop />
-            <Navbar />
-            
-            <main>
-              {children}
-            </main>
-            <Footer />
-            <BottomNav />
+            <AuthProvider>
+              <GlobalEngagementTracker />
+              <ScrollToTop />
+              <Navbar />
+              
+              <main>
+                {children}
+              </main>
+              <Footer />
+              <BottomNav />
+            </AuthProvider>
           </ToastProvider>
         </CurrencyProvider>
       </body>

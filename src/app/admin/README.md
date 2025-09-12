@@ -28,7 +28,7 @@ The Admin Dashboard provides comprehensive performance monitoring and analytics 
 - **Password**: admin123
 
 ### URLs
-- **Login**: `/admin/login`
+- **Login**: Use the login modal on the home page
 - **Dashboard**: `/admin`
 
 ## Navigation

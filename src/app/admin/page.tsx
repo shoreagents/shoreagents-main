@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth-context'
+import { AdminGuard } from '@/components/auth/AdminGuard'
+import { UserManagement } from '@/components/admin/UserManagement'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +34,7 @@ import {
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 // Database functions are used in the component
 import { supabase, UserPageVisit } from '@/lib/supabase'
+import { getRealDeviceStats, getRealTimeSeriesData } from '@/lib/userEngagementService'
 
 interface PerformanceMetrics {
   pageViews: number
@@ -68,6 +72,7 @@ interface UserVisitData {
 
 export default function AdminDashboard() {
   const router = useRouter()
+  const { isAdmin, loading, user, appUser, signOut } = useAuth()
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     pageViews: 0,
     uniqueVisitors: 0,
@@ -85,6 +90,8 @@ export default function AdminDashboard() {
     totalVisitors: 0
   })
 
+  const [realTimeSeriesData, setRealTimeSeriesData] = useState<Array<{ date: string; desktop: number; mobile: number; tablet: number }>>([])
+
   const [deviceStats, setDeviceStats] = useState<DeviceStats>({
     desktop: 0,
     mobile: 0,
@@ -95,6 +102,13 @@ export default function AdminDashboard() {
   const [userVisitData, setUserVisitData] = useState<UserVisitData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+
+  // Redirect to home if not admin
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      router.push('/')
+    }
+  }, [loading, isAdmin, router])
 
   // Fetch real metrics from database
   const fetchRealMetrics = async () => {
@@ -130,6 +144,14 @@ export default function AdminDashboard() {
           totalVisitors
         })
       }
+
+      // Fetch real device statistics
+      const realDeviceStats = await getRealDeviceStats()
+      setDeviceStats(realDeviceStats)
+
+      // Fetch real time-series data
+      const timeSeriesData = await getRealTimeSeriesData(90)
+      setRealTimeSeriesData(timeSeriesData)
     } catch (error) {
       console.error('Error processing real metrics:', error)
     }
@@ -205,6 +227,9 @@ export default function AdminDashboard() {
 
   // Simulate fetching performance data
   useEffect(() => {
+    // Only fetch data if admin
+    if (!isAdmin || loading) return
+    
     const fetchMetrics = () => {
       // Simulate API call delay
       setTimeout(() => {
@@ -250,7 +275,7 @@ export default function AdminDashboard() {
     }, 30000)
     
     return () => clearInterval(interval)
-  }, [])
+  }, [isAdmin, loading])
 
   const refreshData = () => {
     setIsLoading(true)
@@ -261,10 +286,10 @@ export default function AdminDashboard() {
     setTimeout(() => setIsLoading(false), 1000)
   }
 
-  const handleLogout = () => {
-    // Clear auth cookie
-    document.cookie = 'adminAuth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-    router.push('/admin/login')
+  const handleLogout = async () => {
+    // Use auth context logout
+    await signOut()
+    router.push('/')
   }
 
   const getStatusColor = (value: number, type: 'uptime' | 'error' | 'performance') => {
@@ -295,6 +320,23 @@ export default function AdminDashboard() {
     }
   }
 
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-lime-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect to home if not admin
+  if (!isAdmin) {
+    return null // Will redirect via useEffect
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -336,6 +378,7 @@ export default function AdminDashboard() {
              <ChartAreaInteractive 
                totalVisitors={realMetrics.totalVisitors}
                uniqueVisitors={realMetrics.uniqueIPs}
+               realTimeSeriesData={realTimeSeriesData}
              />
            </div>
            
@@ -387,13 +430,14 @@ export default function AdminDashboard() {
 
          {/* Detailed Analytics */}
          <Tabs defaultValue="users" className="space-y-6">
-           <TabsList className="grid w-full grid-cols-5">
-             <TabsTrigger value="users">User Visits</TabsTrigger>
-             <TabsTrigger value="overview" disabled>Overview</TabsTrigger>
-             <TabsTrigger value="performance" disabled>Performance</TabsTrigger>
-             <TabsTrigger value="devices" disabled>Devices</TabsTrigger>
-             <TabsTrigger value="pages" disabled>Pages</TabsTrigger>
-           </TabsList>
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="users">User Visits</TabsTrigger>
+            <TabsTrigger value="management">User Management</TabsTrigger>
+            <TabsTrigger value="overview" disabled>Overview</TabsTrigger>
+            <TabsTrigger value="performance" disabled>Performance</TabsTrigger>
+            <TabsTrigger value="devices" disabled>Devices</TabsTrigger>
+            <TabsTrigger value="pages" disabled>Pages</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="users" className="space-y-6">
             
@@ -746,6 +790,10 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="management" className="space-y-6">
+            <UserManagement />
           </TabsContent>
         </Tabs>
       </div>

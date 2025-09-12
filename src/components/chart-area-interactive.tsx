@@ -143,9 +143,10 @@ const chartConfig = {
 interface ChartAreaInteractiveProps {
   totalVisitors?: number
   uniqueVisitors?: number
+  realTimeSeriesData?: Array<{ date: string; desktop: number; mobile: number; tablet: number }>
 }
 
-export function ChartAreaInteractive({ totalVisitors = 0, uniqueVisitors = 0 }: ChartAreaInteractiveProps) {
+export function ChartAreaInteractive({ totalVisitors = 0, uniqueVisitors = 0, realTimeSeriesData = [] }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState("90d")
 
@@ -184,19 +185,36 @@ export function ChartAreaInteractive({ totalVisitors = 0, uniqueVisitors = 0 }: 
     return data
   }
 
-  const filteredData = totalVisitors > 0 ? generateRealChartData() : chartData.filter((item) => {
-    const date = new Date(item.date)
-    const referenceDate = new Date("2024-06-30")
-    let daysToSubtract = 90
-    if (timeRange === "30d") {
-      daysToSubtract = 30
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7
+  // Use real data if available, otherwise show empty state
+  const getFilteredData = () => {
+    if (realTimeSeriesData && realTimeSeriesData.length > 0) {
+      // Filter real data based on time range
+      const daysToSubtract = timeRange === "30d" ? 30 : timeRange === "7d" ? 7 : 90
+      const cutoffDate = new Date()
+      cutoffDate.setDate(cutoffDate.getDate() - daysToSubtract)
+      
+      return realTimeSeriesData.filter(item => new Date(item.date) >= cutoffDate)
     }
-    const startDate = new Date(referenceDate)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return date >= startDate
-  })
+    
+    // If no real data, show empty state (flat line at zero)
+    const daysToSubtract = timeRange === "30d" ? 30 : timeRange === "7d" ? 7 : 90
+    const emptyData = []
+    
+    for (let i = daysToSubtract; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      emptyData.push({
+        date: date.toISOString().split('T')[0],
+        desktop: 0,
+        mobile: 0,
+        tablet: 0
+      })
+    }
+    
+    return emptyData
+  }
+
+  const filteredData = getFilteredData()
 
   return (
     <Card className="@container/card">
@@ -204,10 +222,20 @@ export function ChartAreaInteractive({ totalVisitors = 0, uniqueVisitors = 0 }: 
         <CardTitle>Total Visitors</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
-            {totalVisitors > 0 ? `Real data: ${totalVisitors.toLocaleString()} total visitors` : 'Total for the last 3 months'}
+            {realTimeSeriesData && realTimeSeriesData.length > 0 
+              ? `Real data: ${realTimeSeriesData.reduce((sum, day) => sum + day.desktop + day.mobile + day.tablet, 0).toLocaleString()} total visitors`
+              : totalVisitors > 0 
+                ? `Real data: ${totalVisitors.toLocaleString()} total visitors`
+                : 'No data available - database is empty'
+            }
           </span>
           <span className="@[540px]/card:hidden">
-            {totalVisitors > 0 ? 'Live Data' : 'Last 3 months'}
+            {realTimeSeriesData && realTimeSeriesData.length > 0 
+              ? 'Live Data' 
+              : totalVisitors > 0 
+                ? 'Live Data'
+                : 'No Data'
+            }
           </span>
         </CardDescription>
         <CardAction>

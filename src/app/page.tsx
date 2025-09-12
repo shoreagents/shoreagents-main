@@ -9,12 +9,12 @@ import { EmployeeCard } from "@/components/ui/employee-card";
 import { ResumeModal } from "@/components/ui/resume-modal";
 import { EmployeeCardData, ResumeGenerated } from "@/types/api";
 import { getEmployeeCardData } from "@/lib/api";
-import { useEngagementTracking } from "@/lib/useEngagementTracking";
+// import { useEngagementTracking } from "@/lib/useEngagementTracking"; // Removed - using GlobalEngagementTracker
 
 export default function Home() {
   const [isShoreAgentsWay, setIsShoreAgentsWay] = useState(true);
   const { convertPrice, formatPrice } = useCurrency();
-  const { recordInteraction } = useEngagementTracking();
+  // const { recordInteraction } = useEngagementTracking(); // Removed - using GlobalEngagementTracker
   
   // State for top employees
   const [topEmployees, setTopEmployees] = useState<EmployeeCardData[]>([]);
@@ -136,7 +136,6 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
                   <button 
                     onClick={() => {
-                      recordInteraction('view-talent-pool');
                       window.location.href = '/employees';
                     }}
                     className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer"
@@ -614,7 +613,6 @@ export default function Home() {
                     
                     <button
                       onClick={() => {
-                        recordInteraction('toggle-shore-agents-way');
                         setIsShoreAgentsWay(true);
                       }}
                       className={`relative flex items-center px-3 sm:px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer hover:scale-105 active:scale-95 text-xs sm:text-sm ${
@@ -631,7 +629,6 @@ export default function Home() {
                     </button>
                     <button
                       onClick={() => {
-                        recordInteraction('toggle-competitor-way');
                         setIsShoreAgentsWay(false);
                       }}
                       className={`relative flex items-center px-3 sm:px-6 py-3 rounded-full font-medium transition-all duration-300 z-10 cursor-pointer hover:scale-105 active:scale-95 text-xs sm:text-sm ${
@@ -1012,7 +1009,6 @@ export default function Home() {
                      {/* Button */}
                      <button 
                        onClick={() => {
-                         recordInteraction('calculate-pricing');
                          window.location.href = '/pricing';
                        }}
                        className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center mx-auto cursor-pointer"
@@ -1118,7 +1114,6 @@ export default function Home() {
                    <div className="text-center mt-12">
                      <button 
                        onClick={() => {
-                         recordInteraction('view-all-talent');
                          window.location.href = '/employees';
                        }}
                        className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer"

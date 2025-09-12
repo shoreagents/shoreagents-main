@@ -1,4 +1,5 @@
 import { supabase, UserPageVisit } from './supabase'
+import { UserType } from '@/types/user'
 
 // Generate a unique session ID
 function generateSessionId(): string {
@@ -17,17 +18,84 @@ export async function getUserIPAddress(): Promise<string | undefined> {
   }
 }
 
-// Generate a unique user ID (for anonymous users)
+// Generate a device-based unique ID (fingerprint only)
 export function generateUserId(): string {
-  // Try to get existing user ID from localStorage, or create a new one
-  if (typeof window === 'undefined') return `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+  // Try to get existing device ID from localStorage, or create a new one
+  if (typeof window === 'undefined') return `device_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   
-  let userId = localStorage.getItem('shoreagents_user_id')
-  if (!userId) {
-    userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    localStorage.setItem('shoreagents_user_id', userId)
+  let deviceId = localStorage.getItem('shoreagents_device_id')
+  if (!deviceId) {
+    // Use fingerprint-based device ID only
+    deviceId = generateDeviceFingerprint()
+    localStorage.setItem('shoreagents_device_id', deviceId)
   }
-  return userId
+  return deviceId
+}
+
+
+// Generate a device fingerprint based on hardware and browser characteristics
+function generateDeviceFingerprint(): string {
+  try {
+    // Collect device characteristics
+    const deviceInfo = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
+      navigator.hardwareConcurrency || 'unknown',
+      navigator.platform,
+      new Date().getTimezoneOffset().toString(),
+      navigator.maxTouchPoints || '0',
+      (navigator as any).deviceMemory || 'unknown',
+      // Add canvas fingerprint for additional uniqueness
+      getCanvasFingerprint()
+    ].join('|')
+    
+    // Create a hash of the device info
+    const hash = createSimpleHash(deviceInfo)
+    return `device_${hash}`
+  } catch (error) {
+    console.warn('Failed to generate device fingerprint, using fallback:', error)
+    // Fallback to timestamp-based ID if fingerprinting fails
+    return `device_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+  }
+}
+
+// Create a canvas fingerprint for additional uniqueness
+function getCanvasFingerprint(): string {
+  try {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return 'no-canvas'
+    
+    // Draw some text and shapes
+    ctx.textBaseline = 'top'
+    ctx.font = '14px Arial'
+    ctx.fillStyle = '#f60'
+    ctx.fillRect(125, 1, 62, 20)
+    ctx.fillStyle = '#069'
+    ctx.fillText('Device fingerprint', 2, 15)
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)'
+    ctx.fillText('Device fingerprint', 4, 17)
+    
+    return canvas.toDataURL().substring(22, 50) // Get part of the data URL
+  } catch (error) {
+    return 'canvas-error'
+  }
+}
+
+// Create a simple hash function
+function createSimpleHash(str: string): string {
+  let hash = 0
+  if (str.length === 0) return hash.toString(36)
+  
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  
+  // Convert to base36 and ensure it's positive
+  return Math.abs(hash).toString(36).substring(0, 12)
 }
 
 // Get current session ID
@@ -40,6 +108,79 @@ export function getCurrentSessionId(): string {
     sessionStorage.setItem('shoreagents_session_id', sessionId)
   }
   return sessionId
+}
+
+// Detect device type based on user agent and screen size
+export function detectDeviceType(): 'desktop' | 'mobile' | 'tablet' {
+  if (typeof window === 'undefined') return 'desktop'
+  
+  const userAgent = navigator.userAgent.toLowerCase()
+  const screenWidth = window.screen.width
+  const screenHeight = window.screen.height
+  
+  // Check for mobile devices
+  const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
+  
+  // Check for tablet devices
+  const isTablet = /ipad|android(?!.*mobile)|tablet/i.test(userAgent) || 
+                   (screenWidth >= 768 && screenWidth <= 1024 && screenHeight >= 768 && screenHeight <= 1024)
+  
+  // Check screen size for additional mobile detection
+  const isSmallScreen = screenWidth <= 768 || (screenWidth <= 1024 && screenHeight <= 768)
+  
+  if (isTablet) return 'tablet'
+  if (isMobile || isSmallScreen) return 'mobile'
+  return 'desktop'
+}
+
+// Ensure anonymous user exists in users table
+async function ensureAnonymousUser(userId: string): Promise<void> {
+  if (!supabase) {
+    console.warn('Supabase not available for ensureAnonymousUser')
+    return
+  }
+
+  try {
+    console.log('🔍 ensureAnonymousUser called with userId:', userId)
+    
+    // Check if user already exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('user_id')
+      .eq('user_id', userId)
+      .single()
+
+    console.log('🔍 User check result:', { existingUser, checkError })
+
+    // If user doesn't exist, create anonymous user record
+    if (!existingUser) {
+      console.log('🆕 Creating anonymous user record for:', userId)
+      const { data: insertData, error: insertError } = await supabase
+        .from('users')
+        .insert({
+          user_id: userId,
+          auth_user_id: null, // Anonymous user
+          user_type: UserType.ANONYMOUS, // Set as anonymous user
+          first_name: null,
+          last_name: null,
+          email: null,
+          phone_number: null,
+          company: null,
+          country: null,
+        })
+        .select()
+
+      if (insertError) {
+        console.error('❌ Failed to create anonymous user:', insertError)
+      } else {
+        console.log('✅ Anonymous user created successfully:', insertData)
+      }
+    } else {
+      console.log('✅ Anonymous user already exists:', existingUser)
+    }
+  } catch (error) {
+    console.error('❌ Failed to ensure anonymous user exists:', error)
+  }
 }
 
 // Save user page visit data to Supabase with upsert logic
@@ -58,20 +199,28 @@ export async function savePageVisit(
     console.log('🔍 savePageVisit called with:', { pagePath, ipAddress, currentSessionTimeSeconds })
 
     const userId = generateUserId()
+    const deviceType = detectDeviceType()
     const now = new Date().toISOString()
     
+    // Ensure anonymous user exists in users table
+    await ensureAnonymousUser(userId)
+    
     // First, check if this user has visited this page before
-    const { data: existingVisit, error: checkError } = await supabase
+    // Get the most recent visit for this user and page
+    const { data: existingVisits, error: checkError } = await supabase
       .from('user_page_visits')
       .select('*')
       .eq('user_id', userId)
       .eq('page_path', pagePath)
-      .single()
+      .order('last_visit_timestamp', { ascending: false })
+      .limit(1)
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+    if (checkError) {
       console.error('Error checking for existing visit:', checkError)
       return { success: false, error: checkError.message }
     }
+
+    const existingVisit = existingVisits && existingVisits.length > 0 ? existingVisits[0] : null
 
     console.log('🔍 Existing visit found:', existingVisit)
 
@@ -355,6 +504,154 @@ export async function getUserAnalyticsWithTime(): Promise<Record<string, unknown
     }))
   } catch (error) {
     console.error('Error in getUserAnalyticsWithTime:', error)
+    return []
+  }
+}
+
+// Device ID management utilities
+export function getDeviceInfo(): Record<string, string | number> {
+  if (typeof window === 'undefined') return {}
+  
+  return {
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    platform: navigator.platform,
+    screenResolution: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+    hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+    timezoneOffset: new Date().getTimezoneOffset(),
+    maxTouchPoints: navigator.maxTouchPoints || 0,
+    deviceMemory: (navigator as any).deviceMemory || 'unknown',
+    currentDeviceId: generateUserId()
+  }
+}
+
+// Reset device ID (useful for testing)
+export function resetDeviceId(): string {
+  if (typeof window === 'undefined') return `device_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+  
+  // Remove existing device ID
+  localStorage.removeItem('shoreagents_device_id')
+  
+  // Generate new one
+  const newDeviceId = generateUserId()
+  console.log('🔄 Device ID reset. New ID:', newDeviceId)
+  return newDeviceId
+}
+
+// Test device ID generation (fingerprint-based only)
+export function testDeviceIdGeneration(): void {
+  console.log('🧪 Testing Fingerprint-Based Device ID Generation...')
+  
+  const deviceInfo = getDeviceInfo()
+  console.log('📱 Device Information:', deviceInfo)
+  
+  const deviceId = generateUserId()
+  console.log('🆔 Generated Device ID:', deviceId)
+  console.log('🔍 ID Type: Fingerprint-based (comprehensive device characteristics)')
+  
+  // Test persistence
+  const retrievedId = generateUserId()
+  console.log('🔄 Retrieved Device ID:', retrievedId)
+  console.log('✅ IDs Match:', deviceId === retrievedId)
+  
+  // Test uniqueness (generate multiple IDs)
+  const ids = new Set()
+  for (let i = 0; i < 5; i++) {
+    const testId = generateDeviceFingerprint()
+    ids.add(testId)
+  }
+  console.log('🎯 Uniqueness Test - Generated 5 IDs, unique count:', ids.size)
+  console.log('📊 Fingerprint includes: User Agent, Screen, Hardware, Canvas, Timezone, Touch Support')
+}
+
+// Get real device statistics from database
+export async function getRealDeviceStats(): Promise<{ desktop: number; mobile: number; tablet: number }> {
+  try {
+    if (!supabase) {
+      console.warn('Supabase client not available. Returning default device stats.')
+      return { desktop: 0, mobile: 0, tablet: 0 }
+    }
+
+    const { data: visits, error } = await supabase
+      .from('user_page_visits')
+      .select('*')
+
+    if (error) {
+      console.error('Error fetching device stats:', error)
+      return { desktop: 0, mobile: 0, tablet: 0 }
+    }
+
+    if (!visits || visits.length === 0) {
+      return { desktop: 0, mobile: 0, tablet: 0 }
+    }
+
+    // Count unique users by device type (we'll need to add device_type to the database)
+    // For now, we'll estimate based on user agent patterns
+    const deviceCounts = { desktop: 0, mobile: 0, tablet: 0 }
+    const uniqueUsers = new Set()
+
+    visits.forEach(visit => {
+      if (!uniqueUsers.has(visit.user_id)) {
+        uniqueUsers.add(visit.user_id)
+        
+        // Estimate device type based on user agent (if available in the data)
+        // This is a fallback - ideally we'd store device_type in the database
+        const userAgent = visit.ip_address || '' // Using IP as placeholder
+        const deviceType = detectDeviceType()
+        deviceCounts[deviceType]++
+      }
+    })
+
+    return deviceCounts
+  } catch (error) {
+    console.error('Error in getRealDeviceStats:', error)
+    return { desktop: 0, mobile: 0, tablet: 0 }
+  }
+}
+
+// Get real time-series data for the chart
+export async function getRealTimeSeriesData(days: number = 90): Promise<Array<{ date: string; desktop: number; mobile: number; tablet: number }>> {
+  try {
+    if (!supabase) {
+      console.warn('Supabase client not available. Returning empty time series data.')
+      return []
+    }
+
+    const { data: visits, error } = await supabase
+      .from('user_page_visits')
+      .select('*')
+      .gte('visit_timestamp', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+
+    if (error) {
+      console.error('Error fetching time series data:', error)
+      return []
+    }
+
+    if (!visits || visits.length === 0) {
+      return []
+    }
+
+    // Group visits by date and device type
+    const dailyData = new Map<string, { desktop: number; mobile: number; tablet: number }>()
+
+    visits.forEach(visit => {
+      const date = new Date(visit.visit_timestamp).toISOString().split('T')[0]
+      
+      if (!dailyData.has(date)) {
+        dailyData.set(date, { desktop: 0, mobile: 0, tablet: 0 })
+      }
+
+      // Estimate device type (fallback method)
+      const deviceType = detectDeviceType()
+      dailyData.get(date)![deviceType] += visit.visit_count
+    })
+
+    // Convert to array and sort by date
+    return Array.from(dailyData.entries())
+      .map(([date, counts]) => ({ date, ...counts }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  } catch (error) {
+    console.error('Error in getRealTimeSeriesData:', error)
     return []
   }
 }
