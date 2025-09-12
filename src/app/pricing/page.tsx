@@ -3,25 +3,30 @@
 import { useState } from "react";
 import { SideNav } from "@/components/layout/SideNav";
 import { PricingCalculatorModal } from "@/components/ui/pricing-calculator-modal";
-import { Calculator, Users, Building, Clock, DollarSign, ArrowRight, Star, FileText } from "lucide-react";
+import { Calculator, Users, Building, Clock, DollarSign, ArrowRight, Star, FileText, CheckCircle, Sparkles, Zap, Shield, TrendingUp } from "lucide-react";
 import { useCurrency } from "@/lib/currencyContext";
-import { useEngagementTracking } from "@/lib/useEngagementTracking";
+// import { useEngagementTracking } from "@/lib/useEngagementTracking"; // Removed - using GlobalEngagementTracker
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export default function PricingPage() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const { convertPrice, formatPrice } = useCurrency();
-  const { recordInteraction } = useEngagementTracking();
+  // const { recordInteraction } = useEngagementTracking(); // Removed - using GlobalEngagementTracker
 
-  // Sample calculation for preview (matching the calculator logic)
-  const sampleStaffCost = 25000 * 1.43; // Base salary with multiplier
-  const sampleBenefits = 2925 + (Math.min(Math.max(25000, 5000), 35000) * 0.10) + 
-                        (Math.min(Math.max(25000, 10000), 100000) * 0.025) + 
-                        (Math.min(25000, 10000) * 0.02);
-  const totalStaffCost = sampleStaffCost + sampleBenefits;
-  const workspaceCost = 8000; // Work from home
-  const setupCost = 60000 / 6; // Setup fee spread over 6 months
-  const totalFirst6Months = totalStaffCost + workspaceCost + setupCost;
-  const totalAfter6Months = totalStaffCost + workspaceCost;
+  // Realistic sample quote data
+  const sampleQuote = {
+    totalMembers: 2,
+    industry: "E-commerce",
+    roles: [
+      { title: "Customer Service Representative", level: "entry", count: 1 },
+      { title: "Social Media Manager", level: "mid", count: 1 }
+    ],
+    totalMonthlyCost: 156800, // PHP - more realistic for 2 people
+    workspace: "wfh"
+  };
 
   // Format preview prices
   const formatPreviewPrice = (phpAmount: number) => {
@@ -33,135 +38,147 @@ export default function PricingPage() {
     <div className="bg-lime-50">
       <SideNav />
       
-      {/* Main Section - Full View Height */}
+      {/* Hero Section - Clean Shadcn Design */}
       <section className="min-h-screen py-16 flex items-center">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          {/* Main Split Layout - Header Content Left, Calculator Preview Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Header Content */}
+            {/* Left Side - Content */}
             <div className="space-y-8">
-              {/* Transparent Pricing Badge */}
-              <div className="inline-flex items-center px-4 py-2 bg-lime-100 border border-lime-300 rounded-full text-sm font-medium text-gray-700">
-                <svg className="w-4 h-4 mr-2 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                TRANSPARENT PRICING
+              <Badge variant="secondary" className="bg-lime-100 text-lime-800 border-lime-300">
+                <Zap className="w-4 h-4 mr-2" />
+                AI-POWERED QUOTES
+              </Badge>
+
+              <div className="space-y-6">
+                <h1 className="text-4xl md:text-6xl font-bold text-gray-900">
+                  Get Your Team{" "}
+                  <span className="bg-gradient-to-r from-lime-600 to-lime-400 bg-clip-text text-transparent">
+                    Pricing Quote
+                  </span>
+                </h1>
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  AI-powered role suggestions, industry-specific pricing, and transparent calculations. 
+                  Get accurate quotes in 5 simple steps.
+                </p>
               </div>
 
-              {/* Main Heading */}
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900">
-                Shore Agents{" "}
-                <span className="bg-gradient-to-r from-lime-600 via-lime-400 to-lime-600 bg-clip-text text-transparent hover:bg-gradient-to-r hover:from-lime-400 hover:via-lime-600 hover:to-lime-400 transition-all duration-300 bg-[length:200%_100%] bg-[position:center_center] hover:bg-[length:200%_100%] hover:bg-[position:left_center]">
-                  Pricing Calculator
-                </span>
-              </h1>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-lime-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-lime-600" />
+                  </div>
+                  <span className="text-gray-700">AI suggests roles based on your industry</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-lime-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-lime-600" />
+                  </div>
+                  <span className="text-gray-700">Industry-specific salary calculations</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-lime-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-lime-600" />
+                  </div>
+                  <span className="text-gray-700">No hidden fees, transparent pricing</span>
+                </div>
+              </div>
 
-              {/* Sub-heading */}
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Modular Pricing - Mix & Match Your Perfect Setup
-              </h2>
-
-              {/* Description */}
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Staff + Workspace + Equipment + Management. No hidden fees, transparent multipliers, benefits at actual cost.
-              </p>
-
-              {/* Open Calculator Button */}
-              <button 
+              <Button 
+                size="lg"
                 onClick={() => {
-                  recordInteraction('open-calculator');
                   setIsCalculatorOpen(true);
                 }}
-                className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center cursor-pointer"
+                className="bg-lime-600 hover:bg-lime-700 text-white px-8 py-4 text-lg"
               >
                 <Calculator className="w-5 h-5 mr-2" />
-                Open Calculator
+                Get Quick Quote
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </button>
+              </Button>
             </div>
 
-            {/* Right Side - Calculator Preview */}
+            {/* Right Side - Realistic Quote Preview */}
             <div className="space-y-6">
-              {/* Calculator Preview Card */}
-              <div className="bg-white rounded-2xl shadow-xl border border-lime-200 overflow-hidden">
-                <div className="bg-lime-600 text-white p-6">
-                  <div className="flex items-center space-x-3">
-                    <Calculator className="w-6 h-6" />
-                    <h3 className="text-xl font-semibold">Pricing Calculator</h3>
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  {/* Quick Preview */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-4 h-4 text-lime-600" />
-                        <span className="text-gray-700">1 Staff Member</span>
-                      </div>
-                      <span className="text-gray-900 font-medium">{formatPreviewPrice(totalStaffCost)}/month</span>
+              <Card className="shadow-lg border-lime-200">
+                <CardHeader className="bg-gradient-to-r from-lime-600 to-lime-500 text-white">
+                  <CardTitle className="flex items-center space-x-3">
+                    <Sparkles className="w-6 h-6" />
+                    <span>Sample Quote</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="text-center mb-6">
+                    <div className="text-3xl font-bold text-lime-600 mb-2">
+                      {formatPreviewPrice(sampleQuote.totalMonthlyCost)}
                     </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Building className="w-4 h-4 text-lime-600" />
-                        <span className="text-gray-700">Work From Home</span>
-                      </div>
-                      <span className="text-gray-900 font-medium">{formatPreviewPrice(workspaceCost)}/month</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-lime-600" />
-                        <span className="text-gray-700">6-Month Contract</span>
-                      </div>
-                      <span className="text-gray-900 font-medium">{formatPreviewPrice(setupCost)}/month</span>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-semibold text-gray-900">Total (First 6 Months)</span>
-                        <span className="text-2xl font-bold text-lime-600">{formatPreviewPrice(totalFirst6Months)}/month</span>
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm text-gray-600">After 6 Months</span>
-                        <span className="text-lg font-semibold text-blue-600">{formatPreviewPrice(totalAfter6Months)}/month</span>
-                      </div>
+                    <div className="text-gray-600">per month</div>
+                    <div className="text-sm text-gray-500 mt-2">
+                      {sampleQuote.totalMembers} team members • {sampleQuote.industry}
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Quick Stats - Horizontal Layout */}
-              <div className="flex space-x-4">
-                <div className="flex-1 flex items-center space-x-3 p-4 bg-white rounded-xl shadow-lg border border-lime-200">
-                  <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center">
-                    <Star className="w-5 h-5 text-lime-600" />
+                  <Separator className="my-4" />
+
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-900">Team Details</h4>
+                    {sampleQuote.roles.map((role, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium text-gray-900">{role.title}</div>
+                          <div className="text-sm text-gray-600">{role.level} level</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-gray-900">
+                            {formatPreviewPrice(sampleQuote.totalMonthlyCost / sampleQuote.totalMembers)}
+                          </div>
+                          <div className="text-sm text-gray-600">per month</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">4.9/5 Rating</h4>
-                    <p className="text-sm text-gray-600">Client Satisfaction</p>
-                  </div>
-                </div>
-                <div className="flex-1 flex items-center space-x-3 p-4 bg-white rounded-xl shadow-lg border border-lime-200">
-                  <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-lime-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">500+ Teams</h4>
-                    <p className="text-sm text-gray-600">Successfully Onboarded</p>
-                  </div>
-                </div>
+
+                  <Separator className="my-4" />
+
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-lime-300 text-lime-700 hover:bg-lime-50"
+                    onClick={() => {
+                      setIsCalculatorOpen(true);
+                    }}
+                  >
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Get Your Quote
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="border-lime-200">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Star className="w-6 h-6 text-lime-600" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">4.9/5</h4>
+                    <p className="text-sm text-gray-600">Client Rating</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-lime-200">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-6 h-6 text-lime-600" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">500+</h4>
+                    <p className="text-sm text-gray-600">Teams Served</p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Bottom Section - Visible After Scrolling */}
+      {/* How It Works Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">How Our Pricing Works</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -169,269 +186,162 @@ export default function PricingPage() {
             </p>
           </div>
 
-          {/* Two Column Layout with Professional Design */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             {/* How It Works */}
-            <div className="relative">
-              <div className="lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:w-px lg:bg-gradient-to-b lg:from-transparent lg:via-lime-300 lg:to-transparent"></div>
-              
-              <div className="flex items-center mb-8">
-                <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center mr-4">
-                  <Calculator className="w-6 h-6 text-lime-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">How It Works</h3>
-              </div>
-              
-              <div className="space-y-8">
-                <div className="flex items-start space-x-6">
-                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <span className="text-white font-bold text-lg">1</span>
+            <Card className="border-lime-200">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center">
+                    <Calculator className="w-6 h-6 text-lime-600" />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Configure Your Team</h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      Add staff members and set their salaries. Our transparent multipliers automatically calculate total costs including benefits, ensuring you know exactly what you're paying for.
+                  <span>How It Works</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold">1</span>
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Configure Your Team</h4>
+                    <p className="text-gray-600">
+                      AI suggests roles based on your industry. Set experience levels and team size.
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-6">
-                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <span className="text-white font-bold text-lg">2</span>
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold">2</span>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Choose Workspace</h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      Select from Work From Home, Hybrid, or Full Office options. Each has different setup costs and monthly fees, giving you flexibility to match your business model.
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Choose Workspace</h4>
+                    <p className="text-gray-600">
+                      Select from Work From Home, Hybrid, or Full Office options.
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-6">
-                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <span className="text-white font-bold text-lg">3</span>
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-lime-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold">3</span>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Get Instant Pricing</h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      See real-time calculations with detailed breakdowns. Compare 6-month vs monthly payment plans to find the option that works best for your budget and timeline.
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Get Instant Pricing</h4>
+                    <p className="text-gray-600">
+                      See real-time calculations with industry-specific salary rates.
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* What's Included */}
-            <div className="lg:pl-8">
-              <div className="flex items-center mb-8">
-                <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center mr-4">
-                  <Building className="w-6 h-6 text-lime-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">What's Included</h3>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
-                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
-                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-lime-600" />
+            <Card className="border-lime-200">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-lime-100 rounded-xl flex items-center justify-center">
+                    <Building className="w-6 h-6 text-lime-600" />
                   </div>
+                  <span>What's Included</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <Users className="w-6 h-6 text-lime-600" />
                   <div>
                     <h4 className="font-semibold text-gray-900">Staff Management</h4>
                     <p className="text-sm text-gray-600">Complete HR and payroll services</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
-                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
-                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-                    <Building className="w-5 h-5 text-lime-600" />
-                  </div>
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <Building className="w-6 h-6 text-lime-600" />
                   <div>
                     <h4 className="font-semibold text-gray-900">Workspace Options</h4>
                     <p className="text-sm text-gray-600">Flexible office and remote solutions</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
-                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
-                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-lime-600" />
-                  </div>
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <DollarSign className="w-6 h-6 text-lime-600" />
                   <div>
                     <h4 className="font-semibold text-gray-900">Benefits Calculation</h4>
                     <p className="text-sm text-gray-600">Government-mandated benefits included</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-lime-50 transition-colors">
-                  <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
-                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-lime-600" />
-                  </div>
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <Clock className="w-6 h-6 text-lime-600" />
                   <div>
                     <h4 className="font-semibold text-gray-900">Contract Flexibility</h4>
                     <p className="text-sm text-gray-600">Monthly or long-term commitments</p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us Section - At the Very Bottom */}
+      {/* Key Advantages Section */}
       <section className="py-16 bg-lime-50">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Pricing Breakdown</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Key Advantages</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Transparent pricing structure with flexible options to match your business needs
+              Why choose Shore Agents for your team expansion
             </p>
           </div>
 
-          {/* Two Column Layout - Pricing Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Card - Talent Investment */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-lime-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">Talent Investment</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="border-lime-200 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-8 h-8 text-lime-600" />
                 </div>
-                <p className="text-gray-600 text-base">Transparent Multipliers</p>
-              </div>
-              
-              <div className="p-6 space-y-6">
-                {/* Entry Level */}
-                <div className="relative">
-                  <div className="absolute -left-3 top-0 w-1.5 h-full bg-green-500 rounded-full"></div>
-                  <div className="pl-4">
-                    <h4 className="text-lg font-bold text-gray-900 mb-2">Entry Level</h4>
-                    <p className="text-gray-600 mb-1 text-sm">Salary range: $350 - $700</p>
-                    <p className="text-2xl font-bold text-green-600 mb-1">1.43x</p>
-                    <p className="text-xs text-gray-500">Example: $438 × 1.43 = $626/month</p>
-                  </div>
-                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">AI-Powered</h3>
+                <p className="text-gray-600">
+                  Smart role suggestions and industry-specific pricing calculations
+                </p>
+              </CardContent>
+            </Card>
 
-                {/* Mid Level */}
-                <div className="relative">
-                  <div className="absolute -left-3 top-0 w-1.5 h-full bg-blue-500 rounded-full"></div>
-                  <div className="pl-4">
-                    <h4 className="text-lg font-bold text-gray-900 mb-2">Mid Level</h4>
-                    <p className="text-gray-600 mb-1 text-sm">Salary range: $700 - $1,750</p>
-                    <p className="text-2xl font-bold text-blue-600 mb-1">1.33x</p>
-                    <p className="text-xs text-gray-500">Example: $875 × 1.33 = $1,164/month</p>
-                  </div>
+            <Card className="border-lime-200 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-lime-600" />
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Transparent</h3>
+                <p className="text-gray-600">
+                  No hidden fees, clear pricing structure with industry-specific rates
+                </p>
+              </CardContent>
+            </Card>
 
-                {/* Senior Level */}
-                <div className="relative">
-                  <div className="absolute -left-3 top-0 w-1.5 h-full bg-orange-500 rounded-full"></div>
-                  <div className="pl-4">
-                    <h4 className="text-lg font-bold text-gray-900 mb-2">Senior Level</h4>
-                    <p className="text-gray-600 mb-1 text-sm">Salary range: $1,750+</p>
-                    <p className="text-2xl font-bold text-orange-600 mb-1">1.25x</p>
-                    <p className="text-xs text-gray-500">Example: $1,750 × 1.25 = $2,188/month</p>
-                  </div>
+            <Card className="border-lime-200 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-8 h-8 text-lime-600" />
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Scalable</h3>
+                <p className="text-gray-600">
+                  Start small and scale up with flexible workspace and team options
+                </p>
+              </CardContent>
+            </Card>
 
-                {/* Additional Info */}
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                  <p className="text-xs text-gray-700">
-                    <span className="font-semibold">Multipliers cover:</span> Recruitment, staff management, workspace infrastructure, profit margin
-                  </p>
-                  <p className="text-xs text-gray-700">
-                    <span className="font-semibold">Benefits charged separately</span> at exact government cost (~$109/month)
-                  </p>
+            <Card className="border-lime-200 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-8 h-8 text-lime-600" />
                 </div>
-
-                {/* Calculate Button */}
-                <button 
-                  onClick={() => {
-                    recordInteraction('calculate-costs');
-                    setIsCalculatorOpen(true);
-                  }}
-                  className="w-full bg-lime-600 text-white px-4 py-3 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-base cursor-pointer"
-                >
-                  <Calculator className="w-4 h-4 mr-2" />
-                  Calculate Your Costs
-                </button>
-              </div>
-            </div>
-
-            {/* Right Card - Workspace Options */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-                    <Building className="w-5 h-5 text-lime-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">Workspace Options</h3>
-                </div>
-                <p className="text-gray-600 text-base">Mix & Match</p>
-              </div>
-              
-              <div className="p-6 space-y-6">
-                {/* Work From Home */}
-                <div className="group hover:bg-gray-50 rounded-lg p-3 transition-all duration-300">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-lg font-bold text-gray-900">Work From Home</h4>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">$140</p>
-                      <p className="text-xs text-gray-500">per month</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 mb-2 text-sm">Full remote infrastructure, monitoring tools, IT support</p>
-                  <p className="text-xs text-gray-500">Setup Cost: $1,050 (includes laptop, monitor, UPS)</p>
-                </div>
-
-                {/* Hybrid Desk */}
-                <div className="group hover:bg-gray-50 rounded-lg p-3 transition-all duration-300">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-lg font-bold text-gray-900">Hybrid Desk</h4>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">$210</p>
-                      <p className="text-xs text-gray-500">per month</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 mb-2 text-sm">A-B scheduling, shared desk, personal locker, flexible</p>
-                  <p className="text-xs text-gray-500">Setup Cost: $788 (includes business laptop + hot desk essentials)</p>
-                </div>
-
-                {/* Full Office Seat */}
-                <div className="group hover:bg-gray-50 rounded-lg p-3 transition-all duration-300">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-lg font-bold text-gray-900">Full Office Seat</h4>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">$280</p>
-                      <p className="text-xs text-gray-500">per month</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 mb-2 text-sm">Dedicated desk 24/7, ergonomic setup, all amenities</p>
-                  <p className="text-xs text-gray-500">Setup Cost: $525 (includes desktop workstation + office setup)</p>
-                </div>
-
-                {/* Private Office - Special Highlight */}
-                <div className="relative bg-gradient-to-r from-lime-50 to-lime-100 border-2 border-lime-200 rounded-lg p-4">
-                  <div className="absolute -top-2 -right-2 bg-lime-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    POPULAR
-                  </div>
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-lg font-bold text-gray-900">Private Office</h4>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">$37</p>
-                      <p className="text-xs text-gray-500">per sqm</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 font-semibold mb-2 text-sm">YOUR SPACE, YOUR RULES - unlimited employees! (10+ minimum)</p>
-                  <p className="text-xs text-gray-500">Terms: 12-month lease, 3-month security deposit</p>
-                </div>
-              </div>
-            </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Fast Setup</h3>
+                <p className="text-gray-600">
+                  Get your team up and running in 2-3 weeks with our streamlined process
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -593,27 +503,38 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Ready to Get Started Section */}
+      {/* CTA Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <div className="bg-lime-50 rounded-2xl p-8 md:p-12">
-            <div className="text-center mb-8">
+          <Card className="bg-gradient-to-r from-lime-50 to-lime-100 border-lime-200">
+            <CardContent className="p-8 md:p-12 text-center">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ready to Get Started?</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Cheap because we're staff leasing, not consulting. We provide staff + workspace + equipment + basic management. You handle training, processes, and client-side management.
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                Get your personalized team pricing quote in just 5 steps. 
+                AI-powered suggestions, industry-specific rates, and transparent calculations.
               </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-lime-600 text-white px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center justify-center">
-                Book Free Consultation
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </button>
-              <button className="bg-white text-lime-600 border-2 border-lime-600 px-8 py-4 rounded-sm font-semibold hover:bg-lime-50 transition-all duration-300 ease-in-out text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 flex items-center justify-center">
-                See How It Works
-              </button>
-            </div>
-          </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg"
+                  onClick={() => {
+                    setIsCalculatorOpen(true);
+                  }}
+                  className="bg-lime-600 hover:bg-lime-700 text-white px-8 py-4 text-lg"
+                >
+                  Get Quick Quote
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="border-lime-600 text-lime-600 hover:bg-lime-50 px-8 py-4 text-lg"
+                >
+                  Book Consultation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

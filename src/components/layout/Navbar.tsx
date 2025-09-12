@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, Menu, X, Star, ArrowRight, Shield } from 'lucide-react'
 import { useCurrency, currencies, Currency } from '@/lib/currencyContext'
+import { AuthButtons } from '@/components/ui/auth-buttons'
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -70,7 +71,7 @@ export function Navbar() {
              <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0 relative">
         <div className="flex items-center h-16">
           {/* Logo */}
-          <div className="flex-shrink-0 pl-4">
+          <div className="flex-shrink-0 pl-6">
             <Link href="/" className="flex items-center">
               {/* Mobile Logo */}
               <Image
@@ -488,51 +489,44 @@ export function Navbar() {
               </div>
           </div>
 
-          {/* Admin Link - Only visible to admins */}
-          <Link 
-            href="/admin/login" 
-            className="px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group text-gray-500 hover:text-lime-600"
-            title="Admin Dashboard"
-          >
-            <Shield className="w-4 h-4" />
-          </Link>
+        
 
           {/* Currency Selector - Right Side */}
           <div className="hidden md:flex items-center pr-4">
             <div className="relative group">
               <div 
-                className={`flex items-center space-x-2 bg-lime-600 text-white border border-lime-600 rounded-lg px-4 py-1.5 cursor-pointer hover:bg-lime-500 hover:border-lime-500 transition-all duration-200 w-28 shadow-sm hover:shadow-md ${isAutoDetected ? 'ring-2 ring-lime-300' : hasUserSelectedCurrency ? 'ring-2 ring-blue-300' : ''}`}
+                className={`flex items-center space-x-2 text-gray-600 rounded-lg px-3 py-1.5 cursor-pointer hover:bg-gray-50 transition-all duration-200 w-24`}
                 title={isDetectingLocation ? "Detecting your location..." : `Current currency: ${selectedCurrency.code}${isAutoDetected ? ' (Auto-detected)' : hasUserSelectedCurrency ? ' (Manually selected)' : ''}`}
               >
                 {isAutoDetected && (
-                  <div className="w-2 h-2 bg-lime-300 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-lime-500 rounded-full animate-pulse"></div>
                 )}
                 {hasUserSelectedCurrency && !isAutoDetected && (
-                  <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 )}
                 {isDetectingLocation ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span className="text-sm font-medium text-white">...</span>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                    <span className="text-sm font-medium text-gray-600">...</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-lg font-bold text-white">{selectedCurrency.code}</span>
+                    <span className="text-sm font-medium text-gray-700">{selectedCurrency.code}</span>
                   </>
                 )}
-                <ChevronDown className="h-4 w-4 text-white transition-transform duration-200 group-hover:rotate-180" />
+                <ChevronDown className="h-3 w-3 text-gray-500 transition-transform duration-200 group-hover:rotate-180" />
               </div>
               
               {/* Currency Dropdown */}
-              <div className="absolute top-full right-0 mt-2 bg-white border border-lime-600 rounded-lg shadow-xl transition-all duration-300 ease-in-out z-50 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
+              <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg transition-all duration-300 ease-in-out z-50 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
                 <div className="py-2">
                   {/* Auto-detect option */}
                   <div 
-                    className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-lime-50 transition-colors duration-200 border-b border-gray-100"
+                    className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100"
                     onClick={handleDetectLocation}
                   >
                     <div className="w-8 h-4 flex items-center justify-center">
-                      <div className="w-3 h-3 bg-lime-600 rounded-full animate-pulse"></div>
+                      <div className="w-3 h-3 bg-lime-500 rounded-full animate-pulse"></div>
                     </div>
                     <span className="text-sm text-gray-700 font-medium">Auto-detect</span>
                   </div>
@@ -541,7 +535,7 @@ export function Navbar() {
                   {currencies.map((currency) => (
                     <div 
                       key={currency.code}
-                      className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-lime-50 transition-colors duration-200"
+                      className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
                       onClick={() => handleCurrencySelect(currency)}
                     >
                       <div className="flex flex-col">
@@ -561,6 +555,10 @@ export function Navbar() {
             </div>
           </div>
 
+          {/* Auth Buttons - Desktop */}
+          <div className="hidden md:flex items-center space-x-2 pr-4">
+            <AuthButtons />
+          </div>
 
           
           {/* Absolute positioned currency and burger icons for edge alignment */}
@@ -568,7 +566,7 @@ export function Navbar() {
             {/* Mobile Currency Selector */}
             <div className="relative group">
               <button 
-                className={`flex items-center space-x-2 bg-lime-600 text-white border border-lime-600 rounded-lg px-3 py-2 hover:bg-lime-500 hover:border-lime-500 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-lime-300 focus:ring-opacity-50 ${isAutoDetected ? 'ring-2 ring-lime-300 ring-opacity-50' : hasUserSelectedCurrency ? 'ring-2 ring-blue-300 ring-opacity-50' : ''}`}
+                className={`flex items-center space-x-2 text-gray-600 rounded-lg px-3 py-2 hover:bg-gray-50 transition-all duration-200 focus:outline-none`}
                 title={isDetectingLocation ? "Detecting your location..." : `Current currency: ${selectedCurrency.code}${isAutoDetected ? ' (Auto-detected)' : hasUserSelectedCurrency ? ' (Manually selected)' : ''}`}
                 onClick={() => {
                   // Toggle dropdown visibility
@@ -580,40 +578,40 @@ export function Navbar() {
                 }}
               >
                 {isAutoDetected && (
-                  <div className="w-2 h-2 bg-lime-300 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-lime-500 rounded-full animate-pulse"></div>
                 )}
                 {hasUserSelectedCurrency && !isAutoDetected && (
-                  <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 )}
                 {isDetectingLocation ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span className="text-sm font-medium text-white">...</span>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                    <span className="text-sm font-medium text-gray-600">...</span>
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                                </svg>
-                    <span className="text-sm font-medium text-white">{selectedCurrency.code}</span>
+                    </svg>
+                    <span className="text-sm font-medium text-gray-700">{selectedCurrency.code}</span>
                   </>
                 )}
-                <ChevronDown className="h-3 w-3 text-white transition-transform duration-200 group-hover:rotate-180" />
+                <ChevronDown className="h-3 w-3 text-gray-500 transition-transform duration-200 group-hover:rotate-180" />
               </button>
               
               {/* Currency Dropdown */}
-              <div className="currency-dropdown absolute top-full right-0 mt-2 bg-white border border-lime-600 rounded-lg shadow-xl transition-all duration-300 ease-in-out z-50 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
+              <div className="currency-dropdown absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg transition-all duration-300 ease-in-out z-50 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
                 <div className="p-3">
                   <div className="text-gray-700 font-medium mb-3 text-left">Currency</div>
                   
                   {/* Auto-detect option */}
                   <button 
-                    className="w-full flex items-center px-3 py-2 cursor-pointer hover:bg-lime-50 rounded transition-colors duration-200 border border-gray-200 text-left mb-2"
+                    className="w-full flex items-center px-3 py-2 cursor-pointer hover:bg-gray-50 rounded transition-colors duration-200 border border-gray-200 text-left mb-2"
                     onClick={handleDetectLocation}
                   >
                     <div className="w-8 h-4 flex items-center justify-center">
-                      <div className="w-3 h-3 bg-lime-600 rounded-full animate-pulse"></div>
-                              </div>
+                      <div className="w-3 h-3 bg-lime-500 rounded-full animate-pulse"></div>
+                    </div>
                     <span className="text-sm text-gray-700 font-medium">Auto-detect</span>
                   </button>
                   
@@ -621,10 +619,10 @@ export function Navbar() {
                     {currencies.map((currency) => (
                       <button 
                         key={currency.code}
-                        className="flex items-center px-3 py-2 cursor-pointer hover:bg-lime-50 rounded transition-colors duration-200 border border-gray-200 text-left w-full"
+                        className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-50 rounded transition-colors duration-200 border border-gray-200 text-left w-full"
                         onClick={() => handleCurrencySelect(currency)}
                       >
-                        <span className="text-lg font-bold text-lime-600 w-8">{currency.symbol}</span>
+                        <span className="text-lg font-bold text-gray-600 w-8">{currency.symbol}</span>
                         <span className="text-sm text-gray-700 font-medium">{currency.code}</span>
                         {selectedCurrency.code === currency.code && isAutoDetected && (
                           <span className="ml-auto text-xs text-lime-600">Auto</span>
@@ -634,10 +632,10 @@ export function Navbar() {
                         )}
                       </button>
                     ))}
-                        </div>
-                      </div>
-                    </div>
                   </div>
+                </div>
+              </div>
+            </div>
 
             {/* Mobile menu button */}
             <Button
@@ -897,6 +895,13 @@ export function Navbar() {
                     </div>
                     <ArrowRight className="w-4 h-4 text-lime-600 flex-shrink-0" />
                   </button>
+                </div>
+
+                {/* Auth Buttons - Mobile */}
+                <div className="px-2 py-3 border-t border-gray-200">
+                  <div className="flex flex-col space-y-2">
+                    <AuthButtons />
+                  </div>
                 </div>
               </div>
             </div>

@@ -24,7 +24,7 @@ class UserEngagementTracker {
   private lastClickTime: number = 0
   private supabaseEnabled: boolean = true
   private lastSupabaseSave: number = 0
-  private supabaseSaveInterval: number = 30000 // Save to Supabase every 30 seconds
+  private supabaseSaveInterval: number = 0 // Disabled - no periodic saves
 
   private constructor() {
     this.engagementData = {
@@ -93,12 +93,15 @@ class UserEngagementTracker {
     const pageKey = this.getPageKey(pathname)
     const existingData = this.pageData.get(pageKey)
     
+    const now = Date.now()
+    
     if (existingData) {
       this.engagementData = { ...existingData }
-      console.log('📊 Tracker: Loaded existing data for page:', pageKey, 'Active time:', this.engagementData.activeTime)
+      // Don't reset session start time - continue from where we left off
+      this.engagementData.sessionStartTime = now
+      console.log('📊 Tracker: Loaded existing data for page:', pageKey, 'Active time:', this.engagementData.activeTime, 'New session start:', now)
     } else {
       // Create new data for this page
-      const now = Date.now()
       this.engagementData = {
         activeTime: 0,
         contentRead: 0,
@@ -113,16 +116,21 @@ class UserEngagementTracker {
       console.log('🆕 Tracker: Created new data for page:', pageKey, 'Session start time:', now)
     }
 
-    const now = Date.now()
     this.engagementData.pageStartTime = now
     this.engagementData.lastActivityTime = now
-    this.engagementData.sessionStartTime = now
     
     console.log('⏰ Tracker: Set session start time to:', now, 'Current time:', Date.now())
     console.log('⏰ Tracker: Session start time is valid:', this.engagementData.sessionStartTime > 0)
     
     this.setupEventListeners()
     this.startActivityTimer()
+    
+    // Save page visit immediately when starting to track (0 seconds spent)
+    if (this.supabaseEnabled) {
+      this.saveToSupabase().catch(error => {
+        console.warn('Tracker: Failed to save initial page visit:', error)
+      })
+    }
     
     console.log('✅ Tracker: Tracking started successfully for:', pathname)
   }
@@ -149,6 +157,10 @@ class UserEngagementTracker {
       if (this.supabaseEnabled) {
         await this.saveToSupabase()
       }
+      
+      // Reset session start time when leaving the page
+      this.engagementData.sessionStartTime = 0
+      console.log('🔄 Tracker: Reset session start time when leaving page')
       
       console.log('Tracker: Saved data for page:', pageKey, 'Total active time:', this.engagementData.activeTime)
     }
@@ -432,7 +444,7 @@ class UserEngagementTracker {
     try {
       const ipAddress = await getUserIPAddress()
       
-      // Calculate ONLY the current session time (not accumulated)
+      // Calculate the current session time
       let currentSessionTime = 0
       if (this.engagementData.sessionStartTime > 0) {
         const now = Date.now()
@@ -445,15 +457,20 @@ class UserEngagementTracker {
         currentSessionTime,
         activeTime: this.engagementData.activeTime,
         ipAddress,
-        timeDifference: Date.now() - this.engagementData.sessionStartTime
+        timeDifference: Date.now() - this.engagementData.sessionStartTime,
+        timestamp: new Date().toISOString()
       })
       
-      // Save ONLY the current session time - let the database handle accumulation
+      // Save the current session time - the database will accumulate it
       const result = await savePageVisit(this.currentPage, ipAddress, currentSessionTime)
 
       if (result.success) {
         console.log('✅ Tracker: Successfully saved page visit to Supabase:', this.currentPage, 'Current session time:', currentSessionTime)
         this.lastSupabaseSave = Date.now()
+        
+        // DON'T reset session start time after periodic saves - only reset when leaving page
+        // This allows time to accumulate properly across multiple saves
+        console.log('🔄 Tracker: Periodic save completed, session continues')
       } else {
         console.warn('❌ Tracker: Failed to save to Supabase:', result.error)
       }
@@ -463,22 +480,20 @@ class UserEngagementTracker {
   }
 
   private shouldSaveToSupabase(): boolean {
-    const now = Date.now()
-    return this.supabaseEnabled && 
-           (now - this.lastSupabaseSave) >= this.supabaseSaveInterval
+    // Periodic saves disabled - only save on page leave
+    return false
   }
 
   private notifySubscribers(): void {
     console.log('Tracker: Notifying subscribers, interaction count:', this.engagementData.interactionCount)
     
-    // Save current page data periodically (but NOT to Supabase)
+    // Save current page data periodically
     if (this.isTracking && this.currentPage) {
       const pageKey = this.getPageKey(this.currentPage)
       this.pageData.set(pageKey, { ...this.engagementData })
       this.savePageDataToStorage()
 
-      // REMOVED: Periodic Supabase saving to prevent duplicates
-      // Only save to Supabase when leaving a page, not during active tracking
+      // Periodic saves disabled - only save on page leave
     }
     
     this.updateCallbacks.forEach(callback => {
@@ -500,11 +515,11 @@ class UserEngagementTracker {
 
   // Public method to reset tracking for new page
   public resetForNewPage(pathname: string): void {
-    console.log(' Tracker: Reset for new page:', pathname, 'Current page:', this.currentPage)
+    console.log('🔄 Tracker: Reset for new page:', pathname, 'Current page:', this.currentPage)
     
     // Only reset if we're actually changing pages
     if (this.currentPage === pathname) {
-      console.log(' Tracker: Same page, no need to reset')
+      console.log('🔄 Tracker: Same page, no need to reset - continuing current session')
       return
     }
     
