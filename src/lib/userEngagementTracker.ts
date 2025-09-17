@@ -379,7 +379,7 @@ class UserEngagementTracker {
     
     // Cap the display time to prevent unrealistic values (max 2 hours = 7200 seconds)
     const maxActiveTime = 7200
-    const cappedDisplayTime = Math.min(totalDisplayTime, maxActiveTime)
+    Math.min(totalDisplayTime, maxActiveTime)
     
     // Update the display value (we'll use a temporary field for this)
     // For now, we'll store the current session time separately and calculate total on demand
@@ -506,7 +506,7 @@ class UserEngagementTracker {
   }
 
   // Public method to manually trigger interaction (for programmatic interactions)
-  public recordInteraction(type: string = 'click'): void {
+  public recordInteraction(): void {
     this.engagementData.interactionCount++
     this.engagementData.lastActivityTime = Date.now()
     console.log('Tracker: Interaction recorded, count now:', this.engagementData.interactionCount)

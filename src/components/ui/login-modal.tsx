@@ -255,7 +255,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
       ? ['firstName', 'lastName', 'email', 'phoneNumber'] 
       : ['company', 'country', 'password', 'confirmPassword']
     
-    const isValid = await signupForm.trigger(fieldsToValidate as any)
+    const isValid = await signupForm.trigger(fieldsToValidate as (keyof SignupFormData)[])
     
     // Also check if email is available before proceeding
     if (currentStep === 1 && emailAvailable === false) {

@@ -33,7 +33,7 @@ export function useEngagementTracking() {
 
   // Helper function to manually record interactions
   const recordInteraction = (type: string = 'click') => {
-    userEngagementTracker.recordInteraction(type)
+    userEngagementTracker.recordInteraction()
     // Immediately update local state to reflect the new interaction
     setEngagementData(prev => ({
       ...prev,

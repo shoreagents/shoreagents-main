@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Share2, Crown, Users, Target, BarChart3, TrendingUp, Shield, Calculator, User } from 'lucide-react'
+import { ArrowRight, Share2, Crown, Users, Target, BarChart3, TrendingUp, Shield, User } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 
 export default function SocialMediaVirtualAssistantPage() {

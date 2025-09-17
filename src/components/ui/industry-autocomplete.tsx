@@ -31,7 +31,7 @@ export function IndustryAutocomplete({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // Filter industries based on search query
   useEffect(() => {

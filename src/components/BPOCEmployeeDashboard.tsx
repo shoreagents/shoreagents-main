@@ -10,15 +10,15 @@ export function BPOCEmployeeDashboard() {
   const [selectedEmployee, setSelectedEmployee] = useState<BPOCUser | null>(null)
 
   useEffect(() => {
+    const loadStats = async () => {
+      const statistics = await getStats()
+      setStats(statistics)
+    }
+
     if (employees.length > 0) {
       loadStats()
     }
-  }, [employees])
-
-  const loadStats = async () => {
-    const statistics = await getStats()
-    setStats(statistics)
-  }
+  }, [employees, getStats])
 
   if (loading) {
     return (

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { MessageCircle, X, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 import ChatConsole from './ai-chat-console';
 
 const FloatingChatButton: React.FC = () => {
@@ -30,10 +31,12 @@ const FloatingChatButton: React.FC = () => {
         >
           {/* Maya Santos Avatar */}
           <div className="w-12 h-12 rounded-full shadow-lg border-2 border-white overflow-hidden">
-            <img 
+            <Image 
               src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=48"
               alt="Maya Santos Avatar"
               className="w-full h-full object-cover"
+              width={48}
+              height={48}
             />
           </div>
           

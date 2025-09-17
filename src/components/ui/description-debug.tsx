@@ -8,7 +8,7 @@ import { Label } from './label';
 export function DescriptionDebug() {
   const [roleTitle, setRoleTitle] = useState('Medical Virtual Assistant');
   const [industry, setIndustry] = useState('Healthcare');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -103,7 +103,7 @@ export function DescriptionDebug() {
         </div>
       )}
       
-      {result && (
+      {result != null && (
         <div className="p-3 bg-green-50 border border-green-200 rounded">
           <strong>Result:</strong>
           <pre className="mt-2 text-sm overflow-auto">

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { 
   AlertTriangle, 
   Building2, 
@@ -13,7 +12,6 @@ import {
   Search, 
   Calculator,
   ArrowRight,
-  Target,
   GraduationCap,
   BarChart3
 } from "lucide-react";

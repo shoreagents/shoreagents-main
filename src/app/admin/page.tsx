@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { AdminGuard } from '@/components/auth/AdminGuard'
 import { UserManagement } from '@/components/admin/UserManagement'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -74,7 +73,7 @@ interface UserVisitData {
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const { isAdmin, loading, user, appUser, signOut } = useAuth()
+  const { isAdmin, loading, signOut } = useAuth()
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     pageViews: 0,
     uniqueVisitors: 0,

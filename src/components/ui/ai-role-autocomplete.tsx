@@ -39,8 +39,8 @@ export function AIRoleAutocomplete({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const listRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced AI search function
   const searchWithAI = useCallback(async (query: string) => {

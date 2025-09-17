@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
+import Image from 'next/image';
 import { Button } from './button';
 import { 
   User, 
@@ -65,10 +66,12 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
           <div className="flex items-start space-x-4">
             <div className="w-16 h-16 bg-gradient-to-br from-lime-400 to-lime-600 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 avatar-hover-effect">
               {data.user.avatar ? (
-                <img
+                <Image
                   src={data.user.avatar}
                   alt={data.user.name}
                   className="w-16 h-16 rounded-full object-cover"
+                  width={64}
+                  height={64}
                 />
               ) : (
                 <User className="w-8 h-8 text-white" />

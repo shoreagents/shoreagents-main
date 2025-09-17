@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { generateUserId } from '@/lib/userEngagementService'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     if (!supabase) {
       return NextResponse.json(

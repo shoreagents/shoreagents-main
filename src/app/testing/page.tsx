@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { Carousel } from '@/components/ui/carousel'
-import { ChevronDown, Star, ArrowRight, Menu, X } from 'lucide-react'
+import { ChevronDown, Star, ArrowRight, Menu } from 'lucide-react'
 
 export default function TestingPage() {
   const [testInput, setTestInput] = useState('')

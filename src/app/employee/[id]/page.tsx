@@ -14,8 +14,6 @@ import {
   Mail, 
   MapPin, 
   Calendar, 
-  Trophy, 
-  Star,
   FileText,
   Download,
   Share2,
@@ -23,7 +21,6 @@ import {
   Briefcase,
   GraduationCap,
   Award,
-  Target,
   TrendingUp
 } from 'lucide-react';
 

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, ChevronUp, ExternalLink, Sparkles } from 'lucide-react';
-import { colors } from '@/lib/colors';
+import { X, Send, User, Loader2, ChevronDown, ChevronUp, ExternalLink, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 interface Message {
   id: string;
@@ -155,10 +155,12 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
           }`}>
             {isUser ? <User size={12} /> : (
               <div className="relative w-full h-full">
-                <img 
+                <Image 
                   src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=24"
                   alt="Maya Santos Avatar"
                   className="w-full h-full object-cover"
+                  width={24}
+                  height={24}
                 />
                 <div className="absolute -top-1 -right-1">
                   <Sparkles className="w-2 h-2 text-lime-500 animate-pulse" />
@@ -226,10 +228,12 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
           {/* Maya Santos Avatar */}
           <div className="relative">
             <div className="w-8 h-8 rounded-full shadow-lg border-2 border-white overflow-hidden">
-              <img 
+              <Image 
                 src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=32"
                 alt="Maya Santos Avatar"
                 className="w-full h-full object-cover"
+                width={32}
+                height={32}
               />
             </div>
             {/* Online indicator */}
@@ -278,10 +282,12 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
               <div className="flex justify-start mb-3">
                 <div className="flex items-start gap-2">
                   <div className="w-6 h-6 rounded-full border-2 border-lime-200 overflow-hidden">
-                    <img 
+                    <Image 
                       src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=24"
                       alt="Maya Santos Avatar"
                       className="w-full h-full object-cover"
+                      width={24}
+                      height={24}
                     />
                   </div>
                   <div className="bg-white rounded-xl px-3 py-2 border border-gray-200">

@@ -114,7 +114,7 @@ function findBestMatch(roleTitle: string): string | null {
   
   // Partial matches
   const keywords = normalized.split(' ');
-  for (const [key, _] of Object.entries(REALISTIC_SALARY_RANGES)) {
+  for (const [key] of Object.entries(REALISTIC_SALARY_RANGES)) {
     if (keywords.some(keyword => key.includes(keyword) || keyword.includes(key))) {
       return key;
     }

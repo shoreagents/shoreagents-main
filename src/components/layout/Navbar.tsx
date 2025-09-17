@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Menu, X, Star, ArrowRight, Shield } from 'lucide-react'
+import { ChevronDown, Menu, X, Star, ArrowRight } from 'lucide-react'
 import { useCurrency, currencies, Currency } from '@/lib/currencyContext'
 import { AuthButtons } from '@/components/ui/auth-buttons'
 

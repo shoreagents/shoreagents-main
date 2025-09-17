@@ -45,7 +45,7 @@ function generateDeviceFingerprint(): string {
       navigator.platform,
       new Date().getTimezoneOffset().toString(),
       navigator.maxTouchPoints || '0',
-      (navigator as any).deviceMemory || 'unknown',
+      (navigator as { deviceMemory?: number }).deviceMemory || 'unknown',
       // Add canvas fingerprint for additional uniqueness
       getCanvasFingerprint()
     ].join('|')
@@ -78,7 +78,7 @@ function getCanvasFingerprint(): string {
     ctx.fillText('Device fingerprint', 4, 17)
     
     return canvas.toDataURL().substring(22, 50) // Get part of the data URL
-  } catch (error) {
+  } catch {
     return 'canvas-error'
   }
 }
@@ -199,7 +199,6 @@ export async function savePageVisit(
     console.log('🔍 savePageVisit called with:', { pagePath, ipAddress, currentSessionTimeSeconds })
 
     const userId = generateUserId()
-    const deviceType = detectDeviceType()
     const now = new Date().toISOString()
     
     // Ensure anonymous user exists in users table
@@ -520,7 +519,7 @@ export function getDeviceInfo(): Record<string, string | number> {
     hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
     timezoneOffset: new Date().getTimezoneOffset(),
     maxTouchPoints: navigator.maxTouchPoints || 0,
-    deviceMemory: (navigator as any).deviceMemory || 'unknown',
+    deviceMemory: (navigator as { deviceMemory?: number }).deviceMemory || 'unknown',
     currentDeviceId: generateUserId()
   }
 }
@@ -596,7 +595,6 @@ export async function getRealDeviceStats(): Promise<{ desktop: number; mobile: n
         
         // Estimate device type based on user agent (if available in the data)
         // This is a fallback - ideally we'd store device_type in the database
-        const userAgent = visit.ip_address || '' // Using IP as placeholder
         const deviceType = detectDeviceType()
         deviceCounts[deviceType]++
       }
