@@ -68,10 +68,10 @@ export function Navbar() {
 
   return (
     <nav className={`bg-white sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-sm' : 'shadow-none'}`}>
-             <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0 relative">
+      <div className="w-full relative">
         <div className="flex items-center h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0 pl-6">
+          {/* Logo - Absolute left edge */}
+          <div className="flex-shrink-0 absolute left-10 z-10">
             <Link href="/" className="flex items-center">
               {/* Mobile Logo */}
               <Image
@@ -92,8 +92,8 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center">
+          {/* Desktop Navigation - Centered with left margin to account for logo */}
+          <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center ml-[180px]">
             {/* Our Services Dropdown */}
             <div className="relative group">
               <Link href="/services" className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative ${isActive('/services') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>

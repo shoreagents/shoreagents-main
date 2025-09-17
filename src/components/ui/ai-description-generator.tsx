@@ -196,10 +196,9 @@ export function AIDescriptionGenerator({
           onChange={handleTextareaChange}
           onBlur={handleTextareaBlur}
           placeholder="Enter role description manually or click 'Generate Description' to use AI..."
-          rows={4}
           className={`w-full px-3 py-2 pr-20 border rounded-md focus:ring-2 focus:ring-lime-500 focus:border-transparent resize-none transition-all ${
             isGenerating ? 'bg-gray-50' : 'bg-white'
-          } ${error ? 'border-red-300' : 'border-gray-300'}`}
+          } ${error ? 'border-red-300' : 'border-gray-300'} ${className}`}
           disabled={isGenerating}
         />
         

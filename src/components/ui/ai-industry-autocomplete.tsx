@@ -34,18 +34,40 @@ export function AIIndustryAutocomplete({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Common industries for instant suggestions
+  const commonIndustries: AISuggestion[] = [
+    { name: 'Technology', category: 'IT & Software', description: 'Software development, IT services, and technology solutions' },
+    { name: 'Real Estate', category: 'Property', description: 'Property management, real estate services, and construction' },
+    { name: 'Healthcare', category: 'Medical', description: 'Healthcare services, medical practices, and wellness' },
+    { name: 'Finance', category: 'Financial Services', description: 'Banking, accounting, and financial advisory services' },
+    { name: 'Marketing', category: 'Digital Marketing', description: 'Digital marketing, advertising, and brand management' },
+    { name: 'E-commerce', category: 'Online Retail', description: 'Online stores, marketplaces, and digital commerce' },
+    { name: 'Education', category: 'Learning', description: 'Educational institutions, training, and e-learning' },
+    { name: 'Legal', category: 'Legal Services', description: 'Law firms, legal consulting, and compliance services' }
+  ];
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Debounced AI search function
+  // Debounced AI search function with proper request cancellation
   const searchWithAI = useCallback(async (query: string) => {
     if (!query.trim() || query.length < 2) {
       setSuggestions([]);
       return;
     }
+
+    // Cancel previous request if it exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this request
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     setIsLoading(true);
     setError(null);
@@ -60,7 +82,13 @@ export function AIIndustryAutocomplete({
           query: query.trim(),
           type: 'industry'
         }),
+        signal: controller.signal
       });
+
+      // Check if request was aborted
+      if (controller.signal.aborted) {
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch suggestions');
@@ -69,11 +97,18 @@ export function AIIndustryAutocomplete({
       const data = await response.json();
       setSuggestions(data.suggestions || []);
     } catch (err) {
-      console.error('AI search error:', err);
-      setError('Unable to load suggestions');
-      setSuggestions([]);
+      // Only handle errors if request wasn't aborted
+      if (!controller.signal.aborted) {
+        console.error('AI search error:', err);
+        setError('Unable to load suggestions');
+        setSuggestions([]);
+      }
     } finally {
-      setIsLoading(false);
+      // Only update loading state if this is still the current request
+      if (abortControllerRef.current === controller) {
+        setIsLoading(false);
+        abortControllerRef.current = null;
+      }
     }
   }, []);
 
@@ -85,7 +120,7 @@ export function AIIndustryAutocomplete({
 
     debounceTimeoutRef.current = setTimeout(() => {
       searchWithAI(searchQuery);
-    }, 300); // 300ms debounce
+    }, 150); // 150ms debounce - faster response
 
     return () => {
       if (debounceTimeoutRef.current) {
@@ -101,6 +136,19 @@ export function AIIndustryAutocomplete({
     onChange(newValue);
     setIsOpen(true);
     setSelectedIndex(-1);
+
+    // Show instant suggestions for common queries
+    if (newValue.length >= 2) {
+      const filteredCommon = commonIndustries.filter(industry =>
+        industry.name.toLowerCase().includes(newValue.toLowerCase()) ||
+        industry.category.toLowerCase().includes(newValue.toLowerCase())
+      );
+      
+      if (filteredCommon.length > 0) {
+        setSuggestions(filteredCommon);
+        setIsLoading(false);
+      }
+    }
   };
 
   // Handle suggestion selection
@@ -143,7 +191,21 @@ export function AIIndustryAutocomplete({
   const handleFocus = () => {
     setIsOpen(true);
     if (searchQuery.trim()) {
-      searchWithAI(searchQuery);
+      // Show instant suggestions first
+      const filteredCommon = commonIndustries.filter(industry =>
+        industry.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        industry.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      
+      if (filteredCommon.length > 0) {
+        setSuggestions(filteredCommon);
+        setIsLoading(false);
+      } else {
+        searchWithAI(searchQuery);
+      }
+    } else {
+      // Show all common industries when focused with empty input
+      setSuggestions(commonIndustries);
     }
   };
 
@@ -153,7 +215,7 @@ export function AIIndustryAutocomplete({
       if (!dropdownRef.current?.contains(document.activeElement)) {
         setIsOpen(false);
       }
-    }, 150);
+    }, 100); // Faster blur response
   };
 
   // Scroll selected item into view
@@ -179,6 +241,15 @@ export function AIIndustryAutocomplete({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   const shouldShowDropdown = isOpen && (suggestions.length > 0 || isLoading || error);
@@ -213,7 +284,7 @@ export function AIIndustryAutocomplete({
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" style={{ animationDuration: '0.8s' }} />
             ) : (
               <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             )}
@@ -234,7 +305,7 @@ export function AIIndustryAutocomplete({
             <div className="max-h-60 overflow-y-auto" ref={listRef}>
               {isLoading ? (
                 <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                  <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                  <Loader2 className="w-4 h-4 animate-spin inline mr-2" style={{ animationDuration: '0.8s' }} />
                   AI is thinking...
                 </div>
               ) : error ? (

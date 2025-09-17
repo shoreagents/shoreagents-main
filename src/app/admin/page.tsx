@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { AdminGuard } from '@/components/auth/AdminGuard'
@@ -29,7 +29,9 @@ import {
   RefreshCw,
   CheckCircle,
   LogOut,
-  Table as TableIcon
+  Table as TableIcon,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react'
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 // Database functions are used in the component
@@ -61,7 +63,7 @@ interface PagePerformance {
 }
 
 interface UserVisitData {
-  ipAddress: string
+  userId: string
   visits: Array<{
     pageName: string
     visitCount: number
@@ -102,6 +104,7 @@ export default function AdminDashboard() {
   const [userVisitData, setUserVisitData] = useState<UserVisitData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set())
 
   // Redirect to home if not admin
   useEffect(() => {
@@ -177,21 +180,21 @@ export default function AdminDashboard() {
         return
       }
 
-      // Group visits by IP address
+      // Group visits by user_id
       const groupedData = new Map<string, UserVisitData>()
       
       visits?.forEach((visit: UserPageVisit) => {
-        const ipAddress = visit.ip_address || 'Unknown'
+        const userId = visit.user_id || 'Unknown'
         
-        if (!groupedData.has(ipAddress)) {
-          groupedData.set(ipAddress, {
-            ipAddress: ipAddress,
+        if (!groupedData.has(userId)) {
+          groupedData.set(userId, {
+            userId: userId,
             visits: []
           })
         }
         
-        // Check if this page already exists for this IP
-        const existingVisit = groupedData.get(ipAddress)?.visits.find(
+        // Check if this page already exists for this user
+        const existingVisit = groupedData.get(userId)?.visits.find(
           v => v.pageName === visit.page_path
         )
         
@@ -205,7 +208,7 @@ export default function AdminDashboard() {
           }
         } else {
           // Add new page visit
-          groupedData.get(ipAddress)?.visits.push({
+          groupedData.get(userId)?.visits.push({
             pageName: visit.page_path,
             visitCount: visit.visit_count,
             timeSpent: visit.time_spent_seconds,
@@ -214,10 +217,10 @@ export default function AdminDashboard() {
         }
       })
 
-      // Convert to array and sort by IP address
+      // Convert to array and sort by user_id
       const userVisitArray = Array.from(groupedData.values())
-        .sort((a, b) => a.ipAddress.localeCompare(b.ipAddress))
-        .slice(0, 50) // Limit to 50 IP addresses for performance
+        .sort((a, b) => a.userId.localeCompare(b.userId))
+        .slice(0, 50) // Limit to 50 users for performance
 
       setUserVisitData(userVisitArray)
     } catch (error) {
@@ -318,6 +321,18 @@ export default function AdminDashboard() {
       const minutes = Math.floor((seconds % 3600) / 60)
       return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
     }
+  }
+
+  const toggleUserExpansion = (userId: string) => {
+    setExpandedUsers(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(userId)) {
+        newSet.delete(userId)
+      } else {
+        newSet.add(userId)
+      }
+      return newSet
+    })
   }
 
 
@@ -464,97 +479,140 @@ export default function AdminDashboard() {
                     <p className="text-sm">Make sure your database is connected and has visit data</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    {userVisitData.map((userData) => {
-                      // Calculate performance score based on visit count and time spent
-                      const visitsWithScore = userData.visits.map(visit => {
-                        // Normalize visit count (0-100 scale)
-                        const maxVisits = Math.max(...userData.visits.map(v => v.visitCount))
-                        const normalizedVisits = (visit.visitCount / maxVisits) * 100
-                        
-                        // Normalize time spent (0-100 scale) - cap at 1 hour for normalization
-                        const maxTime = Math.max(...userData.visits.map(v => Math.min(v.timeSpent, 3600)))
-                        const normalizedTime = (Math.min(visit.timeSpent, 3600) / maxTime) * 100
-                        
-                        // Combined score: 60% visit count, 40% time spent
-                        const performanceScore = (normalizedVisits * 0.6) + (normalizedTime * 0.4)
-                        
-                        return {
-                          ...visit,
-                          performanceScore
-                        }
-                      })
-                      
-                      // Sort by performance score and get top 2
-                      const sortedVisits = visitsWithScore.sort((a, b) => b.performanceScore - a.performanceScore)
-                      const topPages = sortedVisits.slice(0, 2)
-                      
-                      // Find the page with highest time spent
-                      const topTimePage = userData.visits.reduce((max, visit) => 
-                        visit.timeSpent > max.timeSpent ? visit : max
-                      )
-                      
-                      // Only highlight if there's a clear top performer (score > 80) or if top 2 are close
-                      const shouldHighlight = topPages.length > 0 && (
-                        topPages[0].performanceScore > 80 || 
-                        (topPages.length > 1 && topPages[0].performanceScore - topPages[1].performanceScore < 20)
-                      )
-                      
-                      // Always highlight the top time spent page if it's different from top performers
-                      const shouldHighlightTime = topTimePage.timeSpent > 0
-                      
-                      return (
-                        <div key={userData.ipAddress} className="border rounded-lg overflow-hidden">
-                          {/* IP Address Header */}
-                          <div className="bg-lime-50 px-4 py-3 border-b">
-                            <div className="flex items-center gap-3">
-                              <Users className="w-5 h-5 text-lime-600" />
-                              <h3 className="font-semibold text-gray-900">
-                                IP Address: {userData.ipAddress}
-                              </h3>
-                            </div>
-                          </div>
-
-                          {/* User Visits Table */}
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-[200px]">Page Name</TableHead>
-                                <TableHead className="w-[120px]">Visit Count</TableHead>
-                                <TableHead className="w-[120px]">Time Spent</TableHead>
-                                <TableHead className="w-[150px]">Last Visit</TableHead>
+                  <div className="border rounded-lg overflow-hidden">
+                    {/* Independent Table Header */}
+                    <Table>
+                      <TableHeader className="bg-lime-50 border-b">
+                        <TableRow>
+                          <TableHead className="w-[150px] font-semibold text-gray-900">User ID</TableHead>
+                          <TableHead className="w-[200px] font-semibold text-gray-900">Page Name</TableHead>
+                          <TableHead className="w-[120px] font-semibold text-gray-900">Visit Count</TableHead>
+                          <TableHead className="w-[120px] font-semibold text-gray-900">Time Spent</TableHead>
+                          <TableHead className="w-[150px] font-semibold text-gray-900">Last Visit</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userVisitData.map((userData) => {
+                          // Calculate performance score based on visit count and time spent
+                          const visitsWithScore = userData.visits.map(visit => {
+                            // Normalize visit count (0-100 scale)
+                            const maxVisits = Math.max(...userData.visits.map(v => v.visitCount))
+                            const normalizedVisits = (visit.visitCount / maxVisits) * 100
+                            
+                            // Normalize time spent (0-100 scale) - cap at 1 hour for normalization
+                            const maxTime = Math.max(...userData.visits.map(v => Math.min(v.timeSpent, 3600)))
+                            const normalizedTime = (Math.min(visit.timeSpent, 3600) / maxTime) * 100
+                            
+                            // Combined score: 60% visit count, 40% time spent
+                            const performanceScore = (normalizedVisits * 0.6) + (normalizedTime * 0.4)
+                            
+                            return {
+                              ...visit,
+                              performanceScore
+                            }
+                          })
+                          
+                          // Sort by performance score and get top performer
+                          const sortedVisits = visitsWithScore.sort((a, b) => b.performanceScore - a.performanceScore)
+                          const topPerformer = sortedVisits[0]
+                          
+                          // Find the page with highest time spent
+                          const topTimePage = userData.visits.reduce((max, visit) => 
+                            visit.timeSpent > max.timeSpent ? visit : max
+                          )
+                          
+                          const isExpanded = expandedUsers.has(userData.userId)
+                          
+                          return (
+                            <React.Fragment key={userData.userId}>
+                              {/* Default View - Top Performer Row */}
+                              <TableRow 
+                                className="bg-lime-50/50 border-l-4 border-l-lime-500 cursor-pointer hover:bg-lime-100/50 transition-colors"
+                                onClick={() => toggleUserExpansion(userData.userId)}
+                              >
+                                {/* User ID Column */}
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-2">
+                                    {isExpanded ? (
+                                      <ChevronDown className="w-4 h-4 text-lime-600" />
+                                    ) : (
+                                      <ChevronRight className="w-4 h-4 text-lime-600" />
+                                    )}
+                                    <Users className="w-4 h-4 text-lime-600" />
+                                    <span className="text-sm font-semibold text-gray-900">
+                                      {userData.userId}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                
+                                {/* Page Name Column */}
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <Globe className="w-4 h-4 text-gray-400" />
+                                    {topPerformer?.pageName}
+                                    <Badge className="ml-2 bg-lime-100 text-lime-800 border-lime-300">
+                                      Top Performer
+                                    </Badge>
+                                  </div>
+                                </TableCell>
+                                
+                                {/* Visit Count Column */}
+                                <TableCell>
+                                  <Badge className="bg-lime-600 text-white">
+                                    {topPerformer?.visitCount}
+                                  </Badge>
+                                </TableCell>
+                                
+                                {/* Time Spent Column */}
+                                <TableCell>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="w-4 h-4 text-gray-400" />
+                                    <span className="text-sm">
+                                      {topPerformer ? formatTimeSpent(topPerformer.timeSpent) : '0s'}
+                                    </span>
+                                    {topTimePage && topTimePage.pageName === topPerformer?.pageName && (
+                                      <Badge className="ml-2 bg-orange-100 text-orange-800 border-orange-300 text-xs">
+                                        Top Time
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                
+                                {/* Last Visit Column */}
+                                <TableCell>
+                                  <span className="text-sm text-gray-600">
+                                    {topPerformer ? new Date(topPerformer.lastVisit).toLocaleDateString() + ' ' + new Date(topPerformer.lastVisit).toLocaleTimeString() : ''}
+                                  </span>
+                                </TableCell>
                               </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {userData.visits.map((visit, visitIndex) => {
-                                const isTopPage = shouldHighlight && topPages.some(top => top.pageName === visit.pageName)
-                                const isFirstTop = shouldHighlight && topPages[0]?.pageName === visit.pageName
-                                const isSecondTop = shouldHighlight && topPages[1]?.pageName === visit.pageName
-                                const isTopTime = shouldHighlightTime && topTimePage.pageName === visit.pageName
+
+                              {/* Expanded View - All Details Rows */}
+                              {isExpanded && userData.visits.map((visit, visitIndex) => {
+                                const isTopPage = topPerformer?.pageName === visit.pageName
+                                const isTopTime = topTimePage.pageName === visit.pageName
                                 const isHighlighted = isTopPage || isTopTime
                                 
                                 return (
                                   <TableRow 
-                                    key={`${userData.ipAddress}-${visitIndex}`}
+                                    key={`${userData.userId}-${visitIndex}`}
                                     className={isHighlighted ? "bg-lime-50/50 border-l-4 border-l-lime-500" : ""}
                                   >
+                                    {/* Empty User ID Column - User ID only shown in header row */}
+                                    <TableCell className="font-medium">
+                                      {/* Empty - User ID only shown in header row */}
+                                    </TableCell>
                                     <TableCell className="font-medium">
                                       <div className="flex items-center gap-2">
                                         <Globe className="w-4 h-4 text-gray-400" />
                                         {visit.pageName}
-                                        {isFirstTop && (
+                                        {isTopPage && (
                                           <Badge className="ml-2 bg-lime-100 text-lime-800 border-lime-300">
                                             Top Performer
                                           </Badge>
                                         )}
-                                        {isSecondTop && (
-                                          <Badge className="ml-2 bg-lime-50 text-lime-700 border-lime-200">
-                                            High Performer
-                                          </Badge>
-                                        )}
                                         {isTopTime && !isTopPage && (
                                           <Badge className="ml-2 bg-orange-100 text-orange-800 border-orange-300">
-                                            Most Time Spent
+                                            Top Time
                                           </Badge>
                                         )}
                                       </div>
@@ -588,12 +646,11 @@ export default function AdminDashboard() {
                                   </TableRow>
                                 )
                               })}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )
-                    })}
-                    
+                            </React.Fragment>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </CardContent>

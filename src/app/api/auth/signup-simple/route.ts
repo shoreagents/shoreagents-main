@@ -48,6 +48,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if email already exists in the database
+    const { data: existingEmail, error: emailCheckError } = await supabase
+      .from('users')
+      .select('email')
+      .eq('email', email)
+      .single()
+
+    if (emailCheckError && emailCheckError.code !== 'PGRST116') {
+      // PGRST116 is "not found" error, which is expected for new emails
+      console.error('Error checking existing email:', emailCheckError)
+      return NextResponse.json(
+        { error: 'Failed to validate email. Please try again.' },
+        { status: 500 }
+      )
+    }
+
+    if (existingEmail) {
+      return NextResponse.json(
+        { error: 'An account with this email already exists. Please sign in instead.' },
+        { status: 400 }
+      )
+    }
+
     // Create user in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,

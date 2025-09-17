@@ -42,13 +42,13 @@ const fallbackRates = {
 }
 
 const currencies: Currency[] = [
-  { symbol: '$', code: 'USD', exchangeRate: 1.0 },
-  { symbol: 'A$', code: 'AUD', exchangeRate: 1.52 },
-  { symbol: 'C$', code: 'CAD', exchangeRate: 1.35 },
-  { symbol: '£', code: 'GBP', exchangeRate: 0.79 },
-  { symbol: 'NZ$', code: 'NZD', exchangeRate: 1.64 },
-  { symbol: '€', code: 'EUR', exchangeRate: 0.92 },
-  { symbol: '₱', code: 'PHP', exchangeRate: 55.5 }
+  { symbol: '$', code: 'USD', exchangeRate: 0.018 }, // 1 PHP = $0.018
+  { symbol: 'A$', code: 'AUD', exchangeRate: 0.027 }, // 1 PHP = A$0.027
+  { symbol: 'C$', code: 'CAD', exchangeRate: 0.024 }, // 1 PHP = C$0.024
+  { symbol: '£', code: 'GBP', exchangeRate: 0.014 }, // 1 PHP = £0.014
+  { symbol: 'NZ$', code: 'NZD', exchangeRate: 0.029 }, // 1 PHP = NZ$0.029
+  { symbol: '€', code: 'EUR', exchangeRate: 0.016 }, // 1 PHP = €0.016
+  { symbol: '₱', code: 'PHP', exchangeRate: 1.0 } // 1 PHP = ₱1.0
 ]
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
@@ -89,10 +89,22 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setLastUpdated(new Date().toLocaleTimeString())
         
         // Update currencies with real-time rates
-        const updatedCurrencies = currencies.map(currency => ({
-          ...currency,
-          exchangeRate: rates[currency.code] || currency.exchangeRate
-        }))
+        // Convert from USD-based rates to PHP-based rates
+        const phpToUsdRate = rates.PHP || 55.5; // 1 USD = 55.5 PHP (default)
+        const usdToPhpRate = 1 / phpToUsdRate; // 1 PHP = 0.018 USD
+        
+        const updatedCurrencies = currencies.map(currency => {
+          if (currency.code === 'PHP') {
+            return { ...currency, exchangeRate: 1.0 }
+          } else if (currency.code === 'USD') {
+            return { ...currency, exchangeRate: usdToPhpRate }
+          } else {
+            // For other currencies: convert USD rate to PHP rate
+            const usdToTargetRate = rates[currency.code] || 1;
+            const phpToTargetRate = usdToTargetRate * usdToPhpRate;
+            return { ...currency, exchangeRate: phpToTargetRate }
+          }
+        })
         
         // Update the currencies state
         setCurrenciesState(updatedCurrencies)
@@ -106,6 +118,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         }
         
         console.log('✅ Exchange rates updated successfully:', rates)
+        console.log('🔄 Rate conversion:', {
+          phpToUsdRate,
+          usdToPhpRate,
+          sampleConversion: `1 PHP = ${usdToPhpRate.toFixed(4)} USD`
+        })
         console.log('Updated currencies:', updatedCurrencies)
       } else {
         console.warn('⚠️ No exchange rates received from API, using fallback rates')

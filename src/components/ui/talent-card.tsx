@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { Button } from './button';
 import { Card, CardContent } from './card';
@@ -25,6 +26,7 @@ interface TalentCardProps {
 }
 
 export function TalentCard({ data, onViewDetails, onViewResume, rank }: TalentCardProps) {
+  const router = useRouter();
   const [isLoadingResume, setIsLoadingResume] = useState(false);
   const hasWorkStatus = data.workStatus;
   const hasResume = data.resume;
@@ -192,7 +194,11 @@ export function TalentCard({ data, onViewDetails, onViewResume, rank }: TalentCa
         {/* Action Buttons */}
         <div className="space-y-2">
           <Button
-            onClick={() => onViewDetails?.(data)}
+            onClick={() => {
+              // Navigate to employee profile page
+              router.push(`/employee/${data.user.id}`);
+              onViewDetails?.(data);
+            }}
             className="w-full bg-gradient-to-r from-lime-600 to-lime-700 hover:from-lime-700 hover:to-lime-800 text-white flex items-center justify-center space-x-2"
           >
             <Eye className="w-4 h-4" />
