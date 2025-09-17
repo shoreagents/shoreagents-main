@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
+import Image from 'next/image';
 import { Button } from './button';
 import { Card, CardContent } from './card';
 import { Badge } from './badge';
@@ -111,10 +112,12 @@ export function TalentCard({ data, onViewDetails, onViewResume, rank }: TalentCa
           {/* Avatar */}
           <div className="w-20 h-20 bg-gradient-to-br from-lime-400 to-lime-600 rounded-full flex items-center justify-center relative overflow-hidden">
             {data.user.avatar ? (
-              <img
+              <Image
                 src={data.user.avatar}
                 alt={data.user.name}
                 className="w-full h-full object-cover"
+                width={80}
+                height={80}
               />
             ) : (
               <User className="w-10 h-10 text-white" />

@@ -33,7 +33,7 @@ export function RoleAutocomplete({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // Get role suggestions based on industry
   const industryRoles = getRoleSuggestionsForIndustry(industry);

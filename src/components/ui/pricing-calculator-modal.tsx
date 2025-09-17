@@ -13,7 +13,7 @@ import { AIIndustryAutocomplete } from './ai-industry-autocomplete';
 import { AIRoleAutocomplete } from './ai-role-autocomplete';
 import { AIDescriptionGenerator } from './ai-description-generator';
 import { RoleCardCollapsed } from './role-card-collapsed';
-import { getCandidateRecommendations } from '@/lib/bpocPricingService';
+import { getCandidateRecommendations, CandidateRecommendation } from '@/lib/bpocPricingService';
 import { TalentCard } from './talent-card';
 import { EmployeeCardData } from '@/types/api';
 import { rankEmployeesByScore } from '@/lib/employeeRankingService';
@@ -28,7 +28,10 @@ interface RoleDetail {
   count: number;
   workspace?: 'wfh' | 'hybrid' | 'office';
   isCompleted?: boolean;
-  candidateMatch?: any; // Removed JobPositionMatch type
+  candidateMatch?: {
+    totalCandidates: number;
+    recommendedCandidates: unknown[];
+  };
   isBPOCIntegrated?: boolean;
 }
 
@@ -96,7 +99,15 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   } = useCurrency();
 
   // Convert BPOC candidate to EmployeeCardData format
-  const convertToEmployeeCardData = (candidate: any, rank: number): EmployeeCardData => {
+  const convertToEmployeeCardData = (candidate: {
+    id: string;
+    name: string;
+    position: string;
+    overallScore: number;
+    matchScore: number;
+    skills: string[];
+    expectedSalary?: number;
+  }, rank: number): EmployeeCardData => {
     return {
       user: {
         id: candidate.id,
@@ -341,7 +352,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       // Only reset if form is completely empty (first time opening)
       resetForm();
     }
-  }, [isOpen]);
+  }, [isOpen, currentStep, memberCount, industry]);
 
   // Create all role buttons upfront when memberCount is set (only for different roles)
   useEffect(() => {
@@ -357,7 +368,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       }));
       setRoles(newRoles);
     }
-  }, [memberCount, sameRoles]);
+  }, [memberCount, sameRoles, roles.length]);
 
   // Handle same roles toggle
   useEffect(() => {
@@ -375,7 +386,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       }));
       setRoles(newRoles);
     }
-  }, [sameRoles, memberCount]);
+  }, [sameRoles, memberCount, roles]);
 
   // Set first role as active when entering Step 2
   useEffect(() => {
@@ -385,7 +396,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         setActiveRoleId(firstIncompleteRole.id);
       }
     }
-  }, [currentStep, activeRoleId, roles]);
+  }, [currentStep, activeRoleId, roles.length]);
 
   // Helper functions
   const addRole = () => {
@@ -1102,11 +1113,11 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                               {(() => {
                                 // Rank candidates by score and get top 10
-                                const rankedCandidates = rankEmployeesByScore(role.candidateMatch?.recommendedCandidates || []);
+                                const rankedCandidates = rankEmployeesByScore((role.candidateMatch?.recommendedCandidates as CandidateRecommendation[]) || []);
                                 const topCandidates = rankedCandidates.slice(0, 10);
                                 
                                 return topCandidates.map((rankedCandidate, candidateIndex) => {
-                                  const originalCandidate = role.candidateMatch?.recommendedCandidates.find((c: any) => c.id === rankedCandidate.id);
+                                  const originalCandidate = (role.candidateMatch?.recommendedCandidates as CandidateRecommendation[])?.find((c: CandidateRecommendation) => c.id === rankedCandidate.id);
                                   if (!originalCandidate) return null;
                                   
                                   const employeeData = convertToEmployeeCardData(originalCandidate, rankedCandidate.rank);

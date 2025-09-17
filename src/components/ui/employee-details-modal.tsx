@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
+import Image from 'next/image';
 import { Button } from './button';
 import { 
   X, 
@@ -100,10 +101,12 @@ export function EmployeeDetailsModal({ employee, isOpen, onClose, onViewResume }
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full flex items-center justify-center">
               {employee.user.avatar ? (
-                <img 
+                <Image 
                   src={employee.user.avatar} 
                   alt={employee.user.name}
                   className="w-16 h-16 rounded-full object-cover"
+                  width={64}
+                  height={64}
                 />
               ) : (
                 <User className="w-8 h-8 text-white" />

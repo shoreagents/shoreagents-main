@@ -32,6 +32,7 @@ import {
 
 export const description = "An interactive area chart"
 
+/*
 const chartData = [
   { date: "2024-04-01", desktop: 222, mobile: 150 },
   { date: "2024-04-02", desktop: 97, mobile: 180 },
@@ -125,6 +126,7 @@ const chartData = [
   { date: "2024-06-29", desktop: 103, mobile: 160 },
   { date: "2024-06-30", desktop: 446, mobile: 400 },
 ]
+*/
 
 const chartConfig = {
   visitors: {
@@ -157,6 +159,7 @@ export function ChartAreaInteractive({ totalVisitors = 0, uniqueVisitors = 0, re
   }, [isMobile])
 
   // Generate real data based on actual metrics
+  /*
   const generateRealChartData = () => {
     const referenceDate = new Date("2024-06-30")
     let daysToSubtract = 90
@@ -184,6 +187,7 @@ export function ChartAreaInteractive({ totalVisitors = 0, uniqueVisitors = 0, re
     }
     return data
   }
+  */
 
   // Use real data if available, otherwise show empty state
   const getFilteredData = () => {

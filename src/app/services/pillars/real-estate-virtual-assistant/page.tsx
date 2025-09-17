@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, User, Home, Calculator, Users, TrendingUp } from 'lucide-react'
+import { ArrowRight, User, Home, Calculator, Users } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 
 export default function RealEstateVirtualAssistantPage() {

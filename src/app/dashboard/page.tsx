@@ -9,33 +9,22 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
 import { 
   Users, 
   Building, 
-  TrendingUp, 
-  Clock, 
   DollarSign, 
-  Calendar,
   Settings,
   Bell,
-  Search,
   Filter,
-  Download,
   Eye,
-  Edit,
   Plus,
   BarChart3,
   PieChart,
   Activity,
   Target,
-  Award,
-  Star,
   MessageSquare,
   FileText,
-  CheckCircle,
-  AlertCircle,
-  Info
+  CheckCircle
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -83,7 +72,7 @@ interface ServiceRequest {
 }
 
 export default function UserDashboard() {
-  const { user, appUser, loading } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
     totalTeamMembers: 0,

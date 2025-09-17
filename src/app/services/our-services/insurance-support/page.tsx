@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle, Shield, FileText, Phone, Users, TrendingUp, Award, RefreshCw, Eye } from 'lucide-react'
+import { ArrowRight, Shield, FileText, Phone, Users, TrendingUp, RefreshCw, Eye } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 
 export default function InsuranceSupportPage() {

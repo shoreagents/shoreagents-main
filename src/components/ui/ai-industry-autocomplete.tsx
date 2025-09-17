@@ -49,8 +49,8 @@ export function AIIndustryAutocomplete({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const listRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Debounced AI search function with proper request cancellation

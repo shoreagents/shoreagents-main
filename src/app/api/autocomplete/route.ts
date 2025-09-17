@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Simple in-memory cache for autocomplete suggestions
-const suggestionCache = new Map<string, { suggestions: any[]; timestamp: number }>();
+const suggestionCache = new Map<string, { suggestions: unknown[]; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export async function POST(request: NextRequest) {

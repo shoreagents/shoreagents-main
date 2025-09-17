@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle, Hammer, Building, FileText, Users, TrendingUp, Shield, User, Calendar, Target } from 'lucide-react'
+import { ArrowRight, Hammer, Building, FileText, Users, TrendingUp, Shield, User } from 'lucide-react'
 import { SideNav } from '@/components/layout/SideNav'
 
 export default function ConstructionTeamPage() {
