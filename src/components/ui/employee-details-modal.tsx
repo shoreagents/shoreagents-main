@@ -83,16 +83,16 @@ export function EmployeeDetailsModal({ employee, isOpen, onClose, onViewResume }
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div 
-        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
-          isVisible ? 'opacity-50' : 'opacity-0'
+        className={`absolute inset-0 bg-black/50 backdrop-blur-sm modal-backdrop ${
+          isVisible ? 'modal-backdrop-enter' : 'modal-backdrop-exit'
         }`}
         onClick={onClose}
       />
       
       {/* Modal */}
       <div 
-        className={`relative bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden transition-all duration-300 ${
-          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        className={`relative bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden modal-content ${
+          isVisible ? 'modal-content-enter' : 'modal-content-exit'
         }`}
       >
         {/* Header */}

@@ -15,3 +15,5 @@ WHERE email = 'your-email@example.com';
 SELECT user_id, auth_user_id, user_type, email, first_name, last_name 
 FROM users 
 WHERE user_type = 'Admin';
+
+

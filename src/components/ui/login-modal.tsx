@@ -8,22 +8,42 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { LogIn, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { LogIn, UserPlus, ChevronLeft, ChevronRight, User, Mail, Phone, Building, MapPin, Lock, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
 import { supabase } from "@/lib/supabase"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 
-interface LoginFormData {
-  email: string
-  password: string
-}
+// Login form schema
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+})
+
+// Signup form schema
+const signupSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  company: z.string().min(1, "Company is required"),
+  country: z.string().min(1, "Country is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+})
+
+type LoginFormData = z.infer<typeof loginSchema>
+type SignupFormData = z.infer<typeof signupSchema>
 
 interface LoginModalProps {
   children?: React.ReactNode
@@ -33,33 +53,70 @@ interface LoginModalProps {
 export function LoginModal({ children, onSuccess }: LoginModalProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isSignup, setIsSignup] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: "",
-  })
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right')
+  const [emailChecking, setEmailChecking] = useState(false)
+  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
   const { refreshUser } = useAuth()
 
-  const handleInputChange = (field: keyof LoginFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-  const validateForm = (): string | null => {
-    if (!formData.email.trim()) return "Email is required"
-    if (!formData.email.includes("@")) return "Please enter a valid email"
-    if (!formData.password) return "Password is required"
-    return null
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const validationError = validateForm()
-    if (validationError) {
-      toast.error(validationError)
+  // Check email availability
+  const checkEmailAvailability = async (email: string) => {
+    if (!email || !email.includes('@')) {
+      setEmailAvailable(null)
       return
     }
 
+    setEmailChecking(true)
+    try {
+      const response = await fetch('/api/auth/check-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const result = await response.json()
+      setEmailAvailable(result.available)
+    } catch (error) {
+      console.error('Error checking email availability:', error)
+      setEmailAvailable(null)
+    } finally {
+      setEmailChecking(false)
+    }
+  }
+
+  // Login form
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: "onSubmit",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
+
+  // Signup form
+  const signupForm = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    mode: "onSubmit",
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNumber: "",
+      company: "",
+      country: "",
+      password: "",
+      confirmPassword: "",
+    },
+  })
+
+  // Login form submission
+  const onLoginSubmit = async (data: LoginFormData) => {
     setLoading(true)
     
     try {
@@ -67,10 +124,9 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
         throw new Error("Supabase client not available")
       }
 
-      // Use client-side Supabase authentication
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
+        email: data.email,
+        password: data.password,
       })
 
       if (authError) {
@@ -83,12 +139,8 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
 
       toast.success("Welcome back!")
       setOpen(false)
-      setFormData({
-        email: "",
-        password: "",
-      })
+      loginForm.reset()
       
-      // Refresh user context
       await refreshUser()
       
       if (onSuccess) {
@@ -102,8 +154,137 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
     }
   }
 
+  // Signup form submission
+  const onSignupSubmit = async (data: SignupFormData) => {
+    // Prevent submission if email is not available
+    if (emailAvailable === false) {
+      toast.error('Please use a different email address or sign in with your existing account.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch("/api/auth/signup-simple", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber,
+          company: data.company,
+          country: data.country,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "Sign up failed")
+      }
+
+      toast.success("Account created successfully! Your browsing history has been preserved and linked to your account.")
+      setOpen(false)
+      signupForm.reset()
+      setIsSignup(false)
+      setCurrentStep(1)
+
+      if (onSuccess) {
+        onSuccess()
+      }
+    } catch (error) {
+      console.error("Sign up error:", error)
+      toast.error(error instanceof Error ? error.message : "Sign up failed. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Google sign-in handler
+  const handleGoogleSignIn = async () => {
+    setLoading(true)
+    
+    try {
+      if (!supabase) {
+        throw new Error("Supabase client not available")
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      // The OAuth flow will redirect the user, so we don't need to handle success here
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      toast.error(error instanceof Error ? error.message : "Google sign-in failed. Please try again.")
+      setLoading(false)
+    }
+  }
+
+  // Toggle between login and signup
+  const toggleMode = () => {
+    if (isSignup) {
+      // Going from signup to login - slide left
+      setSlideDirection('left')
+    } else {
+      // Going from login to signup - slide right
+      setSlideDirection('right')
+    }
+    setIsSignup(!isSignup)
+    setCurrentStep(1)
+    setEmailAvailable(null)
+    setEmailChecking(false)
+    loginForm.reset()
+    signupForm.reset()
+  }
+
+  // Signup form navigation
+  const nextStep = async () => {
+    const fieldsToValidate = currentStep === 1 
+      ? ['firstName', 'lastName', 'email', 'phoneNumber'] 
+      : ['company', 'country', 'password', 'confirmPassword']
+    
+    const isValid = await signupForm.trigger(fieldsToValidate as any)
+    
+    // Also check if email is available before proceeding
+    if (currentStep === 1 && emailAvailable === false) {
+      toast.error('Please use a different email address or sign in with your existing account.')
+      return
+    }
+    
+    if (isValid && (currentStep === 2 || emailAvailable !== false)) {
+      setCurrentStep(2)
+    }
+  }
+
+  const prevStep = () => {
+    setCurrentStep(1)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      setOpen(newOpen)
+      if (!newOpen) {
+        setIsSignup(false)
+        setCurrentStep(1)
+        setSlideDirection('right')
+        setEmailAvailable(null)
+        setEmailChecking(false)
+        loginForm.reset()
+        signupForm.reset()
+      }
+    }}>
       <DialogTrigger asChild>
         {children || (
           <Button variant="outline" className="border-lime-300 text-lime-700 hover:bg-lime-50">
@@ -112,51 +293,383 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[700px] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center text-gray-900">
-            Welcome Back
+            {isSignup ? "Create Your Account" : "Welcome to ShoreAgents"}
           </DialogTitle>
           <DialogDescription className="text-center text-gray-600">
-            Sign in to your ShoreAgents account
+            {isSignup 
+              ? "Join ShoreAgents and access our premium offshore talent solutions"
+              : "Sign in to your ShoreAgents account"
+            }
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Card className="border-0 shadow-none">
-            <CardContent className="space-y-4 pt-6">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="john.doe@company.com"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="pl-10 border-gray-300 focus:border-lime-500 focus:ring-lime-500"
-                    required
+
+        <div className="px-6 py-4 flex-1 flex flex-col overflow-hidden">
+          {/* Login Form */}
+          {!isSignup && (
+            <div className={`animate-in fade-in-0 duration-300 flex-1 flex flex-col ${
+              slideDirection === 'left' 
+                ? 'slide-in-from-right-4' 
+                : 'slide-in-from-left-4'
+            }`}>
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="flex-1 flex flex-col">
+                  <div className="space-y-4 flex-1">
+                    <FormField
+                      control={loginForm.control}
+                      name="email"
+                      render={({ field, fieldState }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Email"}
+                              className={`${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e)
+                                // Clear error when user starts typing
+                                if (fieldState.error) {
+                                  loginForm.clearErrors('email')
+                                }
+                              }}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={loginForm.control}
+                      name="password"
+                      render={({ field, fieldState }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type={showPassword ? "text" : "password"}
+                                placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Password"}
+                                className={`pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e)
+                                  // Clear error when user starts typing
+                                  if (fieldState.error) {
+                                    loginForm.clearErrors('password')
+                                  }
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button 
+                      type="submit" 
+                      disabled={loading}
+                      className="w-full bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
+                    >
+                      {loading ? "Signing In..." : "Sign In"}
+                    </Button>
+
+                    <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-gray-200">
+                      <span className="bg-white text-gray-500 relative z-10 px-2">
+                        Or
+                      </span>
+                    </div>
+
+                    <Button 
+                      variant="outline" 
+                      type="button" 
+                      className="w-full"
+                      onClick={handleGoogleSignIn}
+                      disabled={loading}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 mr-2">
+                        <path
+                          d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                      {loading ? "Signing in..." : "Continue with Google"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+
+              {/* Toggle to Signup */}
+              <div className="flex items-center justify-center space-x-2 pt-4 mt-6 border-t border-gray-200">
+                <span className="text-sm text-gray-600">Don't have an account?</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleMode}
+                  className="text-lime-600 hover:text-lime-700 hover:bg-lime-50 p-1 h-auto"
+                >
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  Sign Up
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Signup Form */}
+          {isSignup && (
+            <div className={`animate-in fade-in-0 duration-300 flex-1 flex flex-col ${
+              slideDirection === 'right' 
+                ? 'slide-in-from-right-4' 
+                : 'slide-in-from-left-4'
+            }`}>
+              <Form {...signupForm}>
+                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="flex-1 flex flex-col">
+                  <div className="flex-1 space-y-4">
+                    {/* Step 1: Personal Information */}
+                    {currentStep === 1 && (
+                      <div className="space-y-4">
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={signupForm.control}
+                            name="firstName"
+                            render={({ field, fieldState }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm font-medium text-gray-700">First Name</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <Input
+                                      placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "First Name"}
+                                      className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                      {...field}
+                                      onChange={(e) => {
+                                        field.onChange(e)
+                                        // Clear error when user starts typing
+                                        if (fieldState.error) {
+                                          signupForm.clearErrors('firstName')
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={signupForm.control}
+                            name="lastName"
+                            render={({ field, fieldState }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm font-medium text-gray-700">Last Name</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <Input
+                                      placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Last Name"}
+                                      className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                      {...field}
+                                      onChange={(e) => {
+                                        field.onChange(e)
+                                        // Clear error when user starts typing
+                                        if (fieldState.error) {
+                                          signupForm.clearErrors('lastName')
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={signupForm.control}
+                          name="email"
+                          render={({ field, fieldState }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-gray-700">Email Address</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                  <Input
+                                    type="email"
+                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Email Address"}
+                                    className={`pl-10 pr-10 ${
+                                      fieldState.error && fieldState.isTouched 
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' 
+                                        : emailAvailable === false
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                        : emailAvailable === true
+                                        ? 'border-green-500 focus:border-green-500 focus:ring-green-500'
+                                        : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'
+                                    }`}
+                                    {...field}
+                                    onChange={(e) => {
+                                      field.onChange(e)
+                                      // Clear error when user starts typing
+                                      if (fieldState.error) {
+                                        signupForm.clearErrors('email')
+                                      }
+                                      // Check email availability with debounce
+                                      const timeoutId = setTimeout(() => {
+                                        checkEmailAvailability(e.target.value)
+                                      }, 500)
+                                      return () => clearTimeout(timeoutId)
+                                    }}
+                                  />
+                                  {emailChecking && (
+                                    <div className="absolute right-3 top-3 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-lime-600"></div>
+                                  )}
+                                  {!emailChecking && emailAvailable === false && (
+                                    <div className="absolute right-3 top-3 h-4 w-4 text-red-500">✗</div>
+                                  )}
+                                  {!emailChecking && emailAvailable === true && (
+                                    <div className="absolute right-3 top-3 h-4 w-4 text-green-500">✓</div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              {emailAvailable === false && (
+                                <p className="text-sm text-red-600 mt-1">
+                                  This email is already registered. Please sign in instead.
+                                </p>
+                              )}
+                              {emailAvailable === true && (
+                                <p className="text-sm text-green-600 mt-1">
+                                  Email is available.
+                                </p>
+                              )}
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={signupForm.control}
+                          name="phoneNumber"
+                          render={({ field, fieldState }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-gray-700">Phone Number</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                  <Input
+                                    type="tel"
+                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Phone Number"}
+                                    className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                    {...field}
+                                    onChange={(e) => {
+                                      field.onChange(e)
+                                      // Clear error when user starts typing
+                                      if (fieldState.error) {
+                                        signupForm.clearErrors('phoneNumber')
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
                   />
                 </div>
+                    )}
+
+                    {/* Step 2: Company & Security */}
+                    {currentStep === 2 && (
+                      <div className="space-y-4">
+                        <div className="text-center mb-6">
+                          <h3 className="text-lg font-semibold text-gray-900">Company & Security</h3>
+                          <p className="text-sm text-gray-600">Complete your account setup</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </Label>
+                        <FormField
+                          control={signupForm.control}
+                          name="company"
+                          render={({ field, fieldState }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-gray-700">Company Name</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                  <Input
+                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Company Name"}
+                                    className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                    {...field}
+                                    onChange={(e) => {
+                                      field.onChange(e)
+                                      // Clear error when user starts typing
+                                      if (fieldState.error) {
+                                        signupForm.clearErrors('company')
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={signupForm.control}
+                          name="country"
+                          render={({ field, fieldState }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-gray-700">Country</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                  <Input
+                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Country"}
+                                    className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                    {...field}
+                                    onChange={(e) => {
+                                      field.onChange(e)
+                                      // Clear error when user starts typing
+                                      if (fieldState.error) {
+                                        signupForm.clearErrors('country')
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={signupForm.control}
+                          name="password"
+                          render={({ field, fieldState }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
+                              <FormControl>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    className="pl-10 pr-10 border-gray-300 focus:border-lime-500 focus:ring-lime-500"
-                    required
+                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Password"}
+                                    className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                    {...field}
+                                    onChange={(e) => {
+                                      field.onChange(e)
+                                      // Clear error when user starts typing
+                                      if (fieldState.error) {
+                                        signupForm.clearErrors('password')
+                                      }
+                                    }}
                   />
                   <button
                     type="button"
@@ -166,30 +679,127 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={signupForm.control}
+                          name="confirmPassword"
+                          render={({ field, fieldState }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-gray-700">Confirm Password</FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                  <Input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Confirm your password"}
+                                    className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                    {...field}
+                                    onChange={(e) => {
+                                      field.onChange(e)
+                                      // Clear error when user starts typing
+                                      if (fieldState.error) {
+                                        signupForm.clearErrors('confirmPassword')
+                                      }
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+                                  >
+                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
               </div>
-            </CardContent>
-          </Card>
 
-          <Separator className="my-6" />
+                  {/* Navigation Buttons - Fixed at bottom */}
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-auto">
+                    <div>
+                      {currentStep === 2 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={prevStep}
+                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          <ChevronLeft className="w-4 h-4 mr-2" />
+                          Back
+                        </Button>
+                      )}
+                    </div>
 
-          <DialogFooter className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3">
+                    <div className="flex space-x-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-50"
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </Button>
+
+                      {currentStep === 1 ? (
+                        <Button
+                          type="button"
+                          onClick={nextStep}
+                          className="bg-lime-600 hover:bg-lime-700 text-white"
+                        >
+                          Next
+                          <ChevronRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      ) : (
             <Button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
+                          className="bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
             >
-              {loading ? "Signing In..." : "Sign In"}
+                          {loading ? "Creating Account..." : "Create Account"}
             </Button>
-          </DialogFooter>
+                      )}
+                    </div>
+                  </div>
         </form>
+              </Form>
+
+              {/* Toggle to Login */}
+              <div className="flex items-center justify-center space-x-2 pt-4 mt-6 border-t border-gray-200">
+                <span className="text-sm text-gray-600">Already have an account?</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleMode}
+                  className="text-lime-600 hover:text-lime-700 hover:bg-lime-50 p-1 h-auto"
+                >
+                  <LogIn className="w-4 h-4 mr-1" />
+                  Sign In
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center text-xs text-gray-500 mt-4">
+            By {isSignup ? "creating an account" : "signing in"}, you agree to our{" "}
+            <a href="#" className="underline underline-offset-4 hover:text-lime-600">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#" className="underline underline-offset-4 hover:text-lime-600">
+              Privacy Policy
+            </a>
+            .
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -45,3 +45,5 @@ SELECT
     last_name
 FROM users 
 WHERE auth_user_id IS NOT NULL;
+
+
