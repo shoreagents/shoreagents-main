@@ -4,9 +4,18 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { UserType } from '@/types/user'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { Users, Mail, Building, Calendar, Database, TableIcon } from 'lucide-react'
 
 interface User {
   user_id: string
@@ -96,71 +105,129 @@ export function UserManagement() {
     fetchUsers()
   }, [])
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>Manage user types and permissions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="w-8 h-8 border-4 border-lime-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Management</CardTitle>
-        <CardDescription>Manage user types and permissions</CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          <TableIcon className="w-5 h-5 text-lime-600" />
+          User Management
+        </CardTitle>
+        <CardDescription>
+          Real-time user data from your database - manage user types and permissions
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {users.map((user) => (
-            <div key={user.user_id} className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-medium">
-                    {user.first_name && user.last_name 
-                      ? `${user.first_name} ${user.last_name}`
-                      : 'Anonymous User'
-                    }
-                  </h3>
-                  {getUserTypeBadge(user.user_type)}
-                </div>
-                <div className="text-sm text-gray-600 space-y-1">
-                  {user.email && <div>Email: {user.email}</div>}
-                  {user.company && <div>Company: {user.company}</div>}
-                  <div>User ID: {user.user_id}</div>
-                  <div>Created: {new Date(user.created_at).toLocaleDateString()}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={user.user_type}
-                  onValueChange={(value) => updateUserType(user.user_id, value as UserType)}
-                  disabled={updating === user.user_id}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={UserType.ANONYMOUS}>Anonymous</SelectItem>
-                    <SelectItem value={UserType.REGULAR}>Regular</SelectItem>
-                    <SelectItem value={UserType.ADMIN}>Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-                {updating === user.user_id && (
-                  <div className="w-4 h-4 border-2 border-lime-600 border-t-transparent rounded-full animate-spin"></div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-lime-600 border-t-transparent rounded-full animate-spin mr-2" />
+            Loading user data...
+          </div>
+        ) : users.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p>No users found</p>
+            <p className="text-sm">User data will appear here when available</p>
+          </div>
+        ) : (
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader className="bg-lime-50 border-b">
+                <TableRow>
+                  <TableHead className="w-[250px] font-semibold text-gray-900">Email</TableHead>
+                  <TableHead className="w-[200px] font-semibold text-gray-900">Name</TableHead>
+                  <TableHead className="w-[180px] font-semibold text-gray-900">Company</TableHead>
+                  <TableHead className="w-[120px] font-semibold text-gray-900">User Type</TableHead>
+                  <TableHead className="w-[150px] font-semibold text-gray-900">Created</TableHead>
+                  <TableHead className="w-[140px] font-semibold text-gray-900">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.user_id} className="hover:bg-lime-50/50 transition-colors">
+                    {/* Email Column */}
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-lime-600" />
+                        <span className="text-sm font-semibold text-gray-900">
+                          {user.email || 'No email provided'}
+                        </span>
+                        {!user.email && (
+                          <Badge variant="outline" className="text-gray-500 border-gray-300 text-xs">
+                            Anonymous
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        ID: {user.user_id}
+                      </div>
+                    </TableCell>
+                    
+                    {/* Name Column */}
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">
+                          {user.first_name && user.last_name 
+                            ? `${user.first_name} ${user.last_name}`
+                            : 'Anonymous User'
+                          }
+                        </span>
+                      </div>
+                    </TableCell>
+                    
+                    {/* Company Column */}
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Building className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">
+                          {user.company || 'Not specified'}
+                        </span>
+                      </div>
+                    </TableCell>
+                    
+                    {/* User Type Column */}
+                    <TableCell>
+                      {getUserTypeBadge(user.user_type)}
+                    </TableCell>
+                    
+                    {/* Created Column */}
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          {new Date(user.created_at).toLocaleDateString()} {new Date(user.created_at).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </TableCell>
+                    
+                    {/* Actions Column */}
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={user.user_type}
+                          onValueChange={(value) => updateUserType(user.user_id, value as UserType)}
+                          disabled={updating === user.user_id}
+                        >
+                          <SelectTrigger className="w-28 h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={UserType.ANONYMOUS}>Anonymous</SelectItem>
+                            <SelectItem value={UserType.REGULAR}>Regular</SelectItem>
+                            <SelectItem value={UserType.ADMIN}>Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {updating === user.user_id && (
+                          <div className="w-4 h-4 border-2 border-lime-600 border-t-transparent rounded-full animate-spin"></div>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
