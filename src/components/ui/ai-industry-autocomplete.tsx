@@ -60,6 +60,26 @@ export function AIIndustryAutocomplete({
       return;
     }
 
+    // Check if current query matches existing suggestions to avoid unnecessary API calls
+    const queryLower = query.toLowerCase().trim();
+    const hasMatchingSuggestion = suggestions.some(suggestion => 
+      suggestion.name.toLowerCase().includes(queryLower) ||
+      suggestion.category.toLowerCase().includes(queryLower) ||
+      suggestion.description.toLowerCase().includes(queryLower)
+    );
+
+    if (hasMatchingSuggestion) {
+      // Filter existing suggestions instead of making API call
+      const filteredSuggestions = suggestions.filter(suggestion =>
+        suggestion.name.toLowerCase().includes(queryLower) ||
+        suggestion.category.toLowerCase().includes(queryLower) ||
+        suggestion.description.toLowerCase().includes(queryLower)
+      );
+      setSuggestions(filteredSuggestions);
+      setIsLoading(false);
+      return;
+    }
+
     // Cancel previous request if it exists
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -73,7 +93,8 @@ export function AIIndustryAutocomplete({
     setError(null);
 
     try {
-      const response = await fetch('/api/autocomplete', {
+      // Add timeout to fetch request (6 seconds)
+      const fetchPromise = fetch('/api/autocomplete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,6 +105,12 @@ export function AIIndustryAutocomplete({
         }),
         signal: controller.signal
       });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 8000)
+      );
+      
+      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
       // Check if request was aborted
       if (controller.signal.aborted) {
@@ -110,7 +137,7 @@ export function AIIndustryAutocomplete({
         abortControllerRef.current = null;
       }
     }
-  }, []);
+  }, [suggestions]);
 
   // Debounced search effect
   useEffect(() => {
@@ -118,9 +145,12 @@ export function AIIndustryAutocomplete({
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    debounceTimeoutRef.current = setTimeout(() => {
-      searchWithAI(searchQuery);
-    }, 150); // 150ms debounce - faster response
+    // Only search if there's a query and it's not just whitespace
+    if (searchQuery.trim()) {
+      debounceTimeoutRef.current = setTimeout(() => {
+        searchWithAI(searchQuery);
+      }, 50); // 50ms debounce - ultra-fast response
+    }
 
     return () => {
       if (debounceTimeoutRef.current) {
@@ -306,7 +336,7 @@ export function AIIndustryAutocomplete({
               {isLoading ? (
                 <div className="px-4 py-3 text-sm text-gray-500 text-center">
                   <Loader2 className="w-4 h-4 animate-spin inline mr-2" style={{ animationDuration: '0.8s' }} />
-                  AI is thinking...
+                  AI is finding the best suggestions...
                 </div>
               ) : error ? (
                 <div className="px-4 py-3 text-sm text-red-500 text-center">

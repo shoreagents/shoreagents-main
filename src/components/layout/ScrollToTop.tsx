@@ -7,13 +7,10 @@ export function ScrollToTop() {
   const pathname = usePathname()
 
   useEffect(() => {
-    // Scroll to top on page refresh
+    // Only scroll to top on page refresh, not on route changes
     const handleBeforeUnload = () => {
       window.scrollTo(0, 0)
     }
-
-    // Scroll to top on route change
-    window.scrollTo(0, 0)
 
     // Add event listener for page refresh
     window.addEventListener('beforeunload', handleBeforeUnload)

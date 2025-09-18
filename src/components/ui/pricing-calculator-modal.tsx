@@ -74,6 +74,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const [expandingRole, setExpandingRole] = useState<string | null>(null);
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
   const [showRolesAlert, setShowRolesAlert] = useState(false);
+  const [editingRoles, setEditingRoles] = useState<Set<string>>(new Set());
   
   // Step 1: Member count
   const [memberCount, setMemberCount] = useState<number | null>(null);
@@ -356,19 +357,24 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // Create all role buttons upfront when memberCount is set (only for different roles)
   useEffect(() => {
-    if (memberCount && memberCount > 1 && roles.length === 1 && !sameRoles) {
-      const newRoles = Array.from({ length: memberCount }, (_, index) => ({
-        id: (index + 1).toString(),
-        title: '',
-        description: '',
-        level: 'entry' as const,
-        count: 1,
-        workspace: 'wfh' as const,
-        isCompleted: false
-      }));
-      setRoles(newRoles);
+    if (memberCount && memberCount > 1 && !sameRoles) {
+      // Only create new roles if we currently have exactly 1 role (the default)
+      setRoles(prevRoles => {
+        if (prevRoles.length === 1) {
+          return Array.from({ length: memberCount }, (_, index) => ({
+            id: (index + 1).toString(),
+            title: '',
+            description: '',
+            level: 'entry' as const,
+            count: 1,
+            workspace: 'wfh' as const,
+            isCompleted: false
+          }));
+        }
+        return prevRoles;
+      });
     }
-  }, [memberCount, sameRoles, roles.length]);
+  }, [memberCount, sameRoles]);
 
   // Handle same roles toggle
   useEffect(() => {
@@ -386,7 +392,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       }));
       setRoles(newRoles);
     }
-  }, [sameRoles, memberCount, roles]);
+  }, [sameRoles, memberCount]);
 
   // Set first role as active when entering Step 2
   useEffect(() => {
@@ -396,7 +402,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         setActiveRoleId(firstIncompleteRole.id);
       }
     }
-  }, [currentStep, activeRoleId, roles.length]);
+  }, [currentStep, activeRoleId, roles]);
 
   // Helper functions
   const addRole = () => {
@@ -422,6 +428,18 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     setRoles(roles.map(role => 
       role.id === id ? { ...role, [field]: value } : role
     ));
+  };
+
+  const handleRoleEditingChange = (roleId: string, isEditing: boolean) => {
+    setEditingRoles(prev => {
+      const newSet = new Set(prev);
+      if (isEditing) {
+        newSet.add(roleId);
+      } else {
+        newSet.delete(roleId);
+      }
+      return newSet;
+    });
   };
 
   const handleRoleSave = (id: string) => {
@@ -503,7 +521,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const canProceed = () => {
     switch (currentStep) {
       case 1: return memberCount !== null;
-      case 2: return industry.trim() !== '' && roles.every(role => role.title.trim() !== '');
+      case 2: 
+        return industry.trim() !== '' && 
+               roles.every(role => role.title.trim() !== '' && role.description && role.description.trim() !== '') &&
+               (sameRoles ? roles.some(role => role.isCompleted) : roles.every(role => role.isCompleted));
       case 3: return roles.every(role => role.workspace !== undefined);
       default: return false;
     }
@@ -511,8 +532,15 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   const nextStep = () => {
     if (currentStep === 1) {
-      // Show alert dialog asking if all roles are the same
-      setShowRolesAlert(true);
+      // If only 1 member, skip the roles alert and go directly to step 2
+      if (memberCount === 1) {
+        setSameRoles(true); // For single member, we can assume same role
+        setSlideDirection('right');
+        setCurrentStep(currentStep + 1);
+      } else {
+        // Show alert dialog asking if all roles are the same (only for multiple members)
+        setShowRolesAlert(true);
+      }
       } else if (currentStep === 3) {
         // Move to step 4 first to show loading animation, then start processing
         setSlideDirection('right');
@@ -681,9 +709,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                     <div className="flex items-center gap-2">
                       <Label className="text-base font-semibold">Role Details</Label>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          0/{memberCount || 0} completed
-                        </span>
                         {/* Circular role buttons - show all roles */}
                         <div className="flex items-center gap-1">
                           {Array.from({ length: memberCount || 0 }, (_, index) => {
@@ -738,10 +763,11 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                        // Show the form if this is the active role or if no active role is set and this is the first incomplete role
                        const isActiveRole = activeRoleId === role.id;
                        const isFirstIncomplete = !activeRoleId && !role.isCompleted && roles.slice(0, index).every(r => r.isCompleted);
+                       const isExpanding = expandingRole === role.id;
                        
-                       if (!isActiveRole && !isFirstIncomplete) {
+                       if (!isActiveRole && !isFirstIncomplete && !isExpanding) {
                          return null; // Hide this role form
-                      }
+                       }
 
                        return (
                           <Card key={role.id} className={`p-3 border border-gray-200 ${
@@ -761,20 +787,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                              </h4>
                            </div>
                            
-                              {/* Done Button - show when title is filled */}
-                              {role.title && role.title.trim() !== '' ? (
-                                <Button
-                                  onClick={() => handleRoleSave(role.id)}
-                                  size="sm"
-                                  className="bg-lime-600 hover:bg-lime-700 text-white"
-                                >
-                                  Done
-                                </Button>
-                              ) : (
-                                <div className="text-xs text-gray-400">
-                                  Add role title
-                                </div>
-                              )}
                             </div>
                             
                             <div className="space-y-1 -mt-5">
@@ -800,8 +812,38 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                                label="Role Description"
                                id={`description-${role.id}`}
                                onSave={() => handleRoleSave(role.id)}
+                               onEditingChange={(isEditing) => handleRoleEditingChange(role.id, isEditing)}
                                 className="min-h-[200px]"
                              />
+                             
+                             {/* Dynamic Button - positioned below role description */}
+                             <div className="flex justify-end pt-2">
+                               {role.title && role.title.trim() !== '' && role.description && role.description.trim() !== '' && !editingRoles.has(role.id) ? (
+                                 <Button
+                                   onClick={() => handleRoleSave(role.id)}
+                                   size="sm"
+                                   className="bg-lime-600 hover:bg-lime-700 text-white"
+                                 >
+                                    {(() => {
+                                      // Single role: always "Done"
+                                      if ((memberCount || 0) === 1) return 'Done';
+                                      
+                                      // Multiple roles: "Done" for same roles, "Next" for different roles
+                                      if (sameRoles) return 'Done';
+                                      
+                                      // For different roles: "Done" if this is the last incomplete role, "Next" otherwise
+                                      const incompleteRoles = roles.filter(r => !r.isCompleted);
+                                      const isLastIncompleteRole = incompleteRoles.length === 1 && incompleteRoles[0].id === role.id;
+                                      return isLastIncompleteRole ? 'Done' : 'Next';
+                                    })()}
+                                 </Button>
+                               ) : (
+                                 <div className="text-xs text-gray-400">
+                                   {editingRoles.has(role.id) ? 'Finish editing' : 
+                                    !role.title || role.title.trim() === '' ? 'Add role title' : 'Add role description'}
+                                 </div>
+                               )}
+                             </div>
                            </div>
                          </Card>
                        );
@@ -1001,10 +1043,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                       <span className="font-semibold">{quoteData?.industry}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Workplace:</span>
-                      <span className="font-semibold capitalize">{quoteData?.workplace}</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Setup:</span>
                       <span className="font-semibold text-sm">{quoteData?.workplaceBreakdown}</span>
                     </div>
@@ -1065,10 +1103,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                       <div>
                         <div className="text-lg font-semibold text-gray-900">{quoteData.totalMembers}</div>
                         <div className="text-sm text-gray-600">team members</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-semibold text-gray-900 capitalize">{quoteData.workplace}</div>
-                        <div className="text-sm text-gray-600">workplace</div>
                       </div>
                     </div>
                   </CardContent>
@@ -1210,7 +1244,16 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               size="sm"
                 className="flex items-center space-x-2 bg-lime-600 hover:bg-lime-700"
               >
-                <span>{currentStep === 3 ? 'Get Quote' : 'Next'}</span>
+                <span>
+                  {currentStep === 2 ? (
+                    <>
+                      {sameRoles ? 
+                        (roles.some(role => role.isCompleted) ? 1 : 0) : 
+                        roles.filter(role => role.isCompleted).length
+                      }/{sameRoles ? 1 : (memberCount || 0)} completed - Proceed
+                    </>
+                  ) : currentStep === 3 ? 'Get Quote' : 'Proceed'}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
           </div>

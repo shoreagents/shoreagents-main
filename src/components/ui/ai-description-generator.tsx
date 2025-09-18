@@ -14,6 +14,7 @@ interface AIDescriptionGeneratorProps {
   className?: string;
   id?: string;
   onSave?: () => void;
+  onEditingChange?: (isEditing: boolean) => void;
 }
 
 export function AIDescriptionGenerator({
@@ -25,7 +26,8 @@ export function AIDescriptionGenerator({
   placeholder = "AI will generate a description based on the role title...",
   className = "",
   id,
-  onSave
+  onSave,
+  onEditingChange
 }: AIDescriptionGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,11 +105,17 @@ export function AIDescriptionGenerator({
   const handleManualEdit = () => {
     setIsEditing(true);
     setIsSaved(false);
+    if (onEditingChange) {
+      onEditingChange(true);
+    }
   };
 
   const handleSave = () => {
     setIsSaved(true);
     setIsEditing(false);
+    if (onEditingChange) {
+      onEditingChange(false);
+    }
     if (onSave) {
       onSave();
     }
@@ -128,12 +136,22 @@ export function AIDescriptionGenerator({
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
     setIsSaved(false);
+    // Auto-save when user types
+    if (!isEditing) {
+      setIsEditing(true);
+      if (onEditingChange) {
+        onEditingChange(true);
+      }
+    }
     // Don't change hasGenerated state when user types manually
   };
 
   const handleTextareaBlur = () => {
     if (value.trim()) {
       setIsEditing(false);
+      if (onEditingChange) {
+        onEditingChange(false);
+      }
     }
   };
 
