@@ -156,7 +156,7 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
             {isUser ? <User size={12} /> : (
               <div className="relative w-full h-full">
                 <Image 
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=24"
+                  src="/MayaProfile.png"
                   alt="Maya Santos Avatar"
                   className="w-full h-full object-cover"
                   width={24}
@@ -229,7 +229,7 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
           <div className="relative">
             <div className="w-8 h-8 rounded-full shadow-lg border-2 border-white overflow-hidden">
               <Image 
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=32"
+                src="/MayaProfile.png"
                 alt="Maya Santos Avatar"
                 className="w-full h-full object-cover"
                 width={32}
@@ -283,7 +283,7 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-start gap-2">
                   <div className="w-6 h-6 rounded-full border-2 border-lime-200 overflow-hidden">
                     <Image 
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=maya-santos&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&size=24"
+                      src="/MayaProfile.png"
                       alt="Maya Santos Avatar"
                       className="w-full h-full object-cover"
                       width={24}
