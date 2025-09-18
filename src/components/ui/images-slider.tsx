@@ -70,7 +70,7 @@ export const ImagesSlider = ({
     window.addEventListener("keydown", handleKeyDown);
 
     // autoplay
-    let interval: any;
+    let interval: NodeJS.Timeout | undefined;
     if (autoplay) {
       interval = setInterval(() => {
         handleNext();
@@ -93,24 +93,14 @@ export const ImagesSlider = ({
       scale: 1,
       rotateX: 0,
       opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: [0.645, 0.045, 0.355, 1.0],
-      },
     },
     upExit: {
       opacity: 1,
       y: "-150%",
-      transition: {
-        duration: 1,
-      },
     },
     downExit: {
       opacity: 1,
       y: "150%",
-      transition: {
-        duration: 1,
-      },
     },
   };
 
@@ -142,6 +132,10 @@ export const ImagesSlider = ({
             animate="visible"
             exit={direction === "up" ? "upExit" : "downExit"}
             variants={slideVariants}
+            transition={{
+              duration: 0.5,
+              ease: "easeOut",
+            }}
             className="image h-full w-full absolute inset-0 object-cover object-center"
           />
         </AnimatePresence>
