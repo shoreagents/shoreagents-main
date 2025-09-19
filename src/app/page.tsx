@@ -12,6 +12,8 @@ import { getEmployeeCardData } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import { ImagesSlider } from "@/components/ui/images-slider";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { AnimatedTestimonials } from "@/components/ui/shadcn-io/animated-testimonials";
@@ -318,6 +320,7 @@ export default function Home() {
 
               {/* Clear Responsibilities Section */}
               <div className="mt-16">
+                <Separator className="my-8 bg-lime-200" />
                 <FadeInAnimation direction="up" delay={0}>
                   <div className="text-center mb-12">
                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -426,6 +429,7 @@ export default function Home() {
 
               {/* Quote Section */}
               <div className="mt-16 text-center">
+                <Separator className="my-8 bg-lime-200" />
                 <FadeInAnimation direction="up" delay={0}>
                   <div className="max-w-4xl mx-auto p-8 border-2 border-lime-200 rounded-2xl bg-lime-50 shadow-lg shadow-gray-900/10">
                     <blockquote className="text-lg md:text-xl text-gray-800 italic mb-6 leading-relaxed">
@@ -440,15 +444,19 @@ export default function Home() {
                 {/* CTA Button */}
                 <FadeInAnimation direction="up" delay={200}>
                   <div className="mt-8">
-                    <button className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                    <Button 
+                      size="lg"
+                      className="bg-lime-600 hover:bg-lime-500 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0"
+                    >
                       START YOUR PROCESS TODAY
-                    </button>
+                    </Button>
                   </div>
                 </FadeInAnimation>
               </div>
 
               {/* Brand Logos Section */}
               <div className="mt-20">
+                <Separator className="my-8 bg-lime-200" />
                 <FadeInAnimation direction="up" delay={0}>
                   <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -521,7 +529,33 @@ export default function Home() {
                        </div>
                      </FadeInAnimation>
 
-                                           {/* Process Cards */}
+                      {/* Progress Indicator */}
+                      <div className="mb-12">
+                        <div className="flex items-center justify-center space-x-4 mb-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                            <span className="text-sm font-medium text-gray-700">AI Analysis</span>
+                          </div>
+                          <div className="w-8 h-0.5 bg-lime-300"></div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                            <span className="text-sm font-medium text-gray-700">Smart Matching</span>
+                          </div>
+                          <div className="w-8 h-0.5 bg-lime-300"></div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                            <span className="text-sm font-medium text-gray-700">Screening</span>
+                          </div>
+                          <div className="w-8 h-0.5 bg-lime-300"></div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-lime-600 rounded-full"></div>
+                            <span className="text-sm font-medium text-gray-700">Human Review</span>
+                          </div>
+                        </div>
+                        <Progress value={100} className="h-2 bg-lime-100" />
+                      </div>
+
+                      {/* Process Cards */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
                         {/* Step 1: AI Analysis */}
                         <FadeInAnimation direction="up" delay={0}>
@@ -643,9 +677,12 @@ export default function Home() {
                      {/* CTA Section */}
                      <FadeInAnimation direction="up" delay={600}>
                        <div className="text-center mt-12">
-                         <button className="bg-lime-600 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold hover:bg-lime-500 transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                         <Button 
+                           size="lg"
+                           className="bg-lime-600 hover:bg-lime-500 text-white px-6 sm:px-8 py-4 rounded-sm font-semibold transition-all duration-300 ease-in-out text-base sm:text-lg shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 active:scale-95 active:translate-y-0"
+                         >
                            Start Your AI-Powered Hiring Process
-                         </button>
+                         </Button>
                        </div>
                      </FadeInAnimation>
                    </div>

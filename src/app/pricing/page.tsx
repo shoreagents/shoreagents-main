@@ -96,60 +96,16 @@ export default function PricingPage() {
               </Button>
             </div>
 
-            {/* Right Side - Realistic Quote Preview */}
+            {/* Right Side - Pricing Calculator Image */}
             <div className="space-y-6">
-              <Card className="shadow-lg border-lime-200">
-                <CardHeader className="bg-gradient-to-r from-lime-600 to-lime-500 text-white">
-                  <CardTitle className="flex items-center space-x-3">
-                    <Sparkles className="w-6 h-6" />
-                    <span>Sample Quote</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="text-center mb-6">
-                    <div className="text-3xl font-bold text-lime-600 mb-2">
-                      {formatPreviewPrice(sampleQuote.totalMonthlyCost)}
-                    </div>
-                    <div className="text-gray-600">per month</div>
-                    <div className="text-sm text-gray-500 mt-2">
-                      {sampleQuote.totalMembers} team members • {sampleQuote.industry}
-                    </div>
-                  </div>
-
-                  <Separator className="my-4" />
-
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-900">Team Details</h4>
-                    {sampleQuote.roles.map((role, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium text-gray-900">{role.title}</div>
-                          <div className="text-sm text-gray-600">{role.level} level</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">
-                            {formatPreviewPrice(sampleQuote.totalMonthlyCost / sampleQuote.totalMembers)}
-                          </div>
-                          <div className="text-sm text-gray-600">per month</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Separator className="my-4" />
-
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-lime-300 text-lime-700 hover:bg-lime-50"
-                    onClick={() => {
-                      setIsCalculatorOpen(true);
-                    }}
-                  >
-                    <Calculator className="w-4 h-4 mr-2" />
-                    Get Your Quote
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="relative">
+                <img 
+                  src="/2292.jpg"
+                  alt="Hands using a calculator on a desk with papers and coffee, suggesting financial calculations or data entry"
+                  className="w-full h-96 object-cover rounded-xl shadow-lg border border-lime-200"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <Card className="border-lime-200">
