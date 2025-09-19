@@ -38,7 +38,7 @@ interface RoleDetail {
 interface QuoteData {
   totalMembers: number;
   roles: RoleDetail[];
-  workplace: 'wfh' | 'hybrid' | 'office';
+  workplace: string;
   workplaceBreakdown: string;
   industry: string;
   sameRoles: boolean;
@@ -86,8 +86,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     { id: '1', title: '', description: '', level: 'entry', count: 1, isCompleted: false }
   ]);
   
-  // Step 3: Workplace setup
-  const [workplace, setWorkplace] = useState<'wfh' | 'hybrid' | 'office'>('wfh');
+  // Step 3: Workplace setup - removed global workplace state, using individual role workspace
   
   // Step 5: Quote data
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
@@ -219,7 +218,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
           const levelMultiplier = getMultiplier(role.level);
         
         // Formula: Salary = expected_salary × level multiplier + setup cost
-        const roleWorkspace = role.workspace || workplace;
+        const roleWorkspace = role.workspace || 'wfh'; // Default to WFH if no workspace set
         
         // Convert salary expectation to target currency
         const convertedSalary = convertSalaryToCurrency(expectedSalary, selectedCurrency.code);
@@ -253,6 +252,26 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
           note: 'Using realistic internet salary data directly'
         });
         
+        // Log the base salary without multiplier for transparency
+        console.log(`📊 BASE SALARY (without multiplier) for ${role.title} (${role.level}):`, {
+          role: role.title,
+          level: role.level,
+          baseSalaryPHP: expectedSalary,
+          baseSalaryConverted: convertedSalary,
+          currency: selectedCurrency.code,
+          note: 'This is the raw salary before applying level multiplier'
+        });
+        
+        // Log workspace debugging info
+        console.log(`🏢 WORKSPACE DEBUG for ${role.title}:`, {
+          roleId: role.id,
+          roleTitle: role.title,
+          roleWorkspace: role.workspace,
+          finalWorkspaceUsed: roleWorkspace,
+          workspaceCost: workspaceCostPerPersonValue,
+          note: 'Shows which workspace type is being used for this specific role'
+        });
+        
         totalStaffCost += salaryCost;
       totalWorkspaceCost += workspaceCost;
       
@@ -281,14 +300,14 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         totalStaffCost: totalStaffCost,
         totalWorkspaceCost: totalWorkspaceCost,
         industry: industry,
-        workplace: workplace,
+        workplace: workplaceBreakdown,
         dataSource: 'INTERNET_SALARY_DATABASE',
         note: 'Skipped BPOC salary expectations, using realistic internet rates directly'
       });
       
       // Calculate workplace breakdown
       const workplaceCounts = rolesWithCandidates.reduce((acc, role) => {
-        const workspace = role.workspace || workplace;
+        const workspace = role.workspace || 'wfh';
         acc[workspace] = (acc[workspace] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -300,7 +319,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     setQuoteData({
       totalMembers: memberCount || 0,
         roles: rolesWithCandidates,
-      workplace,
+      workplace: workplaceBreakdown, // Use the breakdown string instead
         workplaceBreakdown,
       industry,
       sameRoles,
@@ -342,7 +361,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     setIndustry('');
     setSameRoles(false);
     setRoles([{ id: '1', title: '', description: '', level: 'entry', count: 1, workspace: 'wfh', isCompleted: false }]);
-    setWorkplace('wfh');
+    // Removed setWorkplace - using individual role workspaces
     setQuoteData(null);
     setActiveRoleId(null);
   };

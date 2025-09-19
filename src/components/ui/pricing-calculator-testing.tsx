@@ -120,6 +120,27 @@ export function PricingCalculatorTesting({ isOpen, onClose }: PricingCalculatorT
       const setupFee = getSetupFeePerPerson(member.workspace);
       const totalCost = baseCost + workspaceCost;
       
+      // Log the base salary without multiplier for transparency
+      console.log(`📊 BASE SALARY (without multiplier) for ${member.role}:`, {
+        role: member.role,
+        baseSalaryPHP: avgSalary,
+        multiplier: multiplier,
+        workspace: member.workspace,
+        note: 'This is the raw salary before applying role multiplier'
+      });
+      
+      // Log the full calculation
+      console.log(`💰 CALCULATION for ${member.role}:`, {
+        role: member.role,
+        baseSalaryPHP: avgSalary,
+        multiplier: multiplier,
+        salaryCostWithMultiplier: baseCost,
+        workspaceCost: workspaceCost,
+        setupFee: setupFee,
+        totalCost: totalCost,
+        workspace: member.workspace
+      });
+      
       totalStaffCost += baseCost;
       totalWorkspaceCost += workspaceCost;
       totalSetupCost += setupFee;
