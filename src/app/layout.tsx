@@ -11,6 +11,7 @@ import { ToastProvider } from "@/lib/toast-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { UserAuthProvider } from "@/lib/user-auth-context";
 import { AdminAuthProvider } from "@/lib/admin-auth-context";
+import { FavoritesProvider } from "@/lib/favorites-context";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -49,15 +50,17 @@ export default function RootLayout({
             <AuthProvider>
               <UserAuthProvider>
                 <AdminAuthProvider>
-                  <GlobalEngagementTracker />
-                  <ScrollToTop />
-                  <Navbar />
-                  
-                  <main>
-                    {children}
-                  </main>
-                  <Footer />
-                  <BottomNav />
+                  <FavoritesProvider>
+                    <GlobalEngagementTracker />
+                    <ScrollToTop />
+                    <Navbar />
+                    
+                    <main>
+                      {children}
+                    </main>
+                    <Footer />
+                    <BottomNav />
+                  </FavoritesProvider>
                 </AdminAuthProvider>
               </UserAuthProvider>
             </AuthProvider>

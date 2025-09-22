@@ -3,21 +3,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TalentCard } from '@/components/ui/talent-card';
 import { ResumeModal } from '@/components/ui/resume-modal';
-import { EmployeeDetailsModal } from '@/components/ui/employee-details-modal';
 import { SideNav } from '@/components/layout/SideNav';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { getEmployeeCardData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/lib/toast-context';
 import { useEngagementTracking } from '@/lib/useEngagementTracking';
+import { useFavorites } from '@/lib/favorites-context';
 import {
   Search,
   Users,
-  Briefcase,
   RefreshCw,
-  Loader2
+  Loader2,
+  Heart
 } from 'lucide-react';
 
 export default function EmployeesPage() {
@@ -26,11 +25,10 @@ export default function EmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const [selectedResume, setSelectedResume] = useState<ResumeGenerated | null>(null);
-  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCardData | null>(null);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
-  const [isEmployeeDetailsModalOpen, setIsEmployeeDetailsModalOpen] = useState(false);
   const { showToast } = useToast();
   const { recordInteraction } = useEngagementTracking();
 
@@ -73,33 +71,9 @@ export default function EmployeesPage() {
       );
     }
 
-    // Apply category filter
-    switch (selectedFilter) {
-      case 'with-applications':
-        filtered = filtered.filter(employee => employee.applications.length > 0);
-        break;
-      case 'qualified':
-        filtered = filtered.filter(employee => 
-          employee.applications.some(app => app.status.toLowerCase() === 'qualified')
-        );
-        break;
-      case 'with-resume':
-        filtered = filtered.filter(employee => employee.resume);
-        break;
-      case 'ai-analyzed':
-        filtered = filtered.filter(employee => employee.aiAnalysis);
-        break;
-      case 'employed':
-        filtered = filtered.filter(employee => employee.workStatus?.workStatus === 'employed');
-        break;
-      case 'available':
-        filtered = filtered.filter(employee => employee.workStatus?.workStatus === 'available');
-        break;
-      case 'with-work-status':
-        filtered = filtered.filter(employee => employee.workStatus);
-        break;
-      default:
-        break;
+    // Apply favorites filter
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(employee => favorites.has(employee.user.id));
     }
 
     // Sort employees by score (highest to lowest)
@@ -132,7 +106,7 @@ export default function EmployeesPage() {
     });
 
     setFilteredEmployees(sortedEmployees);
-  }, [employees, searchTerm, selectedFilter]);
+  }, [employees, searchTerm, favorites, showFavoritesOnly]);
 
   useEffect(() => {
     fetchEmployees();
@@ -142,11 +116,6 @@ export default function EmployeesPage() {
     filterEmployees();
   }, [filterEmployees]);
 
-  const handleViewDetails = (employee: EmployeeCardData) => {
-    recordInteraction('view-details');
-    setSelectedEmployee(employee);
-    setIsEmployeeDetailsModalOpen(true);
-  };
 
   const handleViewResume = (resume: ResumeGenerated) => {
     recordInteraction('view-resume');
@@ -154,29 +123,12 @@ export default function EmployeesPage() {
     setIsResumeModalOpen(true);
   };
 
-  const handleViewResumeFromDetails = (resume: ResumeGenerated) => {
-    recordInteraction('view-resume-from-details');
-    setSelectedResume(resume);
-    setIsResumeModalOpen(true);
-    setIsEmployeeDetailsModalOpen(false); // Close details modal when opening resume
+  const toggleFavoritesView = () => {
+    setShowFavoritesOnly(!showFavoritesOnly);
+    recordInteraction('toggle-favorites');
   };
 
-  const getFilterStats = () => {
-    const total = employees.length;
-    const withApplications = employees.filter(e => e.applications.length > 0).length;
-    const qualified = employees.filter(e => 
-      e.applications.some(app => app.status.toLowerCase() === 'qualified')
-    ).length;
-    const withResume = employees.filter(e => e.resume).length;
-    const aiAnalyzed = employees.filter(e => e.aiAnalysis).length;
-    const withWorkStatus = employees.filter(e => e.workStatus).length;
-    const employed = employees.filter(e => e.workStatus?.workStatus === 'employed').length;
-    const available = employees.filter(e => e.workStatus?.workStatus === 'available').length;
 
-    return { total, withApplications, qualified, withResume, aiAnalyzed, withWorkStatus, employed, available };
-  };
-
-  const stats = getFilterStats();
 
   if (loading) {
     return (
@@ -231,67 +183,8 @@ export default function EmployeesPage() {
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
-            <div className="bg-lime-50 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-lime-600" />
-                <span className="text-sm font-medium text-lime-900">Total</span>
-              </div>
-              <p className="text-2xl font-bold text-lime-900">{stats.total}</p>
-            </div>
-            <div className="bg-lime-100 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-lime-600" />
-                <span className="text-sm font-medium text-lime-900">Applied</span>
-              </div>
-              <p className="text-2xl font-bold text-lime-900">{stats.withApplications}</p>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-lg stat-card-hover shadow-sm border border-blue-200">
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Qualified</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-900">{stats.qualified}</p>
-            </div>
-            <div className="bg-lime-50 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-lime-600" />
-                <span className="text-sm font-medium text-lime-900">Resume</span>
-              </div>
-              <p className="text-2xl font-bold text-lime-900">{stats.withResume}</p>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg stat-card-hover shadow-sm border border-orange-200">
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-orange-600" />
-                <span className="text-sm font-medium text-orange-900">AI Analyzed</span>
-              </div>
-              <p className="text-2xl font-bold text-orange-900">{stats.aiAnalyzed}</p>
-            </div>
-            <div className="bg-blue-100 p-4 rounded-lg stat-card-hover shadow-sm border border-blue-200">
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Work Status</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-900">{stats.withWorkStatus}</p>
-            </div>
-            <div className="bg-lime-100 p-4 rounded-lg stat-card-hover shadow-sm border border-lime-200">
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-lime-600" />
-                <span className="text-sm font-medium text-lime-900">Employed</span>
-              </div>
-              <p className="text-2xl font-bold text-lime-900">{stats.employed}</p>
-            </div>
-            <div className="bg-orange-100 p-4 rounded-lg stat-card-hover shadow-sm border border-orange-200">
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-orange-600" />
-                <span className="text-sm font-medium text-orange-900">Available</span>
-              </div>
-              <p className="text-2xl font-bold text-orange-900">{stats.available}</p>
-            </div>
-          </div>
 
-          {/* Search and Filters */}
+          {/* Search and Favorites */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
@@ -307,27 +200,18 @@ export default function EmployeesPage() {
               />
             </div>
             <div className="flex gap-2">
-              <Select
-                value={selectedFilter}
-                onValueChange={(value) => {
-                  recordInteraction('filter-employees');
-                  setSelectedFilter(value);
-                }}
+              <Button
+                onClick={toggleFavoritesView}
+                variant={showFavoritesOnly ? "default" : "outline"}
+                className={`flex items-center space-x-2 ${
+                  showFavoritesOnly 
+                    ? 'bg-lime-600 hover:bg-lime-700 text-white' 
+                    : 'hover:bg-lime-50 hover:border-lime-200 hover:text-lime-600'
+                }`}
               >
-                <SelectTrigger className="w-[200px] focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
-                  <SelectValue placeholder="Filter candidates" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Candidates</SelectItem>
-                  <SelectItem value="with-applications">With Applications</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="with-resume">With Resume</SelectItem>
-                  <SelectItem value="ai-analyzed">AI Analyzed</SelectItem>
-                  <SelectItem value="with-work-status">With Work Status</SelectItem>
-                  <SelectItem value="employed">Currently Employed</SelectItem>
-                  <SelectItem value="available">Available for Work</SelectItem>
-                </SelectContent>
-              </Select>
+                <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                <span>Favorites ({favorites.size})</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -349,9 +233,8 @@ export default function EmployeesPage() {
               <TalentCard
                 key={employee.user.id}
                 data={employee}
-                onViewDetails={handleViewDetails}
-                onViewResume={handleViewResume}
-                rank={index + 1}
+                isFavorite={isFavorite(employee.user.id)}
+                onToggleFavorite={() => toggleFavorite(employee.user.id)}
               />
             ))}
           </div>
@@ -368,16 +251,6 @@ export default function EmployeesPage() {
         }}
       />
 
-      {/* Employee Details Modal */}
-      <EmployeeDetailsModal
-        employee={selectedEmployee}
-        isOpen={isEmployeeDetailsModalOpen}
-        onClose={() => {
-          setIsEmployeeDetailsModalOpen(false);
-          setSelectedEmployee(null);
-        }}
-        onViewResume={handleViewResumeFromDetails}
-      />
     </div>
   );
 }

@@ -218,7 +218,7 @@ export async function getEmployeeCardData(): Promise<EmployeeCardData[]> {
 
       const user: User = {
         id: bpocUser.user_id,
-        name: bpocUser.full_name,
+        name: bpocUser.first_name,
         email: email,
         position: bpocUser.position || bpocUser.current_position || '',
         location: bpocUser.location,
