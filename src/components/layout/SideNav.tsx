@@ -19,7 +19,7 @@ export function SideNav() {
 
   const handlePhilippinesGotTalent = () => {
     // Navigate to employees page
-    router.push('/employees')
+    router.push('/we-got-talent')
   }
 
   const handleBookConsultations = () => {

@@ -5,6 +5,11 @@ import Anthropic from '@anthropic-ai/sdk';
 const suggestionCache = new Map<string, { suggestions: unknown[]; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+// Rate limiting to prevent excessive API calls
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per IP
+
 export async function POST(request: NextRequest) {
   try {
     // Check if API key is available
@@ -22,6 +27,37 @@ export async function POST(request: NextRequest) {
         { error: 'Query and type are required' },
         { status: 400 }
       );
+    }
+
+    // Validate query length to prevent unnecessary API calls
+    if (query.trim().length < 1) {
+      return NextResponse.json(
+        { error: 'Query cannot be empty' },
+        { status: 400 }
+      );
+    }
+
+    // Rate limiting check
+    const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const now = Date.now();
+    const rateLimitKey = `${clientIP}-${type}`;
+    
+    const rateLimitData = rateLimitMap.get(rateLimitKey);
+    if (rateLimitData) {
+      if (now < rateLimitData.resetTime) {
+        if (rateLimitData.count >= RATE_LIMIT_MAX_REQUESTS) {
+          return NextResponse.json(
+            { error: 'Rate limit exceeded. Please wait before making another request.' },
+            { status: 429 }
+          );
+        }
+        rateLimitData.count++;
+      } else {
+        // Reset rate limit window
+        rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+      }
+    } else {
+      rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
     }
 
     // Check cache first (but not for "generate another" requests)
@@ -43,65 +79,32 @@ export async function POST(request: NextRequest) {
     let userPrompt = '';
 
     if (type === 'industry') {
-      systemPrompt = `You are an AI assistant helping users find the right industry for their business. 
-      Based on the user's partial input, suggest relevant industries that match their typing.
+      systemPrompt = `Suggest industries based on user input. Return ONLY JSON array:
+      [{"name": "Industry", "category": "Category", "description": "Brief description"}]
       
-      Return ONLY a JSON array of industry objects with this exact structure:
-      [
-        {
-          "name": "Industry Name",
-          "category": "Category",
-          "description": "Brief description of what this industry covers"
-        }
-      ]
-      
-      Include 5-8 relevant suggestions. Be specific and helpful.`;
+      Include 4-6 suggestions. Keep descriptions under 8 words.`;
 
-      userPrompt = `User is typing: "${query}"
+      userPrompt = `Query: "${query}"
       
-      Suggest industries that match this input. Consider:
-      - Exact matches
-      - Partial matches
-      - Related industries
-      - Common industry names
-      
-      Return only the JSON array, no other text.`;
+      Suggest 4-6 matching industries. Focus on exact/partial matches.
+      Return only JSON array.`;
     } else if (type === 'role') {
-      systemPrompt = `You are an AI assistant helping users find the right job roles for their team.
-      Based on the user's partial input and industry context, suggest relevant job roles.
+      systemPrompt = `Suggest job roles based on user input and industry. Return ONLY JSON array:
+      [{"title": "Role", "description": "Brief description", "level": "entry|mid|senior"}]
       
-      Return ONLY a JSON array of role objects with this exact structure:
-      [
-        {
-          "title": "Role Title",
-          "description": "Brief description of responsibilities",
-          "level": "entry|mid|senior"
-        }
-      ]
-      
-      Include 6-10 relevant suggestions. Be specific about the role and its level.`;
+      Include 3-5 suggestions. Keep descriptions under 10 words. Be specific about level.`;
 
-      userPrompt = `User is typing: "${query}"
-      Industry context: ${industry || 'Not specified'}
+      userPrompt = `Query: "${query}" | Industry: ${industry || 'General'}
       
-      Suggest job roles that match this input. Consider:
-      - Exact role name matches
-      - Partial matches
-      - Industry-specific roles
-      - Common role variations
-      - Appropriate experience levels
-      
-      Return only the JSON array, no other text.`;
+      Suggest 3-5 matching roles. Focus on exact/partial matches and industry relevance.
+      Return only JSON array.`;
     } else if (type === 'description') {
       systemPrompt = `You are an AI assistant that generates detailed job role descriptions.
       Based on the role title and industry context, create a comprehensive job description.
       
-      IMPORTANT: You must return ONLY a valid JSON object with this exact structure:
-      {
-        "description": "Your detailed job description here"
-      }
-      
-      Do not include any other text, explanations, or formatting outside the JSON object.
+      IMPORTANT: You must return ONLY the job description text directly.
+      Do not wrap it in JSON, quotes, or any other formatting.
+      Just return the plain text description.
       Make the description professional, specific, and comprehensive.`;
 
       // Create more varied prompts for different generations
@@ -132,39 +135,50 @@ export async function POST(request: NextRequest) {
       
       IMPORTANT: Use completely different wording, structure, and focus areas. Make this description unique and distinct from any previous versions.
       
-      Return ONLY the JSON object with the description field. No other text.`;
+      Return ONLY the plain text description. No JSON, no quotes, no formatting. Just the description text.`;
     }
 
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 800,
-      temperature: generateAnother ? 0.9 : 0.7, // Higher temperature for more variation
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
-    });
+    // Try Claude 4 Sonnet first, fallback to Claude 3.5 Sonnet if not available
+    let response;
+    try {
+      response = await anthropic.messages.create({
+        model: 'claude-4-sonnet-20241022', // Using Claude 4 Sonnet for faster responses
+        max_tokens: 300, // Further reduced for faster response
+        temperature: generateAnother ? 0.8 : 0.6, // Slightly lower for more consistent, faster responses
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      });
+    } catch (modelError) {
+      console.log('Claude 4 not available, falling back to Claude 3.5 Sonnet');
+      response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022', // Fallback to Claude 3.5 Sonnet
+        max_tokens: 300,
+        temperature: generateAnother ? 0.8 : 0.6,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      });
+    }
 
     const aiResponse = response.content[0];
     if (aiResponse.type !== 'text') {
       throw new Error('Unexpected response type');
     }
 
-    // Parse the JSON response
+    // Parse the response
     let suggestions;
     try {
       if (type === 'description') {
-        // For descriptions, expect a JSON object
-        const jsonMatch = aiResponse.text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          suggestions = parsed.description;
-        } else {
-          // Fallback: try to extract description from plain text
-          const lines = aiResponse.text.split('\n').filter(line => line.trim());
-          if (lines.length > 0) {
-            suggestions = lines.join(' ').trim();
-          } else {
-            throw new Error('No description found in response');
-          }
+        // For descriptions, expect plain text directly
+        suggestions = aiResponse.text.trim();
+        
+        // Clean up any potential formatting artifacts
+        suggestions = suggestions
+          .replace(/^["']|["']$/g, '') // Remove surrounding quotes
+          .replace(/^\{[\s\S]*"description":\s*["']?([^"'}]+)["']?[\s\S]*\}$/, '$1') // Extract from JSON if AI still returns it
+          .trim();
+        
+        if (!suggestions) {
+          throw new Error('No description found in response');
         }
       } else {
         // For suggestions, expect a JSON array

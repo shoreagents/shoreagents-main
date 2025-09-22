@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/auth-context'
+import { useAdminAuth } from '@/lib/admin-auth-context'
+import { AdminGuard } from '@/components/auth/AdminGuard'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { UserManagement } from '@/components/admin/UserManagement'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -73,7 +76,7 @@ interface UserVisitData {
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const { isAdmin, loading, signOut } = useAuth()
+  const { admin, loading, signOut, isAdmin } = useAdminAuth()
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     pageViews: 0,
     uniqueVisitors: 0,
@@ -257,7 +260,7 @@ export default function AdminDashboard() {
           { path: '/about', views: 1200, avgLoadTime: 1.5, bounceRate: 30 },
           { path: '/services', views: 800, avgLoadTime: 1.8, bounceRate: 35 },
           { path: '/contact', views: 600, avgLoadTime: 1.1, bounceRate: 20 },
-          { path: '/employees', views: 400, avgLoadTime: 2.1, bounceRate: 40 }
+          { path: '/we-got-talent', views: 400, avgLoadTime: 2.1, bounceRate: 40 }
         ])
 
         setLastUpdated(new Date())
@@ -353,8 +356,22 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <AdminGuard>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold">Admin Dashboard</h1>
+              <Badge variant="secondary" className="text-xs">
+                Welcome back, {admin?.first_name}!
+              </Badge>
+            </div>
+          </header>
+          
+          <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="max-w-7xl mx-auto w-full">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -852,7 +869,10 @@ export default function AdminDashboard() {
             <UserManagement />
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </AdminGuard>
   )
 }

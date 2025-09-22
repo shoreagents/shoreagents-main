@@ -11,10 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
   ArrowLeft, 
-  Mail, 
   MapPin, 
   Calendar, 
-  FileText,
   Download,
   Share2,
   User,
@@ -222,10 +220,6 @@ export default function EmployeeProfilePage() {
                 {/* Contact Info */}
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 text-sm">
-                    <Mail className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">{employee.email}</span>
-                  </div>
-                  <div className="flex items-center space-x-3 text-sm">
                     <MapPin className="w-4 h-4 text-gray-500" />
                     <span className="text-gray-700">{employee.location}</span>
                   </div>
@@ -273,17 +267,6 @@ export default function EmployeeProfilePage() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-2">
-                  <Button className="w-full bg-lime-600 hover:bg-lime-700">
-                    <FileText className="w-4 h-4 mr-2" />
-                    View Resume
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Contact Candidate
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </div>

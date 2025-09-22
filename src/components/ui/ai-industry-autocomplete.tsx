@@ -60,26 +60,6 @@ export function AIIndustryAutocomplete({
       return;
     }
 
-    // Check if current query matches existing suggestions to avoid unnecessary API calls
-    const queryLower = query.toLowerCase().trim();
-    const hasMatchingSuggestion = suggestions.some(suggestion => 
-      suggestion.name.toLowerCase().includes(queryLower) ||
-      suggestion.category.toLowerCase().includes(queryLower) ||
-      suggestion.description.toLowerCase().includes(queryLower)
-    );
-
-    if (hasMatchingSuggestion) {
-      // Filter existing suggestions instead of making API call
-      const filteredSuggestions = suggestions.filter(suggestion =>
-        suggestion.name.toLowerCase().includes(queryLower) ||
-        suggestion.category.toLowerCase().includes(queryLower) ||
-        suggestion.description.toLowerCase().includes(queryLower)
-      );
-      setSuggestions(filteredSuggestions);
-      setIsLoading(false);
-      return;
-    }
-
     // Cancel previous request if it exists
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -137,7 +117,7 @@ export function AIIndustryAutocomplete({
         abortControllerRef.current = null;
       }
     }
-  }, [suggestions]);
+  }, []); // Remove suggestions dependency to prevent loop
 
   // Debounced search effect
   useEffect(() => {
@@ -146,10 +126,10 @@ export function AIIndustryAutocomplete({
     }
 
     // Only search if there's a query and it's not just whitespace
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() && searchQuery.length >= 2) {
       debounceTimeoutRef.current = setTimeout(() => {
         searchWithAI(searchQuery);
-      }, 50); // 50ms debounce - ultra-fast response
+      }, 300); // 300ms debounce - more reasonable to prevent excessive calls
     }
 
     return () => {
@@ -157,7 +137,7 @@ export function AIIndustryAutocomplete({
         clearTimeout(debounceTimeoutRef.current);
       }
     };
-  }, [searchQuery, searchWithAI]);
+  }, [searchQuery]); // Removed searchWithAI from dependencies to prevent loop
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

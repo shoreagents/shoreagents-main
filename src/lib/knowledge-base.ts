@@ -124,7 +124,7 @@ export const knowledgeBase: KnowledgeItem[] = [
     content: 'Our process is simple: 1) Initial consultation to understand your needs, 2) Team selection and onboarding, 3) Service delivery with regular updates, 4) Continuous improvement and optimization.',
     keywords: ['how it works', 'process', 'workflow', 'steps', 'procedure'],
     category: 'process',
-    url: '/howItWorks'
+    url: '/how-it-works'
   },
   
   {

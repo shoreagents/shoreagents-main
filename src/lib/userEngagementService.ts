@@ -172,6 +172,17 @@ async function ensureAnonymousUser(userId: string): Promise<void> {
 
       if (insertError) {
         console.error('❌ Failed to create anonymous user:', insertError)
+        console.error('❌ Insert data that failed:', {
+          user_id: userId,
+          auth_user_id: null,
+          user_type: UserType.ANONYMOUS,
+          first_name: null,
+          last_name: null,
+          email: null,
+          phone_number: null,
+          company: null,
+          country: null,
+        })
       } else {
         console.log('✅ Anonymous user created successfully:', insertData)
       }

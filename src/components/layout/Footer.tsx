@@ -128,26 +128,7 @@ export function Footer() {
             </div>
 
             {/* Starting Prices Section */}
-            <div className="bg-lime-800/50 rounded-lg p-4 border border-lime-700">
-              <div className="flex items-center mb-3">
-                <Zap className="h-4 w-4 text-energy-400 mr-2" />
-                <span className="text-white text-sm font-medium">Starting Prices:</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white">₱41,875</div>
-                  <div className="text-sm text-gray-300">Entry Level</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white">₱59,875</div>
-                  <div className="text-sm text-gray-300">Mid Level</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white">₱133,875</div>
-                  <div className="text-sm text-gray-300">Senior Level</div>
-                </div>
-              </div>
-            </div>
+            
           </div>
 
           {/* Contact & CTA - Right Column */}
@@ -190,29 +171,7 @@ export function Footer() {
             </div>
 
             {/* Call-to-Action Buttons */}
-            <div className="space-y-4">
-              <Button 
-                variant="outline"
-                className="w-full flex items-center justify-center group"
-                asChild
-              >
-                <Link href="/services">
-                  <span>PHILIPPINES GOT TALENT!</span>
-                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                </Link>
-              </Button>
-              
-              <Button 
-                variant="outline"
-                className="w-full flex items-center justify-center group"
-                asChild
-              >
-                <Link href="/gettingstart">
-                  <span>Book Free Consultation</span>
-                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                </Link>
-              </Button>
-            </div>
+            
           </div>
         </div>
 
@@ -319,12 +278,12 @@ export function Footer() {
               <h3 className="text-md font-bold text-white mb-4 border-b border-lime-700 pb-2">Company</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/howItWorks" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                  <Link href="/how-it-works" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
                     How It Works
                   </Link>
                 </li>
                 <li>
-                  <Link href="/employees" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                  <Link href="/we-got-talent" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
                     Our Team
                   </Link>
                 </li>
@@ -401,7 +360,7 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/howItWorks" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
+                  <Link href="/how-it-works" className="text-gray-300 hover:text-lime-300 transition-colors duration-200">
                     How It Works
                   </Link>
                 </li>
