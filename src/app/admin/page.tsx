@@ -77,6 +77,11 @@ interface UserVisitData {
 export default function AdminDashboard() {
   const router = useRouter()
   const { admin, loading, signOut, isAdmin } = useAdminAuth()
+  
+  // Debug logging
+  console.log('AdminDashboard - admin:', admin)
+  console.log('AdminDashboard - loading:', loading)
+  console.log('AdminDashboard - isAdmin:', isAdmin)
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     pageViews: 0,
     uniqueVisitors: 0,

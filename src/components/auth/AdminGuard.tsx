@@ -21,16 +21,17 @@ export function AdminGuard({
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        // Redirect to admin login page
-        router.push('/admin/login')
+        // Redirect to home page where users can use the login modal
+        router.push('/')
         return
       }
 
-      if (!isVerified) {
-        // Redirect to admin verification page
-        router.push('/admin/verify')
-        return
-      }
+      // Skip verification check - no verify page exists
+      // if (!isVerified) {
+      //   // Redirect to admin verification page
+      //   router.push('/admin/verify')
+      //   return
+      // }
 
       if (requiredPermission && !hasPermission(requiredPermission)) {
         // Redirect to admin dashboard with error
@@ -38,7 +39,7 @@ export function AdminGuard({
         return
       }
     }
-  }, [loading, isAuthenticated, isVerified, requiredPermission, hasPermission, router])
+  }, [loading, isAuthenticated, requiredPermission, hasPermission, router])
 
   if (loading) {
     return <>{fallback}</>
@@ -48,9 +49,10 @@ export function AdminGuard({
     return <>{fallback}</>
   }
 
-  if (!isVerified) {
-    return <>{fallback}</>
-  }
+  // Skip verification check - no verify page exists
+  // if (!isVerified) {
+  //   return <>{fallback}</>
+  // }
 
   if (requiredPermission && !hasPermission(requiredPermission)) {
     return <>{fallback}</>

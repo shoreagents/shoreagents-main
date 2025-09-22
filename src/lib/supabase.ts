@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from './supabase/client'
 
 // Define the UserPageVisit type based on the database schema
 export interface UserPageVisit {
@@ -23,7 +23,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient()
   : null
 
 // Helper function to check if Supabase is available

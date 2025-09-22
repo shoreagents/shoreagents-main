@@ -1,4 +1,4 @@
-import { createClient } from './supabase/server'
+import { createClient } from './supabase/client'
 
 export interface PricingQuoteData {
   user_id: string
@@ -6,7 +6,7 @@ export interface PricingQuoteData {
   member_count: number
   industry: string
   total_monthly_cost: number
-  currency_code: string
+  currency_code?: string
   roles: Array<{
     role_title: string
     role_description?: string
@@ -24,7 +24,6 @@ export interface SavedPricingQuote {
   id: string
   user_id: string
   session_id?: string
-  quote_timestamp: string
   member_count: number
   industry: string
   total_monthly_cost: number
@@ -44,19 +43,18 @@ export interface SavedPricingQuote {
     workspace_cost: number
     total_cost: number
     created_at: string
-    updated_at: string
   }>
 }
 
-export class PricingQuoteService {
+export class PricingQuoteServiceClient {
   /**
    * Save a pricing quote to the database
    */
   static async saveQuote(quoteData: PricingQuoteData): Promise<{ success: boolean; data?: SavedPricingQuote; error?: string }> {
     try {
-      const supabase = await createClient()
+      const supabase = createClient()
 
-      console.log('🔍 PricingQuoteService.saveQuote called with:', {
+      console.log('🔍 PricingQuoteServiceClient.saveQuote called with:', {
         user_id: quoteData.user_id,
         member_count: quoteData.member_count,
         industry: quoteData.industry,
@@ -72,23 +70,20 @@ export class PricingQuoteService {
           member_count: quoteData.member_count,
           industry: quoteData.industry,
           total_monthly_cost: quoteData.total_monthly_cost,
-          currency_code: quoteData.currency_code
+          currency_code: quoteData.currency_code || 'PHP'
         })
         .select()
         .single()
 
       if (quoteError) {
-        console.error('❌ Error saving pricing quote:', quoteError)
-        console.error('❌ Quote data that failed:', {
-          user_id: quoteData.user_id,
-          member_count: quoteData.member_count,
-          industry: quoteData.industry
-        })
+        console.error('❌ Error saving quote:', quoteError)
         return { success: false, error: quoteError.message }
       }
 
-      // Save the roles
-      const rolesWithQuoteId = quoteData.roles.map(role => ({
+      console.log('✅ Quote saved successfully:', quote.id)
+
+      // Now save the roles
+      const rolesToInsert = quoteData.roles.map(role => ({
         quote_id: quote.id,
         role_title: role.role_title,
         role_description: role.role_description,
@@ -98,34 +93,34 @@ export class PricingQuoteService {
         multiplier: role.multiplier,
         monthly_cost: role.monthly_cost,
         workspace_cost: role.workspace_cost,
-        total_cost: role.total_cost
+        total_cost: role.total_cost,
       }))
 
       const { data: roles, error: rolesError } = await supabase
         .from('pricing_quote_roles')
-        .insert(rolesWithQuoteId)
+        .insert(rolesToInsert)
         .select()
 
       if (rolesError) {
-        console.error('❌ Error saving pricing quote roles:', rolesError)
-        console.error('❌ Roles data that failed:', rolesWithQuoteId)
-        // If roles fail, we should clean up the quote
+        console.error('❌ Error saving roles:', rolesError)
+        // Clean up the quote if roles failed
         await supabase.from('pricing_quotes').delete().eq('id', quote.id)
         return { success: false, error: rolesError.message }
       }
 
-      // Return the complete saved quote
-      const savedQuote: SavedPricingQuote = {
+      console.log('✅ Roles saved successfully:', roles.length)
+
+      // Return the complete quote with roles
+      const completeQuote: SavedPricingQuote = {
         ...quote,
         roles: roles || []
       }
 
-      console.log('✅ Pricing quote saved successfully:', savedQuote)
-      return { success: true, data: savedQuote }
+      return { success: true, data: completeQuote }
 
     } catch (error) {
-      console.error('Unexpected error saving pricing quote:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      console.error('❌ Unexpected error in saveQuote:', error)
+      return { success: false, error: 'An unexpected error occurred' }
     }
   }
 
@@ -134,27 +129,27 @@ export class PricingQuoteService {
    */
   static async getUserQuotes(userId: string): Promise<{ success: boolean; data?: SavedPricingQuote[]; error?: string }> {
     try {
-      const supabase = await createClient()
+      const supabase = createClient()
 
       const { data: quotes, error: quotesError } = await supabase
         .from('pricing_quotes')
         .select(`
           *,
-          pricing_quote_roles (*)
+          roles:pricing_quote_roles(*)
         `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
       if (quotesError) {
-        console.error('Error fetching user quotes:', quotesError)
+        console.error('❌ Error fetching quotes:', quotesError)
         return { success: false, error: quotesError.message }
       }
 
       return { success: true, data: quotes as SavedPricingQuote[] }
 
     } catch (error) {
-      console.error('Unexpected error fetching user quotes:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      console.error('❌ Unexpected error in getUserQuotes:', error)
+      return { success: false, error: 'An unexpected error occurred' }
     }
   }
 
@@ -163,27 +158,27 @@ export class PricingQuoteService {
    */
   static async getQuoteById(quoteId: string): Promise<{ success: boolean; data?: SavedPricingQuote; error?: string }> {
     try {
-      const supabase = await createClient()
+      const supabase = createClient()
 
       const { data: quote, error: quoteError } = await supabase
         .from('pricing_quotes')
         .select(`
           *,
-          pricing_quote_roles (*)
+          roles:pricing_quote_roles(*)
         `)
         .eq('id', quoteId)
         .single()
 
       if (quoteError) {
-        console.error('Error fetching quote:', quoteError)
+        console.error('❌ Error fetching quote:', quoteError)
         return { success: false, error: quoteError.message }
       }
 
       return { success: true, data: quote as SavedPricingQuote }
 
     } catch (error) {
-      console.error('Unexpected error fetching quote:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      console.error('❌ Unexpected error in getQuoteById:', error)
+      return { success: false, error: 'An unexpected error occurred' }
     }
   }
 
@@ -192,7 +187,7 @@ export class PricingQuoteService {
    */
   static async deleteQuote(quoteId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const supabase = await createClient()
+      const supabase = createClient()
 
       // Delete the quote (roles will be deleted automatically due to CASCADE)
       const { error } = await supabase
@@ -201,16 +196,15 @@ export class PricingQuoteService {
         .eq('id', quoteId)
 
       if (error) {
-        console.error('Error deleting quote:', error)
+        console.error('❌ Error deleting quote:', error)
         return { success: false, error: error.message }
       }
 
-      console.log('✅ Quote deleted successfully')
       return { success: true }
 
     } catch (error) {
-      console.error('Unexpected error deleting quote:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      console.error('❌ Unexpected error in deleteQuote:', error)
+      return { success: false, error: 'An unexpected error occurred' }
     }
   }
 }

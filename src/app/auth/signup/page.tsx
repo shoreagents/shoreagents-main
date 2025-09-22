@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
+import { Loader2, AlertCircle } from 'lucide-react'
+import { getAuthErrorMessage, isEmailExistsError, isPasswordStrengthError } from '@/lib/authErrorUtils'
 
 export default function UserSignupPage() {
   const [formData, setFormData] = useState({
@@ -31,12 +32,12 @@ export default function UserSignupPage() {
     setError('')
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      setError('Passwords do not match. Please make sure both password fields are identical.')
       return
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long')
+      setError('Password must be at least 6 characters long. Please choose a stronger password.')
       return
     }
 
@@ -54,10 +55,12 @@ export default function UserSignupPage() {
         // Redirect to dashboard
         router.push('/dashboard')
       } else {
-        setError(result.error || 'Signup failed')
+        const errorMessage = getAuthErrorMessage(result.error, 'signup')
+        setError(errorMessage)
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      const errorMessage = getAuthErrorMessage(err, 'signup')
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -80,6 +83,7 @@ export default function UserSignupPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}

@@ -2,21 +2,19 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/auth-context'
+import { useAdminAuth } from '@/lib/admin-auth-context'
 
 export default function AuthCallback() {
   const router = useRouter()
   const { refreshUser } = useAuth()
+  const { refreshAdmin } = useAdminAuth()
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        if (!supabase) {
-          console.error('Supabase client not available')
-          router.push('/login?error=config_error')
-          return
-        }
+        const supabase = createClient()
         
         const { data, error } = await supabase.auth.getSession()
         
@@ -27,12 +25,26 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          // User is authenticated, refresh the user context
-          await refreshUser()
-          router.push('/')
+          // User is authenticated, refresh both user and admin contexts
+          await Promise.all([refreshUser(), refreshAdmin()])
+          
+          // Check if this is an admin user by looking at the user data
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('is_admin, user_type')
+            .eq('auth_user_id', data.session.user.id)
+            .single()
+          
+          if (!userError && userData && userData.user_type === 'Admin') {
+            // This is an admin user, redirect to admin dashboard
+            router.push('/admin')
+          } else {
+            // This is a regular user, redirect to user dashboard
+            router.push('/user-dashboard')
+          }
         } else {
-          // No session found, redirect to login
-          router.push('/login')
+          // No session found, redirect to home page
+          router.push('/')
         }
       } catch (error) {
         console.error('Auth callback error:', error)
@@ -41,7 +53,7 @@ export default function AuthCallback() {
     }
 
     handleAuthCallback()
-  }, [router, refreshUser])
+  }, [router, refreshUser, refreshAdmin])
 
   return (
     <div className="flex min-h-screen items-center justify-center">
