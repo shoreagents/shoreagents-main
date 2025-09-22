@@ -52,7 +52,7 @@ export function BottomNav() {
   const handleBrowseTalent = () => {
     recordInteraction('navigation')
     console.log('Browse Talent button clicked - interaction recorded')
-    router.push('/employees')
+    router.push('/we-got-talent')
   }
 
   const handleSeePricing = () => {

@@ -242,10 +242,10 @@ export function AIRoleAutocomplete({
     }
 
     // Only search if there's a query and it's not just whitespace
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() && searchQuery.length >= 2) {
       debounceTimeoutRef.current = setTimeout(() => {
         searchWithAI(searchQuery);
-      }, 50); // 50ms debounce - ultra-fast response
+      }, 300); // 300ms debounce - more reasonable to prevent excessive calls
     }
 
     return () => {
@@ -253,7 +253,7 @@ export function AIRoleAutocomplete({
         clearTimeout(debounceTimeoutRef.current);
       }
     };
-  }, [searchQuery, searchWithAI]);
+  }, [searchQuery]); // Removed searchWithAI from dependencies to prevent loop
 
   // Cleanup abort controller on unmount
   useEffect(() => {
@@ -372,25 +372,6 @@ export function AIRoleAutocomplete({
 
   const shouldShowDropdown = isOpen && (suggestions.length > 0 || isLoading || error);
 
-  // Get level badge color
-  const getLevelBadgeColor = (level: string) => {
-    switch (level) {
-      case 'entry': return 'bg-green-100 text-green-800';
-      case 'mid': return 'bg-yellow-100 text-yellow-800';
-      case 'senior': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // Get level icon
-  const getLevelIcon = (level: string) => {
-    switch (level) {
-      case 'entry': return '⭐';
-      case 'mid': return '⭐⭐';
-      case 'senior': return '⭐⭐⭐';
-      default: return '⭐';
-    }
-  };
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -479,13 +460,10 @@ export function AIRoleAutocomplete({
                             <User className="w-4 h-4 text-lime-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2 mb-1">
+                            <div className="mb-1">
                               <div className="text-sm font-medium text-gray-900">
                                 {suggestion.title}
                               </div>
-                              <span className={`px-2 py-0.5 text-xs rounded-full ${getLevelBadgeColor(suggestion.level)}`}>
-                                {getLevelIcon(suggestion.level)} {suggestion.level}
-                              </span>
                             </div>
                             <div className="text-xs text-gray-500 line-clamp-2">
                               {suggestion.description}

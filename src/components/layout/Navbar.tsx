@@ -349,10 +349,10 @@ export function Navbar() {
             </div>
 
             {/* Other Navigation Items */}
-            <Link href="/howItWorks" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isActive('/howItWorks') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
+            <Link href="/how-it-works" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isActive('/how-it-works') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
               <span className="relative inline-block">
               How it works
-                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/howItWorks') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/how-it-works') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
             <Link href="/pricing" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isActive('/pricing') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600'}`}>
@@ -438,7 +438,7 @@ export function Navbar() {
                   <div className="grid grid-cols-3 gap-8">
                     {/* First Column */}
                           <div className="space-y-2">
-                      <Link href="/howItWorks" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
+                      <Link href="/how-it-works" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
                         How It Works
                             </Link>
                       <Link href="/about/team" className="block text-sm text-gray-700 hover:text-lime-600 transition-colors duration-200">
@@ -656,10 +656,10 @@ export function Navbar() {
               <div className="px-2 pt-2 pb-3 space-y-1">
                 
                 {/* Main Navigation Items */}
-                <Link href="/howItWorks" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/howItWorks') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
+                <Link href="/how-it-works" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/how-it-works') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
               <span className="relative inline-block">
               How it works
-                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/howItWorks') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/how-it-works') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
                 
@@ -866,7 +866,7 @@ export function Navbar() {
                   
                   {/* Philippines Got Talent Button - Mobile */}
                   <button 
-                    onClick={() => window.location.href = '/employees'}
+                    onClick={() => window.location.href = '/we-got-talent'}
                     className="w-full bg-lime-100 border border-lime-600 rounded-lg px-4 py-3 shadow-[4px_4px_0px_#4d7c0f] flex items-center justify-between opacity-90 hover:opacity-100 transition-all duration-300 hover:bg-lime-200 hover:shadow-[6px_6px_0px_#4d7c0f] hover:scale-105 hover:-translate-y-1 cursor-pointer active:shadow-[2px_2px_0px_#4d7c0f] active:translate-y-0 active:scale-95"
                   >
                     <div className="flex items-center space-x-3">

@@ -216,7 +216,7 @@ export default function Home() {
                   <Button 
                     size="lg"
                     onClick={() => {
-                      window.location.href = '/employees';
+                      window.location.href = '/we-got-talent';
                     }}
                     className="bg-lime-600 hover:bg-lime-700 text-white"
                   >

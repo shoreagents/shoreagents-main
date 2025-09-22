@@ -19,6 +19,9 @@ import { EmployeeCardData } from '@/types/api';
 import { rankEmployeesByScore } from '@/lib/employeeRankingService';
 import { getFixedSetupCost, getFixedWorkspaceCost, convertSalaryToCurrency, formatCurrency } from '@/lib/fixedPricingService';
 import { getFallbackSalary } from '@/lib/salaryLookupService';
+import { PricingQuoteService, PricingQuoteData } from '@/lib/pricingQuoteService';
+import { useUserAuth } from '@/lib/user-auth-context'
+import { generateUserId, savePageVisit } from '@/lib/userEngagementService';
 
 interface RoleDetail {
   id: string;
@@ -68,6 +71,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'right' | 'left'>('right');
   const [fadingOutRole, setFadingOutRole] = useState<string | null>(null);
   const [fadeInNextRole, setFadeInNextRole] = useState<string | null>(null);
@@ -75,6 +79,8 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
   const [showRolesAlert, setShowRolesAlert] = useState(false);
   const [editingRoles, setEditingRoles] = useState<Set<string>>(new Set());
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   
   // Step 1: Member count
   const [memberCount, setMemberCount] = useState<number | null>(null);
@@ -97,6 +103,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     convertPrice, 
     formatPrice 
   } = useCurrency();
+
+  // User auth context
+  const { user, isAuthenticated } = useUserAuth();
 
   // Convert BPOC candidate to EmployeeCardData format
   const convertToEmployeeCardData = (candidate: {
@@ -172,6 +181,77 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   // Get workspace cost per person using fixed pricing structure
   const getWorkspaceCostPerPerson = (workspace: 'wfh' | 'hybrid' | 'office') => {
     return getFixedWorkspaceCost(workspace, selectedCurrency.code);
+  };
+
+  // Save quote to database
+  const saveQuoteToDatabase = async (quoteData: QuoteData) => {
+    // Allow saving for both authenticated and anonymous users
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      // Prepare the data for the database
+      // Use device fingerprint for both authenticated and anonymous users
+      const userId = user?.user_id || generateUserId()
+      
+      console.log('🔍 Pricing Quote Debug:', {
+        isAuthenticated: !!user,
+        user: user ? { id: user.id, user_id: user.user_id, user_type: user.user_type } : null,
+        generatedUserId: userId,
+        userType: user?.user_type || 'Anonymous'
+      })
+      
+      // For anonymous users, ensure they exist in the database first
+      if (!user) {
+        console.log('🔄 Ensuring anonymous user exists before saving quote...')
+        // This will create the anonymous user if it doesn't exist
+        await savePageVisit('/pricing', undefined, 0)
+      }
+      
+      const pricingQuoteData: PricingQuoteData = {
+        user_id: userId, // Use device fingerprint, not Supabase Auth UUID
+        session_id: `session_${Date.now()}`, // Generate a session ID
+        member_count: quoteData.totalMembers,
+        industry: quoteData.industry,
+        total_monthly_cost: quoteData.totalMonthlyCost,
+        currency_code: selectedCurrency.code,
+        roles: quoteData.breakdown.map((item, index) => {
+          const role = quoteData.roles[index];
+          return {
+            role_title: item.role,
+            role_description: role?.description || '',
+            experience_level: item.level,
+            workspace_type: role?.workspace || 'wfh',
+            base_salary_php: item.baseSalary,
+            multiplier: item.multiplier,
+            monthly_cost: item.monthlyCost,
+            workspace_cost: item.workspaceCost,
+            total_cost: item.totalCost
+          };
+        })
+      };
+
+      const result = await PricingQuoteService.saveQuote(pricingQuoteData);
+      
+      if (result.success) {
+        setSaveSuccess(true);
+        console.log('✅ Quote saved successfully:', result.data);
+        return { success: true, data: result.data };
+      } else {
+        setSaveError(result.error || 'Failed to save quote');
+        console.error('❌ Failed to save quote:', result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setSaveError(errorMessage);
+      console.error('❌ Unexpected error saving quote:', error);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // AI Processing simulation
@@ -291,6 +371,17 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     
     const totalMonthlyCost = totalStaffCost + totalWorkspaceCost;
     
+      // Calculate workplace breakdown
+      const workplaceCounts = rolesWithCandidates.reduce((acc, role) => {
+        const workspace = role.workspace || 'wfh';
+        acc[workspace] = (acc[workspace] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const workplaceBreakdown = Object.entries(workplaceCounts)
+        .map(([workspace, count]) => `${count}x ${workspace.toUpperCase()}`)
+        .join(', ');
+      
       // Summary console log
       const bpocMatchedCount = rolesWithCandidates.filter(role => role.isBPOCIntegrated).length;
       console.log(`📊 QUOTE SUMMARY - INTERNET SALARY DATA:`, {
@@ -304,19 +395,8 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         dataSource: 'INTERNET_SALARY_DATABASE',
         note: 'Skipped BPOC salary expectations, using realistic internet rates directly'
       });
-      
-      // Calculate workplace breakdown
-      const workplaceCounts = rolesWithCandidates.reduce((acc, role) => {
-        const workspace = role.workspace || 'wfh';
-        acc[workspace] = (acc[workspace] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      const workplaceBreakdown = Object.entries(workplaceCounts)
-        .map(([workspace, count]) => `${count}x ${workspace.toUpperCase()}`)
-        .join(', ');
     
-    setQuoteData({
+    const finalQuoteData = {
       totalMembers: memberCount || 0,
         roles: rolesWithCandidates,
       workplace: workplaceBreakdown, // Use the breakdown string instead
@@ -327,7 +407,13 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         totalWorkspaceCost: totalWorkspaceCost,
       totalStaffCost,
       breakdown
-    });
+    };
+
+    setQuoteData(finalQuoteData);
+
+    // Save quote to database for both authenticated and anonymous users
+    console.log('💾 Saving quote to database...');
+    await saveQuoteToDatabase(finalQuoteData);
     
     } catch (error) {
       console.error('Error processing quote:', error);
@@ -364,6 +450,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     // Removed setWorkplace - using individual role workspaces
     setQuoteData(null);
     setActiveRoleId(null);
+    // Reset save states
+    setSaveError(null);
+    setSaveSuccess(false);
+    setIsSaving(false);
   };
 
   // Only reset form when modal is first opened (not when reopening)
@@ -384,7 +474,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
             id: (index + 1).toString(),
             title: '',
             description: '',
-            level: 'entry' as const,
+            level: (index === 0 ? 'entry' : index === 1 ? 'mid' : 'senior') as 'entry' | 'mid' | 'senior',
             count: 1,
             workspace: 'wfh' as const,
             isCompleted: false
@@ -404,7 +494,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         id: (index + 1).toString(),
         title: '',
         description: '',
-        level: 'entry' as const,
+        level: (index === 0 ? 'entry' : index === 1 ? 'mid' : 'senior') as 'entry' | 'mid' | 'senior',
         count: 1,
         workspace: 'wfh' as const,
         isCompleted: false
@@ -426,11 +516,15 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   // Helper functions
   const addRole = () => {
     const newId = (roles.length + 1).toString();
+    // Cycle through levels: entry -> mid -> senior -> entry...
+    const levels: ('entry' | 'mid' | 'senior')[] = ['entry', 'mid', 'senior'];
+    const nextLevel = levels[roles.length % 3];
+    
     setRoles([...roles, { 
       id: newId, 
       title: '', 
       description: '',
-      level: 'entry', 
+      level: nextLevel, 
       count: 1, 
       workspace: 'wfh', 
       isCompleted: false 
@@ -820,6 +914,32 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                                placeholder="Enter role..."
                                id={`title-${role.id}`}
                              />
+                             
+                             {/* Experience Level Selector */}
+                             <div className="space-y-2">
+                               <Label className="text-sm font-medium text-gray-700">Experience Level</Label>
+                               <div className="flex space-x-2">
+                                 {[
+                                   { value: 'entry', label: 'Entry Level', description: '0-2 years experience' },
+                                   { value: 'mid', label: 'Mid Level', description: '3-5 years experience' },
+                                   { value: 'senior', label: 'Senior Level', description: '6+ years experience' }
+                                 ].map((level) => (
+                                   <button
+                                     key={level.value}
+                                     type="button"
+                                     onClick={() => updateRole(role.id, 'level', level.value)}
+                                     className={`flex-1 p-3 border-2 rounded-lg text-left transition-all ${
+                                       role.level === level.value
+                                         ? 'border-lime-500 bg-lime-50 text-lime-700'
+                                         : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                                     }`}
+                                   >
+                                     <div className="font-medium text-sm">{level.label}</div>
+                                     <div className="text-xs text-gray-500 mt-1">{level.description}</div>
+                                   </button>
+                                 ))}
+                               </div>
+                             </div>
                              
                              <AIDescriptionGenerator
                                value={role.description || ''}
@@ -1216,6 +1336,30 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                  </Card>
                 )}
 
+                {/* Save Status */}
+                {isAuthenticated && (
+                  <div className="mb-6">
+                    {isSaving && (
+                      <div className="flex items-center justify-center space-x-2 text-lime-600">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm">Saving quote to your account...</span>
+                      </div>
+                    )}
+                    {saveSuccess && (
+                      <div className="flex items-center justify-center space-x-2 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm">Quote saved successfully!</span>
+                      </div>
+                    )}
+                    {saveError && (
+                      <div className="flex items-center justify-center space-x-2 text-red-600">
+                        <X className="w-4 h-4" />
+                        <span className="text-sm">Failed to save quote: {saveError}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button 
@@ -1224,6 +1368,16 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                   >
                     Book Consultation
                   </Button>
+                  {isAuthenticated && !saveSuccess && !isSaving && (
+                    <Button 
+                      size="lg"
+                      variant="outline"
+                      onClick={() => quoteData && saveQuoteToDatabase(quoteData)}
+                      className="border-lime-300 text-lime-700 hover:bg-lime-50"
+                    >
+                      Save Quote
+                    </Button>
+                  )}
                   <Button 
                     variant="outline" 
                     size="lg"
