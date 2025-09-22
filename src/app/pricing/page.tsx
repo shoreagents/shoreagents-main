@@ -4,7 +4,6 @@ import { useState } from "react";
 import { SideNav } from "@/components/layout/SideNav";
 import { PricingCalculatorModal } from "@/components/ui/pricing-calculator-modal";
 import { Calculator, Users, Building, Clock, DollarSign, ArrowRight, Star, CheckCircle, Sparkles, Zap, Shield, TrendingUp } from "lucide-react";
-import { useCurrency } from "@/lib/currencyContext";
 // import { useEngagementTracking } from "@/lib/useEngagementTracking"; // Removed - using GlobalEngagementTracker
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,26 +12,8 @@ import { Separator } from "@/components/ui/separator";
 
 export default function PricingPage() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const { convertPrice, formatPrice } = useCurrency();
   // const { recordInteraction } = useEngagementTracking(); // Removed - using GlobalEngagementTracker
 
-  // Realistic sample quote data
-  const sampleQuote = {
-    totalMembers: 2,
-    industry: "E-commerce",
-    roles: [
-      { title: "Customer Service Representative", level: "entry", count: 1 },
-      { title: "Social Media Manager", level: "mid", count: 1 }
-    ],
-    totalMonthlyCost: 156800, // PHP - more realistic for 2 people
-    workspace: "wfh"
-  };
-
-  // Format preview prices
-  const formatPreviewPrice = (phpAmount: number) => {
-    const converted = convertPrice(phpAmount / 55.5);
-    return formatPrice(converted);
-  };
 
   return (
     <div className="bg-lime-50">
@@ -302,162 +283,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Simple Pricing Examples Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple Pricing Examples</h2>
-          </div>
 
-          {/* Two Column Layout - Example Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Card - 1 Person, Entry Level, Work From Home */}
-            <div className="bg-lime-50 rounded-xl border border-lime-200 overflow-hidden">
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">1 Person, Entry Level, Work From Home</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Salary ($438 × 1.43):</span>
-                    <span className="font-semibold text-gray-900">$626</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Benefits (exact cost):</span>
-                    <span className="font-semibold text-gray-900">$109</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Workspace (WFH):</span>
-                    <span className="font-semibold text-gray-900">$140</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Setup (first 6 months):</span>
-                    <span className="font-semibold text-gray-900">$175</span>
-                  </div>
-                  
-                  <div className="border-t border-lime-200 pt-4 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-lime-700">First 6 months:</span>
-                      <span className="font-bold text-lime-700 text-lg">$1,050/month</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-lime-700">After 6 months:</span>
-                      <span className="font-bold text-lime-700 text-lg">$875/month</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Card - 25-Person Workforce, Private Office */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">25-Person Workforce, Private Office</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Staff costs (25 people):</span>
-                    <span className="font-semibold text-gray-900">$24,063</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Office lease (100sqm):</span>
-                    <span className="font-semibold text-gray-900">$3,658</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Setup costs:</span>
-                    <span className="font-semibold text-gray-900">$13,125 upfront</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Security deposit:</span>
-                    <span className="font-semibold text-gray-900">$10,973 upfront</span>
-                  </div>
-                  
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="font-bold text-gray-900 text-lg">Monthly total:</span>
-                      <span className="font-bold text-gray-900 text-xl">$27,720/month</span>
-                    </div>
-                    <p className="text-blue-600 text-sm font-medium">Unlimited staff rotation through office space!</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Key Advantages Section */}
-      <section className="py-16 bg-lime-50">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Key Advantages</h2>
-          </div>
-
-          {/* Four Card Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Card 1 - True Flexibility */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">True Flexibility</h3>
-              </div>
-              <p className="text-gray-600 leading-relaxed">
-                Mix workspace types as needed. Start with WFH, upgrade to office, scale to private space.
-              </p>
-            </div>
-
-            {/* Card 2 - Transparent Pricing */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Transparent Pricing</h3>
-              </div>
-              <p className="text-gray-600 leading-relaxed">
-                No hidden fees. Benefits at actual cost. Clear multipliers based on salary level.
-              </p>
-            </div>
-
-            {/* Card 3 - Quick Deployment */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Quick Deployment</h3>
-              </div>
-              <p className="text-gray-600 leading-relaxed">
-                Start in 2-3 weeks. Faster scaling once initial process is established.
-              </p>
-            </div>
-
-            {/* Card 4 - Complete Package */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Complete Package</h3>
-              </div>
-              <p className="text-gray-600 leading-relaxed">
-                Recruitment, equipment, HR, compliance all included in the pricing.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-16 bg-white">
