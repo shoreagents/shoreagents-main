@@ -1,8 +1,11 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { supabase } from './supabase'
+import { createClient } from './supabase/client'
 import type { User } from '@supabase/supabase-js'
+import { getAuthErrorMessage } from '@/lib/authErrorUtils'
+
+const supabase = createClient()
 
 // Admin-specific interface
 export interface AdminAppUser {
@@ -17,7 +20,7 @@ export interface AdminAppUser {
   created_at: string
   updated_at: string
   auth_user_id?: string
-  user_type: 'Admin' | 'SuperAdmin'
+  user_type: 'Admin' | 'Regular'
   is_verified: boolean
   is_admin: boolean
   admin_level: 'basic' | 'advanced' | 'super'
@@ -79,10 +82,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Verify this is actually an admin user
-      if (!data.is_admin || !['Admin', 'SuperAdmin'].includes(data.user_type)) {
+      console.log('Admin auth - User data:', data)
+      console.log('Admin auth - user_type:', data.user_type)
+      
+      if (data.user_type !== 'Admin') {
         // User is not an admin - this is expected for regular users
+        console.log('Admin auth - User is not an admin')
         return null
       }
+      
+      console.log('Admin auth - User is confirmed as admin')
 
       return data as AdminAppUser
     } catch (error) {
@@ -125,7 +134,8 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { success: false, error: error.message }
+        const errorMessage = getAuthErrorMessage(error, 'login')
+        return { success: false, error: errorMessage }
       }
 
       if (data.user) {
@@ -230,7 +240,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   }, [admin, hasPermission])
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: { user: User } | null) => {
       if (session?.user) {
         const adminData = await fetchAdminData(session.user)
         setAdmin(adminData)
@@ -246,7 +256,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   // Admin-specific computed properties
   const isAuthenticated = !!admin
   const isVerified = admin?.is_verified ?? false
-  const isAdmin = admin?.is_admin ?? false
+  const isAdmin = !!(admin && admin.user_type === 'Admin')
   const isSuperAdmin = admin?.admin_level === 'super'
 
   const value: AdminAuthContextType = {

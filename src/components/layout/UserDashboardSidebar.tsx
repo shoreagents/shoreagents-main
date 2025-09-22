@@ -122,7 +122,7 @@ export function UserDashboardSidebar() {
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 py-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatar} alt={user?.first_name} />
+            <AvatarImage src="" alt={user?.first_name} />
             <AvatarFallback className="bg-lime-600 text-white text-xs">
               {getInitials(`${user?.first_name || ''} ${user?.last_name || ''}`)}
             </AvatarFallback>

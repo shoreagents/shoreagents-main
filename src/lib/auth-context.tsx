@@ -1,8 +1,10 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from './supabase'
+import { createClient } from './supabase/client'
 import type { User } from '@supabase/supabase-js'
+
+const supabase = createClient()
 
 export interface AppUser {
   id: string

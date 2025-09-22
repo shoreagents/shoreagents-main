@@ -1,9 +1,12 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { supabase } from './supabase'
+import { createClient } from './supabase/client'
 import type { User } from '@supabase/supabase-js'
 import { generateUserId } from '@/lib/userEngagementService'
+import { getAuthErrorMessage } from '@/lib/authErrorUtils'
+
+const supabase = createClient()
 
 // User-specific interface
 export interface UserAppUser {
@@ -107,7 +110,8 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { success: false, error: error.message }
+        const errorMessage = getAuthErrorMessage(error, 'login')
+        return { success: false, error: errorMessage }
       }
 
       if (data.user) {
@@ -142,7 +146,8 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('❌ Supabase Auth error:', error)
-        return { success: false, error: error.message }
+        const errorMessage = getAuthErrorMessage(error, 'signup')
+        return { success: false, error: errorMessage }
       }
 
       console.log('✅ Supabase Auth success:', {
@@ -173,7 +178,7 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
         if (existingUser) {
           // Update existing anonymous user with auth data
           console.log('📝 Updating existing anonymous user with auth data')
-          const { data, error } = await supabase
+          const { data: updateData, error: updateError } = await supabase
             .from('users')
             .update({
               auth_user_id: data.user.id, // Add auth UUID
@@ -189,12 +194,12 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
             .eq('user_id', deviceFingerprintId)
             .select()
           
-          dbUserData = data
-          dbUserError = error
+          dbUserData = updateData
+          dbUserError = updateError
         } else {
           // Create new user record (fallback)
           console.log('🆕 Creating new user record')
-          const { data, error } = await supabase
+          const { data: insertData, error: insertError } = await supabase
             .from('users')
             .insert({
               user_id: deviceFingerprintId, // Device fingerprint ID for tracking
@@ -209,8 +214,8 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
             })
             .select()
           
-          dbUserData = data
-          dbUserError = error
+          dbUserData = insertData
+          dbUserError = insertError
         }
 
         if (dbUserError) {
@@ -258,7 +263,7 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchUserData])
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: { user: User } | null) => {
       if (session?.user) {
         const userData = await fetchUserData(session.user)
         setUser(userData)

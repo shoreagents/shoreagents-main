@@ -19,7 +19,7 @@ import { EmployeeCardData } from '@/types/api';
 import { rankEmployeesByScore } from '@/lib/employeeRankingService';
 import { getFixedSetupCost, getFixedWorkspaceCost, convertSalaryToCurrency, formatCurrency } from '@/lib/fixedPricingService';
 import { getFallbackSalary } from '@/lib/salaryLookupService';
-import { PricingQuoteService, PricingQuoteData } from '@/lib/pricingQuoteService';
+import { PricingQuoteServiceClient, PricingQuoteData } from '@/lib/pricingQuoteServiceClient';
 import { useUserAuth } from '@/lib/user-auth-context'
 import { generateUserId, savePageVisit } from '@/lib/userEngagementService';
 
@@ -233,7 +233,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         })
       };
 
-      const result = await PricingQuoteService.saveQuote(pricingQuoteData);
+      const result = await PricingQuoteServiceClient.saveQuote(pricingQuoteData);
       
       if (result.success) {
         setSaveSuccess(true);
@@ -1299,16 +1299,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                                     <TalentCard
                                       key={candidateIndex}
                                       data={employeeData}
-                                      rank={rankedCandidate.rank}
-                                      onViewDetails={(data) => {
-                                        console.log(`🎯 View Profile clicked for: ${data.user.name}`, data);
-                                        console.log(`📍 Employee URL: ${rankedCandidate.url}`);
-                                        // Navigation is handled by the TalentCard component
-                                      }}
-                                      onViewResume={(resume) => {
-                                        console.log(`📄 View Resume clicked for: ${employeeData.user.name}`, resume);
-                                        alert(`Opening resume for ${employeeData.user.name}\n\nThis would typically open a PDF or detailed resume view.`);
-                                      }}
                                     />
                                   );
                                 });

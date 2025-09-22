@@ -12,6 +12,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { UserAuthProvider } from "@/lib/user-auth-context";
 import { AdminAuthProvider } from "@/lib/admin-auth-context";
 import { FavoritesProvider } from "@/lib/favorites-context";
+import { Toaster } from "@/components/ui/sonner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -66,6 +67,7 @@ export default function RootLayout({
             </AuthProvider>
           </ToastProvider>
         </CurrencyProvider>
+        <Toaster />
       </body>
     </html>
   );

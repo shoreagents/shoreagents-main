@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { generateUserId } from '@/lib/userEngagementService'
 import { UserType } from '@/types/user'
 
@@ -41,12 +41,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!supabase) {
-      return NextResponse.json(
-        { error: 'Database connection not available' },
-        { status: 500 }
-      )
-    }
+    const supabase = await createClient()
 
     // Check if email already exists in the database
     const { data: existingEmail, error: emailCheckError } = await supabase

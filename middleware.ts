@@ -1,10 +1,9 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@/lib/supabase/middleware'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+  const { supabase, response } = createClient(req)
 
   // Get the current user
   const {
@@ -72,7 +71,7 @@ export async function middleware(req: NextRequest) {
 
   // If it's a public route, allow access
   if (isPublicRoute) {
-    return res
+    return response
   }
 
   // If no session and trying to access protected routes
@@ -141,7 +140,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  return res
+  return response
 }
 
 export const config = {

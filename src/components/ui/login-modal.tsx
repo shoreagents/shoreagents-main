@@ -12,14 +12,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { LogIn, UserPlus, ChevronLeft, ChevronRight, User, Mail, Phone, Building, MapPin, Lock, Eye, EyeOff } from "lucide-react"
+import { LogIn, UserPlus, ChevronLeft, ChevronRight, User, Mail, Phone, Building, MapPin, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
-import { supabase } from "@/lib/supabase"
+import { useAdminAuth } from "@/lib/admin-auth-context"
+import { createClient } from "@/lib/supabase/client"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { getAuthErrorMessage } from "@/lib/authErrorUtils"
 
 // Login form schema
 const loginSchema = z.object({
@@ -61,6 +63,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
   const [emailChecking, setEmailChecking] = useState(false)
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
   const { refreshUser } = useAuth()
+  const { refreshAdmin } = useAdminAuth()
 
   // Check email availability
   const checkEmailAvailability = async (email: string) => {
@@ -120,9 +123,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
     setLoading(true)
     
     try {
-      if (!supabase) {
-        throw new Error("Supabase client not available")
-      }
+      const supabase = createClient()
 
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
@@ -137,18 +138,42 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
         throw new Error("Login failed - no user returned")
       }
 
-      toast.success("Welcome back!")
-      setOpen(false)
-      loginForm.reset()
+      // Refresh both user and admin contexts
+      await Promise.all([refreshUser(), refreshAdmin()])
       
-      await refreshUser()
+      // Check if this is an admin user
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('is_admin, user_type')
+        .eq('auth_user_id', authData.user.id)
+        .single()
       
-      if (onSuccess) {
-        onSuccess()
+      console.log('LoginModal - User data:', userData)
+      console.log('LoginModal - User error:', userError)
+      console.log('LoginModal - User type:', userData?.user_type)
+      console.log('LoginModal - Is Admin?', userData?.user_type === 'Admin')
+      
+      if (!userError && userData && userData.user_type === 'Admin') {
+        // This is an admin user
+        toast.success("Welcome back, Admin!")
+        setOpen(false)
+        loginForm.reset()
+        
+        // Redirect to admin dashboard
+        window.location.href = '/admin'
+      } else {
+        // This is a regular user
+        toast.success("Welcome back!")
+        setOpen(false)
+        loginForm.reset()
+        
+        // Redirect to user dashboard
+        window.location.href = '/user-dashboard'
       }
     } catch (error) {
       console.error("Login error:", error)
-      toast.error(error instanceof Error ? error.message : "Login failed. Please try again.")
+      const errorMessage = getAuthErrorMessage(error, 'login')
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -198,7 +223,8 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
       }
     } catch (error) {
       console.error("Sign up error:", error)
-      toast.error(error instanceof Error ? error.message : "Sign up failed. Please try again.")
+      const errorMessage = getAuthErrorMessage(error, 'signup')
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -209,9 +235,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
     setLoading(true)
     
     try {
-      if (!supabase) {
-        throw new Error("Supabase client not available")
-      }
+      const supabase = createClient()
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -227,7 +251,8 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
       // The OAuth flow will redirect the user, so we don't need to handle success here
     } catch (error) {
       console.error("Google sign-in error:", error)
-      toast.error(error instanceof Error ? error.message : "Google sign-in failed. Please try again.")
+      const errorMessage = getAuthErrorMessage(error, 'login')
+      toast.error(errorMessage)
       setLoading(false)
     }
   }

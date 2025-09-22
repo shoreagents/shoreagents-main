@@ -21,8 +21,8 @@ export function UserGuard({
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        // Redirect to login page
-        router.push('/auth/login')
+        // Redirect to home page where users can use the login modal
+        router.push('/')
         return
       }
 
