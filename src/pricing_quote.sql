@@ -6,7 +6,7 @@
 
 CREATE TABLE public.pricing_quotes (
 	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	user_id uuid NOT NULL,
+	user_id text NOT NULL,
 	session_id text NULL,
 	quote_timestamp timestamptz DEFAULT now() NOT NULL,
 	member_count int4 NOT NULL,
@@ -30,4 +30,4 @@ update
 
 -- public.pricing_quotes foreign keys
 
-ALTER TABLE public.pricing_quotes ADD CONSTRAINT fk_pricing_quotes_user_id FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+ALTER TABLE public.pricing_quotes ADD CONSTRAINT fk_pricing_quotes_user_id FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
