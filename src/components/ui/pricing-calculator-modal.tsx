@@ -22,6 +22,7 @@ import { getFallbackSalary } from '@/lib/salaryLookupService';
 import { PricingQuoteServiceClient, PricingQuoteData } from '@/lib/pricingQuoteServiceClient';
 import { useUserAuth } from '@/lib/user-auth-context'
 import { generateUserId, savePageVisit } from '@/lib/userEngagementService';
+import { useFavorites } from '@/lib/favorites-context';
 
 interface RoleDetail {
   id: string;
@@ -106,6 +107,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // User auth context
   const { user, isAuthenticated } = useUserAuth();
+
+  // Favorites context
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   // Convert BPOC candidate to EmployeeCardData format
   const convertToEmployeeCardData = (candidate: {
@@ -541,6 +545,19 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     setRoles(roles.map(role => 
       role.id === id ? { ...role, [field]: value } : role
     ));
+  };
+
+  // Function to select all roles for a specific workspace type
+  const selectAllWorkspace = (workspaceType: 'wfh' | 'hybrid' | 'office') => {
+    setRoles(roles.map(role => ({
+      ...role,
+      workspace: workspaceType
+    })));
+  };
+
+  // Function to check if all roles have the same workspace type
+  const isAllRolesSameWorkspace = (workspaceType: 'wfh' | 'hybrid' | 'office') => {
+    return roles.length > 0 && roles.every(role => role.workspace === workspaceType);
   };
 
   const handleRoleEditingChange = (roleId: string, isEditing: boolean) => {
@@ -1009,9 +1026,60 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
-                          <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Work from Home</th>
-                          <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Hybrid</th>
-                          <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Full Office</th>
+                          <th className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => selectAllWorkspace('wfh')}
+                              className={`text-sm font-semibold transition-colors duration-200 cursor-pointer relative group ${
+                                isAllRolesSameWorkspace('wfh')
+                                  ? 'text-lime-600'
+                                  : 'text-gray-900 hover:text-lime-600'
+                              }`}
+                              title="Click to select Work from Home for all roles"
+                            >
+                              <span className="relative inline-block">
+                                Work from Home
+                                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${
+                                  isAllRolesSameWorkspace('wfh') ? 'w-full' : 'w-0 group-hover:w-full'
+                                }`}></span>
+                              </span>
+                            </button>
+                          </th>
+                          <th className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => selectAllWorkspace('hybrid')}
+                              className={`text-sm font-semibold transition-colors duration-200 cursor-pointer relative group ${
+                                isAllRolesSameWorkspace('hybrid')
+                                  ? 'text-lime-600'
+                                  : 'text-gray-900 hover:text-lime-600'
+                              }`}
+                              title="Click to select Hybrid for all roles"
+                            >
+                              <span className="relative inline-block">
+                                Hybrid
+                                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${
+                                  isAllRolesSameWorkspace('hybrid') ? 'w-full' : 'w-0 group-hover:w-full'
+                                }`}></span>
+                              </span>
+                            </button>
+                          </th>
+                          <th className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => selectAllWorkspace('office')}
+                              className={`text-sm font-semibold transition-colors duration-200 cursor-pointer relative group ${
+                                isAllRolesSameWorkspace('office')
+                                  ? 'text-lime-600'
+                                  : 'text-gray-900 hover:text-lime-600'
+                              }`}
+                              title="Click to select Full Office for all roles"
+                            >
+                              <span className="relative inline-block">
+                                Full Office
+                                <span className={`absolute -bottom-1 left-1/2 h-0.5 bg-lime-600 transition-all duration-300 ease-out transform -translate-x-1/2 ${
+                                  isAllRolesSameWorkspace('office') ? 'w-full' : 'w-0 group-hover:w-full'
+                                }`}></span>
+                              </span>
+                            </button>
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
@@ -1071,43 +1139,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                           </tr>
                         ))}
                       </tbody>
-                    </table>
-                      </div>
-                    </div>
-                    
-                {/* Workplace Options Legend */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-                      {[
-                        { 
-                          id: 'wfh', 
-                          title: 'Work from Home', 
-                          subtitle: 'Remote setup',
-                          icon: '🏠'
-                        },
-                        { 
-                          id: 'hybrid', 
-                          title: 'Hybrid', 
-                          subtitle: 'Flexible option',
-                          icon: '🔄'
-                        },
-                        { 
-                          id: 'office', 
-                          title: 'Full Office', 
-                          subtitle: 'Office-based',
-                          icon: '🏢'
-                        }
-                      ].map((option) => (
-                    <Card key={option.id} className="p-3 bg-gray-50">
-                      <div className="flex items-center space-x-3">
-                        <div className="text-xl">{option.icon}</div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 text-sm">{option.title}</h4>
-                          <p className="text-xs text-gray-500">{option.subtitle}</p>
-                          </div>
-                    </div>
-                  </Card>
-                ))}
-                </div>
+                     </table>
+                       </div>
+                     </div>
               </div>
             </div>
           )}
@@ -1210,12 +1244,13 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                 </Card>
               </div>
 
-                  <div className="mt-6">
+                  <div className="mt-6 flex justify-end">
                 <Button
                   onClick={() => setCurrentStep(5)}
-                  className="bg-lime-600 hover:bg-lime-700 text-white px-8"
+                  className="bg-lime-600 hover:bg-lime-700 text-white px-8 flex items-center space-x-2"
                 >
-                  View Quote
+                  <span>View Quote</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
                 </>
@@ -1276,54 +1311,96 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                       </div>
                    </CardHeader>
                     <CardContent className="space-y-4">
-                      {quoteData.roles
-                        .filter(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length)
-                        .map((role, roleIndex) => (
-                          <div key={roleIndex} className="border rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 mb-3">
-                              {role.title} ({role.level} level)
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                              {(() => {
-                                // Rank candidates by score and get top 10
-                                const rankedCandidates = rankEmployeesByScore((role.candidateMatch?.recommendedCandidates as CandidateRecommendation[]) || []);
-                                const topCandidates = rankedCandidates.slice(0, 10);
-                                
-                                return topCandidates.map((rankedCandidate, candidateIndex) => {
-                                  const originalCandidate = (role.candidateMatch?.recommendedCandidates as CandidateRecommendation[])?.find((c: CandidateRecommendation) => c.id === rankedCandidate.id);
-                                  if (!originalCandidate) return null;
-                                  
-                                  const employeeData = convertToEmployeeCardData(originalCandidate, rankedCandidate.rank);
-                                  
-                                  return (
-                                    <TalentCard
-                                      key={candidateIndex}
-                                      data={employeeData}
-                                    />
-                                  );
+                      {(() => {
+                        // Collect all unique candidates from all roles to prevent duplication
+                        const allCandidates = new Map<string, { candidate: CandidateRecommendation, role: RoleDetail, rank: number }>();
+                        
+                        quoteData.roles
+                          .filter(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length)
+                          .forEach(role => {
+                            const rankedCandidates = rankEmployeesByScore((role.candidateMatch?.recommendedCandidates as CandidateRecommendation[]) || []);
+                            const topCandidates = rankedCandidates.slice(0, 5); // Show top 5 per role
+                            
+                            topCandidates.forEach(rankedCandidate => {
+                              const originalCandidate = (role.candidateMatch?.recommendedCandidates as CandidateRecommendation[])?.find((c: CandidateRecommendation) => c.id === rankedCandidate.id);
+                              if (originalCandidate && !allCandidates.has(originalCandidate.id)) {
+                                allCandidates.set(originalCandidate.id, {
+                                  candidate: originalCandidate,
+                                  role: role,
+                                  rank: rankedCandidate.rank
                                 });
-                              })()}
-                         </div>
-                            {role.candidateMatch && role.candidateMatch.totalCandidates > 10 && (
-                              <div className="text-center mt-4">
-                                <div className="inline-flex items-center px-4 py-2 bg-gray-100 rounded-lg">
-                                  <span className="text-sm text-gray-600">
-                                    +{role.candidateMatch.totalCandidates - 10} more candidates available
-                                  </span>
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    className="ml-2 text-xs text-lime-600 hover:text-lime-700"
-                                  >
-                                    View All
-                                  </Button>
-                         </div>
-                              </div>
-                            )}
-                       </div>
-                     ))}
+                              }
+                            });
+                          });
+                        
+                        // Convert to array and sort by rank
+                        const uniqueCandidates = Array.from(allCandidates.values())
+                          .sort((a, b) => a.rank - b.rank)
+                          .slice(0, 12); // Show max 12 unique candidates
+                        
+                        if (uniqueCandidates.length === 0) {
+                          return (
+                            <div className="text-center py-8 text-gray-500">
+                              <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                              <p>No candidates found for the selected roles.</p>
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {uniqueCandidates.map(({ candidate, role, rank }) => {
+                              const employeeData = convertToEmployeeCardData(candidate, rank);
+                              
+                              return (
+                                <TalentCard
+                                  key={`${candidate.id}-${role.id}`} // Unique key to prevent duplication
+                                  data={employeeData}
+                                  onAskForInterview={() => {
+                                    // Handle interview request for this candidate
+                                    console.log('Interview requested for:', candidate.name);
+                                    // You can add modal opening logic here if needed
+                                  }}
+                                />
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                    </CardContent>
                  </Card>
+                )}
+
+                {/* Fallback when no BPOC candidates */}
+                {!quoteData.roles.some(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length) && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Users className="w-5 h-5 text-lime-600" />
+                        Candidate Recommendations
+                      </CardTitle>
+                      <CardDescription>
+                        We're building our talent pool. Contact us to find the perfect candidates for your team.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Users className="w-8 h-8 text-lime-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Find Your Perfect Team</h3>
+                        <p className="text-gray-600 mb-4">
+                          Our recruitment team can help you find qualified candidates for your specific requirements.
+                        </p>
+                        <Button 
+                          size="lg" 
+                          className="bg-lime-600 hover:bg-lime-700 text-white"
+                        >
+                          Ask Maya
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {/* Save Status */}

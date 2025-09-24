@@ -233,8 +233,11 @@ export default function EmployeesPage() {
               <TalentCard
                 key={employee.user.id}
                 data={employee}
-                isFavorite={isFavorite(employee.user.id)}
-                onToggleFavorite={() => toggleFavorite(employee.user.id)}
+                onAskForInterview={() => {
+                  // Handle interview request for this candidate
+                  console.log('Interview requested for:', employee.user.name);
+                  // You can add modal opening logic here if needed
+                }}
               />
             ))}
           </div>

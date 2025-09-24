@@ -11,19 +11,23 @@ import {
   Mail, 
   Eye,
   Trophy,
-  Heart
+  Calendar,
+  Flame
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { candidateTracker } from '@/lib/candidateTrackingService';
 
 interface TalentCardProps {
   data: EmployeeCardData;
-  isFavorite?: boolean;
-  onToggleFavorite?: () => void;
+  onAskForInterview?: () => void;
 }
 
-export function TalentCard({ data, isFavorite = false, onToggleFavorite }: TalentCardProps) {
+export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
   const router = useRouter();
   const hasWorkStatus = data.workStatus;
   const hasResume = data.resume;
+  const [hotnessScore, setHotnessScore] = useState<number>(0);
+  const [isLoadingHotness, setIsLoadingHotness] = useState(true);
   
   // Calculate score based on various factors
   const calculateScore = () => {
@@ -45,6 +49,45 @@ export function TalentCard({ data, isFavorite = false, onToggleFavorite }: Talen
   };
 
   const score = calculateScore();
+
+  // Fetch hotness score for this candidate
+  useEffect(() => {
+    const fetchHotnessScore = async () => {
+      try {
+        setIsLoadingHotness(true);
+        console.log('🔍 Fetching hotness score for candidate:', data.user.id);
+        
+        const analytics = await candidateTracker.getCandidateAnalytics(data.user.id);
+        console.log('📊 Received analytics data:', analytics);
+        
+        if (analytics && typeof analytics.hotness_score === 'number') {
+          setHotnessScore(analytics.hotness_score);
+          console.log('✅ Set hotness score:', analytics.hotness_score);
+        } else {
+          setHotnessScore(0);
+          console.log('📊 No hotness score data, setting to 0');
+        }
+      } catch (error) {
+        console.error('❌ Error fetching hotness score:', error);
+        setHotnessScore(0);
+      } finally {
+        setIsLoadingHotness(false);
+      }
+    };
+
+    fetchHotnessScore();
+  }, [data.user.id]);
+
+  // Get hotness level and color
+  const getHotnessLevel = (score: number) => {
+    if (score >= 80) return { level: 'HOT', color: 'bg-red-500', textColor: 'text-red-600' };
+    if (score >= 60) return { level: 'WARM', color: 'bg-orange-500', textColor: 'text-orange-600' };
+    if (score >= 40) return { level: 'COOL', color: 'bg-blue-500', textColor: 'text-blue-600' };
+    if (score >= 20) return { level: 'CHILL', color: 'bg-green-500', textColor: 'text-green-600' };
+    return { level: 'COLD', color: 'bg-gray-400', textColor: 'text-gray-600' };
+  };
+
+  const hotness = getHotnessLevel(hotnessScore);
   
 
 
@@ -55,6 +98,14 @@ export function TalentCard({ data, isFavorite = false, onToggleFavorite }: Talen
         <Trophy className="w-3 h-3 mr-1" />
         {score}
       </div>
+
+      {/* Hotness indicator in top left */}
+      {!isLoadingHotness && hotnessScore > 0 && (
+        <div className="absolute -top-2 -left-2 bg-white border border-gray-200 rounded-full px-2 py-1 flex items-center justify-center text-xs font-semibold shadow-lg">
+          <Flame className={`w-3 h-3 mr-1 ${hotness.textColor}`} />
+          <span className={hotness.textColor}>{hotness.level}</span>
+        </div>
+      )}
       <CardContent className="p-6 flex flex-col h-full">
         {/* Profile Section */}
         <div className="flex flex-col items-center space-y-4 mb-6">
@@ -100,32 +151,42 @@ export function TalentCard({ data, isFavorite = false, onToggleFavorite }: Talen
         {/* Spacer to push button to bottom */}
         <div className="flex-1"></div>
 
+        {/* Hotness Bar */}
+        {!isLoadingHotness && hotnessScore > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+              <span>Popularity</span>
+              <span className="font-semibold">{hotnessScore}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-500 ${hotness.color}`}
+                style={{ width: `${hotnessScore}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="space-y-2">
-          <div className="flex gap-2">
-            <Button
-              onClick={() => {
-                // Navigate to employee profile page
-                router.push(`/employee/${data.user.id}`);
-              }}
-              className="flex-1 bg-gradient-to-r from-lime-600 to-lime-700 hover:from-lime-700 hover:to-lime-800 text-white flex items-center justify-center space-x-2"
-            >
-              <Eye className="w-4 h-4" />
-              <span>View Profile</span>
-            </Button>
-            <Button
-              onClick={onToggleFavorite}
-              variant="outline"
-              size="icon"
-              className={`flex-shrink-0 transition-all duration-200 ${
-                isFavorite 
-                  ? 'bg-lime-50 border-lime-300 text-lime-600 hover:bg-lime-100 shadow-sm' 
-                  : 'hover:bg-lime-50 hover:border-lime-200 hover:text-lime-600'
-              }`}
-            >
-              <Heart className={`w-4 h-4 transition-all duration-200 ${isFavorite ? 'fill-current scale-110' : 'hover:scale-105 hover:text-lime-600'}`} />
-            </Button>
-          </div>
+          <Button
+            onClick={() => {
+              // Navigate to employee profile page
+              router.push(`/employee/${data.user.id}`);
+            }}
+            className="w-full bg-gradient-to-r from-lime-600 to-lime-700 hover:from-lime-700 hover:to-lime-800 text-white flex items-center justify-center space-x-2"
+          >
+            <Eye className="w-4 h-4" />
+            <span>View Profile</span>
+          </Button>
+          <Button
+            onClick={onAskForInterview}
+            variant="outline"
+            className="w-full border-lime-200 text-lime-700 hover:bg-lime-50 hover:border-lime-300 hover:text-lime-800 flex items-center justify-center space-x-2"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Ask for Interview</span>
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -14,9 +14,16 @@ import {
   GraduationCap,
   Award,
   Trophy,
-  Heart
+  Heart,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  MessageCircle
 } from 'lucide-react';
 import { useFavorites } from '@/lib/favorites-context';
+import { candidateTracker } from '@/lib/candidateTrackingService';
+import { useAuth } from '@/lib/auth-context';
+import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/interview-request-modal';
 
 interface EmployeeProfile {
   id: string;
@@ -46,7 +53,10 @@ export default function EmployeeProfilePage() {
   const router = useRouter();
   const [employee, setEmployee] = useState<EmployeeProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAIAnalysis, setShowAIAnalysis] = useState(false);
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { user, appUser } = useAuth();
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
@@ -104,6 +114,13 @@ export default function EmployeeProfilePage() {
         
         console.log(`📋 Converted employee profile:`, employeeProfile);
         setEmployee(employeeProfile);
+        
+        // Start tracking (works with or without user authentication)
+        await candidateTracker.startTracking(
+          appUser?.user_id || '', // Use the actual user_id from the users table
+          employeeProfile.id, 
+          employeeProfile.name
+        );
       } catch (error) {
         console.error('Error fetching employee data:', error);
         setEmployee(null);
@@ -115,12 +132,92 @@ export default function EmployeeProfilePage() {
     if (params.id) {
       fetchEmployeeData();
     }
-  }, [params.id]);
+  }, [params.id, appUser?.user_id]);
+
+  // Cleanup tracking when component unmounts
+  useEffect(() => {
+    return () => {
+      candidateTracker.endTracking();
+    };
+  }, []);
+
+  // Handle anonymous to authenticated user transition
+  useEffect(() => {
+    const handleUserLogin = async () => {
+      if (appUser?.user_id) {
+        const anonymousUserId = candidateTracker.getAnonymousUserId();
+        if (anonymousUserId) {
+          console.log('🔄 User logged in, transferring anonymous data...');
+          await candidateTracker.transferAnonymousDataToUser(anonymousUserId, appUser.user_id);
+        }
+      }
+    };
+
+    handleUserLogin();
+  }, [appUser?.user_id]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    if (score >= 60) return 'bg-gray-100 text-gray-800 border-gray-200';
-    return 'bg-orange-100 text-orange-800 border-orange-200';
+    if (score >= 80) return 'bg-lime-100 text-lime-800 border-lime-300 shadow-sm';
+    if (score >= 60) return 'bg-lime-50 text-lime-700 border-lime-200 shadow-sm';
+    return 'bg-lime-50 text-lime-600 border-lime-200 shadow-sm';
+  };
+
+  const toggleAIAnalysis = async () => {
+    const newState = !showAIAnalysis;
+    setShowAIAnalysis(newState);
+    
+    // Track AI analysis view
+    if (newState && employee) {
+      await candidateTracker.recordAIAnalysisView();
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    if (!employee) return;
+    
+    const newFavoriteState = !isFavorite(employee.id);
+    toggleFavorite(employee.id);
+    
+    // Track favorite action
+    await candidateTracker.recordFavoriteAction(
+      employee.id, 
+      employee.name, 
+      newFavoriteState
+    );
+  };
+
+  const handleTabClick = async (tabValue: string) => {
+    if (!employee) return;
+    
+    // Track section clicks
+    if (tabValue === 'skills') {
+      await candidateTracker.recordSectionClick('skills_click');
+    } else if (tabValue === 'overview') {
+      await candidateTracker.recordSectionClick('profile_click');
+    }
+  };
+
+  const handleAskForInterview = () => {
+    setShowInterviewModal(true);
+  };
+
+  const handleInterviewSubmit = async (data: InterviewRequestData) => {
+    if (!employee) return;
+    
+    // Track interview request
+    await candidateTracker.recordInteractionDirect({
+      user_id: appUser?.user_id || '',
+      candidate_id: employee.id,
+      candidate_name: employee.name,
+      interaction_type: 'contact'
+    });
+    
+    // Here you would typically send the data to your backend
+    console.log('Interview request data:', data);
+    console.log('Candidate:', employee.name);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
   };
 
 
@@ -129,7 +226,7 @@ export default function EmployeeProfilePage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading employee profile...</p>
+          <p className="text-lime-600 font-medium">Loading employee profile...</p>
         </div>
       </div>
     );
@@ -159,35 +256,37 @@ export default function EmployeeProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-lime-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => router.back()}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Employee Profile</h1>
-              <p className="text-gray-600">Detailed candidate information</p>
+          <div className="py-4">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => router.back()}
+                className="flex-shrink-0 border-lime-200 hover:bg-lime-50 hover:border-lime-300 hover:text-lime-700 transition-all duration-200"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Employee Profile</h1>
+                <p className="text-sm text-lime-600 font-medium">Detailed candidate information</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar - Profile Overview */}
           <div className="lg:col-span-1">
-            <Card className="relative">
+            <Card className="relative mt-15">
               <CardHeader className="text-center">
                 {/* Favorite Button - Upper Right */}
                 <Button
-                  onClick={() => toggleFavorite(employee.id)}
+                  onClick={handleFavoriteToggle}
                   variant="outline"
                   size="icon"
                   className={`absolute top-4 right-4 transition-all duration-200 ${
@@ -200,15 +299,21 @@ export default function EmployeeProfilePage() {
                 </Button>
                 
                 <div className="flex justify-center mb-4">
-                  <Avatar className="w-24 h-24">
-                    <AvatarImage src={employee.avatar || ''} />
-                    <AvatarFallback className="text-2xl bg-gradient-to-br from-lime-400 to-lime-600 text-white">
-                      {employee.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="w-24 h-24 ring-4 ring-lime-100 shadow-lg">
+                      <AvatarImage src={employee.avatar || ''} />
+                      <AvatarFallback className="text-2xl font-semibold bg-gradient-to-br from-lime-400 to-lime-600 text-white">
+                        {employee.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Status indicator */}
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-lime-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
                 </div>
-                <CardTitle className="text-xl">{employee.name.split(' ')[0]}</CardTitle>
-                <CardDescription className="text-base">{employee.position.split(',')[0].trim()}</CardDescription>
+                <CardTitle className="text-lg">{employee.name.split(' ')[0]}</CardTitle>
+                <CardDescription className="text-sm">{employee.position.split(',')[0].trim()}</CardDescription>
                 <div className="flex justify-center mt-2">
                   <Badge className={`${getScoreColor(employee.score)} flex items-center space-x-1`}>
                     <Trophy className="w-3 h-3" />
@@ -218,61 +323,57 @@ export default function EmployeeProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <Separator />
-
-
-                {/* Quick Stats */}
-                <div className="text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-lime-600">{employee.experience}</div>
-                    <div className="text-xs text-gray-600">Experience</div>
-                  </div>
+                
+                {/* Summary Section */}
+                <div>
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
+                    <Award className="w-4 h-4 text-lime-600" />
+                    Summary
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {employee.bio || 'No Bio to show.'}
+                  </p>
                 </div>
-
               </CardContent>
             </Card>
+
+            {/* Ask for Interview Button */}
+            <div className="mt-4">
+              <Button 
+                onClick={handleAskForInterview}
+                className="w-full bg-lime-600 hover:bg-lime-700 text-white font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Ask for Interview
+              </Button>
+            </div>
           </div>
 
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <Tabs defaultValue="overview" className="space-y-6 mt-0">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="skills">Skills</TabsTrigger>
-                <TabsTrigger value="ai-analysis">AI Analysis</TabsTrigger>
+            <Tabs defaultValue="overview" className="space-y-4 mt-0" onValueChange={handleTabClick}>
+              <TabsList className="grid w-full grid-cols-2 bg-lime-50 border border-lime-200">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-lime-600 data-[state=active]:text-white data-[state=active]:shadow-sm">Overview</TabsTrigger>
+                <TabsTrigger value="skills" className="data-[state=active]:bg-lime-600 data-[state=active]:text-white data-[state=active]:shadow-sm">Skills</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="space-y-6">
+              <TabsContent value="overview" className="space-y-4">
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Award className="w-5 h-5 text-lime-600" />
-                      Summary
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {employee.bio || 'No Bio to show.'}
-                    </p>
-                  </CardContent>
-                </Card>
-
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Briefcase className="w-5 h-5 text-lime-600" />
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Briefcase className="w-4 h-4 text-lime-600" />
                       Work Experience
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-3 h-3 bg-lime-500 rounded-full mt-2"></div>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">{employee.position}</h4>
-                          <p className="text-sm text-gray-600">{employee.experience} of experience</p>
-                          <p className="text-sm text-gray-500">Current Position</p>
+                          <h4 className="font-semibold text-gray-900 text-sm">{employee.position}</h4>
+                          <p className="text-xs text-gray-600">{employee.experience} of experience</p>
+                          <p className="text-xs text-gray-500">Current Position</p>
                         </div>
                       </div>
                     </div>
@@ -280,39 +381,248 @@ export default function EmployeeProfilePage() {
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <GraduationCap className="w-5 h-5 text-lime-600" />
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <GraduationCap className="w-4 h-4 text-lime-600" />
                       Education
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-3 h-3 bg-lime-500 rounded-full mt-2"></div>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">Education Information</h4>
-                          <p className="text-sm text-gray-600">Education details not available</p>
-                          <p className="text-sm text-gray-500">Contact candidate for details</p>
+                          <h4 className="font-semibold text-gray-900 text-sm">Education Information</h4>
+                          <p className="text-xs text-gray-600">Education details not available</p>
+                          <p className="text-xs text-gray-500">Contact candidate for details</p>
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Show More Button */}
+                <div className="flex justify-center pt-2">
+                  <Button
+                    onClick={toggleAIAnalysis}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 border-lime-200 text-lime-700 hover:bg-lime-50 hover:border-lime-300 hover:text-lime-800 transition-all duration-200 shadow-sm"
+                  >
+                    {showAIAnalysis ? (
+                      <>
+                        <ChevronUp className="w-4 h-4" />
+                        Hide AI Analysis
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4" />
+                        Show AI Analysis
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* AI Analysis Content - Conditionally Rendered */}
+                {showAIAnalysis && (
+                  <div className="space-y-6 pt-4 border-t border-gray-200 animate-in slide-in-from-top-2 fade-in-0 duration-300">
+                    {/* AI-Enhanced Summary */}
+                    {employee.improvedSummary && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Award className="w-5 h-5 text-lime-600" />
+                            AI-Enhanced Summary
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {employee.improvedSummary}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* AI Analysis Grid */}
+                    {employee.keyStrengths.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Top Strengths */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Top Strengths
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Key Strengths */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Key Strengths
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Core Strengths */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Core Strengths
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Technical Strengths */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Technical Strengths
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Notable Achievements */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Notable Achievements
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Market Advantages */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Market Advantages
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Unique Value Proposition */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Unique Value Proposition
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Areas to Highlight */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Award className="w-5 h-5 text-lime-600" />
+                              Areas to Highlight
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {employee.keyStrengths.map((strength, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                  <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
+                                  <p className="text-sm text-gray-700">{strength}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+                )}
               </TabsContent>
 
-              <TabsContent value="skills" className="space-y-6">
+              <TabsContent value="skills" className="space-y-4">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Award className="w-5 h-5 text-lime-600" />
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Award className="w-4 h-4 text-lime-600" />
                       Technical Skills
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
                       {employee.skills.map((skill, index) => (
-                        <Badge key={index} variant="outline" className="text-sm break-words max-w-full">
+                        <Badge key={index} variant="outline" className="text-xs break-words max-w-full border-lime-200 text-lime-700 hover:bg-lime-50 hover:border-lime-300 transition-colors duration-200">
                           <span className="truncate block max-w-full">{skill}</span>
                         </Badge>
                       ))}
@@ -322,194 +632,22 @@ export default function EmployeeProfilePage() {
               </TabsContent>
 
 
-              <TabsContent value="ai-analysis" className="space-y-6">
-                {/* AI-Enhanced Summary */}
-                {employee.improvedSummary && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Award className="w-5 h-5 text-lime-600" />
-                        AI-Enhanced Summary
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {employee.improvedSummary}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* AI Analysis Grid */}
-                {employee.keyStrengths.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Top Strengths */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Top Strengths
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Key Strengths */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Key Strengths
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Core Strengths */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Core Strengths
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Technical Strengths */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Technical Strengths
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Notable Achievements */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Notable Achievements
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Market Advantages */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Market Advantages
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Unique Value Proposition */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Unique Value Proposition
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Areas to Highlight */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Award className="w-5 h-5 text-lime-600" />
-                          Areas to Highlight
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {employee.keyStrengths.map((strength, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className="w-2 h-2 bg-lime-500 rounded-full mt-2"></div>
-                              <p className="text-sm text-gray-700">{strength}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </TabsContent>
 
             </Tabs>
           </div>
         </div>
       </div>
+
+      {/* Interview Request Modal */}
+      {employee && (
+        <InterviewRequestModal
+          isOpen={showInterviewModal}
+          onClose={() => setShowInterviewModal(false)}
+          candidateName={employee.name}
+          candidatePosition={employee.position}
+          onSubmit={handleInterviewSubmit}
+        />
+      )}
     </div>
   );
 }

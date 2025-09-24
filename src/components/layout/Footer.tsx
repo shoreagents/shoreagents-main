@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { 
   Mail, 
@@ -18,6 +19,12 @@ import {
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  const pathname = usePathname()
+  
+  // Hide footer on employee profile pages
+  if (pathname?.startsWith('/employee/')) {
+    return null
+  }
 
   return (
     <footer className="bg-lime-900 text-white">
