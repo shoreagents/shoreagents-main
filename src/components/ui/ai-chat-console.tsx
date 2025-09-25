@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, ChevronDown, ChevronUp, ExternalLink, Sparkles, MoreVertical, Pin, PinOff } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { InlineLoader } from './loader';
 
 interface Message {
   id: string;
@@ -431,7 +432,7 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
                   <div className="max-w-[90%]">
                     <div className="bg-gray-50 rounded-2xl px-4 py-3 border border-gray-100 shadow-sm">
                       <div className="flex items-center justify-center">
-                        <LimeLoader />
+                        <InlineLoader size={24} text="Maya is thinking..." />
                       </div>
                     </div>
                   </div>

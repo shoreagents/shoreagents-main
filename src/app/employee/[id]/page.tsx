@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader } from '@/components/ui/loader';
 import { 
   ArrowLeft, 
   Briefcase,
@@ -223,12 +224,11 @@ export default function EmployeeProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600 mx-auto mb-4"></div>
-          <p className="text-lime-600 font-medium">Loading employee profile...</p>
-        </div>
-      </div>
+      <Loader 
+        size={80}
+        text="Loading employee profile..."
+        showBackground={true}
+      />
     );
   }
 

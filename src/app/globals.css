@@ -1,6 +1,23 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Custom animation delays for loader */
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -82,6 +99,7 @@
 
 body {
   font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+  background-color: #365314; /* Match footer lime-800 color (All rights reserved section) */
 }
 
 .font-roboto {
@@ -92,16 +110,17 @@ body {
 /* Smooth scrolling for all elements */
 html {
   scroll-behavior: smooth;
+  background-color: #365314; /* Match footer lime-800 color (All rights reserved section) */
 }
 
 /* Bottom Navigation spacing */
 body {
-  padding-bottom: 20px; /* Minimal padding to prevent content overlap */
+  padding-bottom: 20px; /* Remove padding to prevent white space below footer */
 }
 
 @media (min-width: 1024px) {
   body {
-    padding-bottom: 20px; /* Minimal padding on larger screens */
+    padding-bottom: 20px; /* Remove padding on larger screens */
   }
 }
 
@@ -533,6 +552,7 @@ body[data-vaul-drawer-visible] {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: #365314 !important; /* Override Tailwind bg-background with lime-800 color */
   }
 }

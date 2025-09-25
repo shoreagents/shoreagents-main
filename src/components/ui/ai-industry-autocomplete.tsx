@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronDown, Search, Building2, Loader2, Sparkles } from 'lucide-react';
+import { ChevronDown, Search, Building2, Sparkles } from 'lucide-react';
 import { Input } from './input';
 import { Label } from './label';
+import { InlineLoader } from './loader';
 
 interface AISuggestion {
   name: string;
@@ -294,7 +295,7 @@ export function AIIndustryAutocomplete({
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" style={{ animationDuration: '0.8s' }} />
+              <InlineLoader size={16} />
             ) : (
               <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             )}
@@ -315,8 +316,7 @@ export function AIIndustryAutocomplete({
             <div className="max-h-60 overflow-y-auto" ref={listRef}>
               {isLoading ? (
                 <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                  <Loader2 className="w-4 h-4 animate-spin inline mr-2" style={{ animationDuration: '0.8s' }} />
-                  AI is finding the best suggestions...
+                  <InlineLoader size={20} text="AI is finding the best suggestions..." />
                 </div>
               ) : error ? (
                 <div className="px-4 py-3 text-sm text-red-500 text-center">
