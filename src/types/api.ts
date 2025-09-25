@@ -129,4 +129,5 @@ export interface EmployeeCardData {
   aiAnalysis?: AIAnalysisResult;
   resume?: ResumeGenerated;
   workStatus?: WorkStatus;
+  hotnessScore?: number;
 }

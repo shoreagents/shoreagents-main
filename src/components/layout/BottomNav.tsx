@@ -15,11 +15,32 @@ import {
   BookOpen, 
   MessageCircle, 
   Lock,
-  Unlock
+  Unlock,
+  FileText,
+  DollarSign,
+  Star,
+  Target,
+  Mail,
+  ArrowRight,
+  ChevronDown
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEngagementTracking } from '@/lib/useEngagementTracking'
 import ChatConsole from '@/components/ui/ai-chat-console'
+import { getEmployeeCardData } from '@/lib/api'
+import { EmployeeCardData } from '@/types/api'
+import { candidateTracker } from '@/lib/candidateTrackingService'
+import {
+  ContentBlogCard,
+  ContentCaseStudyCard,
+  PricingCard,
+  TopViewedCandidateCard,
+  BestMatchCandidateCard,
+  PersonalisedMessageCard,
+  NextStepCard,
+  MayaChatCard
+} from '@/components/ui/ai-recommendation-cards'
+import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/interview-request-modal'
 
 export function BottomNav() {
   const router = useRouter()
@@ -27,6 +48,9 @@ export function BottomNav() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isDrawerLocked, setIsDrawerLocked] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [hottestCandidate, setHottestCandidate] = useState<EmployeeCardData | null>(null)
+  const [isLoadingCandidate, setIsLoadingCandidate] = useState(false)
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false)
   
   // Use the engagement tracking hook only on client side
   const { recordInteraction } = useEngagementTracking()
@@ -42,6 +66,13 @@ export function BottomNav() {
       clearTimeout(timer)
     }
   }, [])
+
+  // Fetch hottest candidate when drawer opens
+  useEffect(() => {
+    if (isDrawerOpen && !hottestCandidate && !isLoadingCandidate) {
+      fetchHottestCandidate()
+    }
+  }, [isDrawerOpen, hottestCandidate, isLoadingCandidate])
 
   const handleChatWithClaude = () => {
     recordInteraction('chat')
@@ -59,6 +90,78 @@ export function BottomNav() {
     recordInteraction('navigation')
     console.log('See Pricing button clicked - interaction recorded')
     router.push('/pricing')
+  }
+
+  const fetchHottestCandidate = async () => {
+    try {
+      setIsLoadingCandidate(true)
+      const employees = await getEmployeeCardData()
+      
+      if (employees.length === 0) {
+        setHottestCandidate(null)
+        return
+      }
+
+      // Get hotness scores for all candidates
+      const candidatesWithScores = await Promise.all(
+        employees.map(async (employee) => {
+          try {
+            const analytics = await candidateTracker.getCandidateAnalytics(employee.user.id)
+            const hotnessScore = analytics?.hotness_score || 0
+            return { ...employee, hotnessScore }
+          } catch (error) {
+            console.error('Error fetching hotness score for:', employee.user.id, error)
+            return { ...employee, hotnessScore: 0 }
+          }
+        })
+      )
+
+      // Find the candidate with the highest hotness score
+      const hottest = candidatesWithScores.reduce((prev, current) => 
+        (current.hotnessScore > prev.hotnessScore) ? current : prev
+      )
+
+      setHottestCandidate(hottest)
+    } catch (error) {
+      console.error('Error fetching hottest candidate:', error)
+      setHottestCandidate(null)
+    } finally {
+      setIsLoadingCandidate(false)
+    }
+  }
+
+  const handleAskForInterview = () => {
+    recordInteraction('interview-request')
+    console.log('Ask for interview clicked for hottest candidate')
+    setIsInterviewModalOpen(true)
+  }
+
+  const handleViewProfile = () => {
+    if (hottestCandidate) {
+      recordInteraction('view-profile')
+      console.log('View profile clicked for hottest candidate')
+      router.push(`/employee/${hottestCandidate.user.id}`)
+    }
+  }
+
+  const handleInterviewSubmit = async (data: InterviewRequestData) => {
+    try {
+      // Here you would typically send the interview request to your backend
+      console.log('Interview request submitted:', {
+        candidateId: hottestCandidate?.user.id,
+        candidateName: hottestCandidate?.user.name,
+        candidatePosition: hottestCandidate?.user.position,
+        requesterData: data
+      })
+      
+      // For now, we'll just log it and show success
+      // In a real implementation, you'd make an API call here
+      alert('Interview request submitted successfully! We will contact you soon.')
+      
+    } catch (error) {
+      console.error('Error submitting interview request:', error)
+      throw error // Re-throw to let the modal handle the error display
+    }
   }
 
   const handleLockToggle = () => {
@@ -90,25 +193,37 @@ export function BottomNav() {
       {/* Clean Bottom Navigation Bar - Entirely Clickable */}
       <Drawer open={isDrawerOpen} onOpenChange={handleDrawerOpenChange}>
         {!isDrawerLocked && !isDrawerOpen && (
-          <DrawerTrigger asChild>
-            <div className="relative bg-lime-700/60 backdrop-blur-md border-t-2 border-lime-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] py-1 cursor-pointer hover:bg-lime-700 transition-all duration-300 ease-in-out">
-              {/* Blank Clickable Area */}<p className='text-lime-50 text-center'>AI Recommendations</p>
-              <div className="w-full h-full"></div>
+          <div className="max-w-6xl mx-auto">
+            {/* Arrow Down Indicator - Floating Above */}
+            <div className="flex justify-center mb-2">
+              <ChevronDown className="w-6 h-6 text-lime-600 bg-white rounded-full p-1.5 shadow-md animate-bounce" />
             </div>
-          </DrawerTrigger>
+            
+            <DrawerTrigger asChild>
+              <div 
+                className="relative backdrop-blur-md border-t-2 border-lime-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] py-1 cursor-pointer transition-all duration-300 ease-in-out rounded-t-lg hover:brightness-110" 
+                style={{ backgroundColor: 'rgb(101, 163, 13)' }}
+              >
+                {/* Blank Clickable Area */}
+                <p className='text-lime-50 text-center'>AI Recommendations</p>
+                <div className="w-full h-full"></div>
+              </div>
+            </DrawerTrigger>
+          </div>
         )}
         
         <DrawerContent 
-          className={`max-h-[80vh] shadow-lg border-t-2 border-lime-200 ${
-            isDrawerLocked ? 'fixed bottom-0 left-0 right-0 z-[100]' : ''
+          className={`max-h-[60vh] shadow-lg border-t-2 border-lime-200 max-w-6xl mx-auto ${
+            isDrawerLocked ? 'fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[100]' : ''
           }`}
           style={{
+            backgroundColor: 'rgb(101, 163, 13)',
             // Force scrollbar to always be visible to prevent content shift
             '--vaul-overlay-bg': 'transparent',
             scrollbarGutter: 'stable'
           } as React.CSSProperties}
         >
-          <DrawerHeader className="bg-lime-700 border-b border-lime-200 px-6 py-2 relative">
+          <DrawerHeader className="border-b border-lime-200 px-6 py-2 relative" style={{ backgroundColor: 'rgb(101, 163, 13)' }}>
             <DrawerTitle className="text-lime-50 ">AI Recommendations</DrawerTitle>
             <Button
               variant="ghost"
@@ -124,108 +239,45 @@ export function BottomNav() {
             </Button>
           </DrawerHeader>
           
-          {/* AI-Powered Sections - Simple Grid Layout */}
-          <div className="px-6 py-6 bg-lime-200 drawer-content-scrollable">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-              {/* Section 1: Next Step CTA */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex flex-col h-full space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <TrendingUp className="w-5 h-5 text-lime-600" />
-                    <h3 className="text-base font-semibold text-gray-900">Next Step</h3>
-                  </div>
-                  <p className="text-sm text-gray-700 flex-grow">Based on your browsing:</p>
-                  <Button
-                    onClick={handleSeePricing}
-                    size="sm"
-                    className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors"
-                  >
-                    View Pricing
-                  </Button>
-                </div>
-              </div>
+          {/* AI-Powered Sections - 4x2 Grid Layout */}
+          <div className="px-6 py-6 bg-gradient-to-br from-lime-50 via-lime-100 to-lime-200 drawer-content-scrollable relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div 
+                className="absolute top-0 left-0 w-full h-full"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                }}
+              ></div>
+            </div>
+            
+            {/* Floating Orbs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-lime-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-lime-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-1000"></div>
+              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-lime-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+            </div>
+            
+            {/* Content positioned above background elements */}
+            <div className="relative z-10 max-w-6xl mx-auto">
+              {/* 4x2 Grid Layout */}
+              <div className="grid grid-cols-4 gap-3">
+                {/* Row 1 */}
+                <ContentBlogCard onClick={() => router.push('/blogs')} />
+                <ContentCaseStudyCard onClick={() => router.push('/case-studies')} />
+                <PricingCard onClick={handleSeePricing} />
+                <TopViewedCandidateCard 
+                  candidate={hottestCandidate}
+                  isLoading={isLoadingCandidate}
+                  onAskForInterview={handleAskForInterview}
+                  onViewProfile={handleViewProfile}
+                />
 
-              {/* Section 2: Suggested Case Study */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex flex-col h-full space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <BookOpen className="w-5 h-5 text-lime-600" />
-                    <h3 className="text-base font-semibold text-gray-900">Case Study</h3>
-                  </div>
-                  <p className="text-sm text-gray-700 flex-grow">Gallery Group Success</p>
-                  <Button
-                    onClick={() => router.push('/case-studies')}
-                    size="sm"
-                    variant="outline"
-                    className="w-full border-lime-600 text-lime-600 hover:bg-lime-600 hover:text-white transition-colors"
-                  >
-                    Read More
-                  </Button>
-                </div>
-              </div>
-
-              {/* Section 3: Suggested Candidate */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex flex-col h-full space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Users className="w-5 h-5 text-lime-600" />
-                    <h3 className="text-base font-semibold text-gray-900">Top Candidate</h3>
-                  </div>
-                  <p className="text-sm text-gray-700 flex-grow">Sarah Johnson - RE Specialist</p>
-                  <Button
-                    onClick={handleBrowseTalent}
-                    size="sm"
-                    variant="outline"
-                    className="w-full border-lime-600 text-lime-600 hover:bg-lime-600 hover:text-white transition-colors"
-                  >
-                    View Profile
-                  </Button>
-                </div>
-              </div>
-
-              {/* Section 4: Suggested Blog */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex flex-col h-full space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <BookOpen className="w-5 h-5 text-lime-600" />
-                    <h3 className="text-base font-semibold text-gray-900">Learn More</h3>
-                  </div>
-                  <p className="text-sm text-gray-700 flex-grow">"5 Tips for RE Success"</p>
-                  <Button
-                    onClick={() => router.push('/blogs')}
-                    size="sm"
-                    variant="outline"
-                    className="w-full border-lime-600 text-lime-600 hover:bg-lime-600 hover:text-white transition-colors"
-                  >
-                    Read Blog
-                  </Button>
-                </div>
-              </div>
-
-              {/* Section 5: Empty/Reserved */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <div className="flex flex-col h-full items-center justify-center text-center space-y-2">
-                  <span className="text-gray-500 text-lg">?</span>
-                  <p className="text-sm text-gray-600">More suggestions soon...</p>
-                </div>
-              </div>
-
-              {/* Section 6: AI Chat CTA */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex flex-col h-full space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <MessageCircle className="w-5 h-5 text-lime-600" />
-                    <h3 className="text-base font-semibold text-gray-900">Chat with Maya</h3>
-                  </div>
-                  <p className="text-sm text-gray-700 flex-grow">Get personalized help</p>
-                  <Button
-                    onClick={handleChatWithClaude}
-                    size="sm"
-                    className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors"
-                  >
-                    Start Chat
-                  </Button>
-                </div>
+                {/* Row 2 */}
+                <BestMatchCandidateCard onClick={handleBrowseTalent} />
+                <PersonalisedMessageCard onClick={() => router.push('/contact')} />
+                <NextStepCard onClick={handleSeePricing} />
+                <MayaChatCard onClick={handleChatWithClaude} />
               </div>
             </div>
           </div>
@@ -238,6 +290,17 @@ export function BottomNav() {
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)} 
       />
+
+      {/* Interview Request Modal */}
+      {hottestCandidate && (
+        <InterviewRequestModal
+          isOpen={isInterviewModalOpen}
+          onClose={() => setIsInterviewModalOpen(false)}
+          candidateName={hottestCandidate.user.name}
+          candidatePosition={hottestCandidate.user.position || 'No position specified'}
+          onSubmit={handleInterviewSubmit}
+        />
+      )}
     </div>
   )
 }

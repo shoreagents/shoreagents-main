@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Loader } from '@/components/ui/loader'
 import {
   Table,
   TableBody,
@@ -346,12 +347,11 @@ export default function AdminDashboard() {
   // Show loading state while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-lime-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking authentication...</p>
-        </div>
-      </div>
+      <Loader 
+        size={80}
+        text="Checking authentication..."
+        showBackground={true}
+      />
     )
   }
 

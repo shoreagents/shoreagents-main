@@ -19,6 +19,7 @@ import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { AnimatedTestimonials } from "@/components/ui/shadcn-io/animated-testimonials";
 import { FadeInAnimation, StaggeredFadeIn } from "@/components/ui/fade-in-animation";
 import { Shield, Users, CheckCircle, Building2, Monitor, FileText, UserCheck, BarChart3, Headphones, GraduationCap, ClipboardList, Target, Settings, MessageSquare, TrendingUp } from "lucide-react";
+import { ContentTracker } from "@/components/ContentTracker";
 // import { useEngagementTracking } from "@/lib/useEngagementTracking"; // Removed - using GlobalEngagementTracker
 
 export default function Home() {
@@ -176,8 +177,14 @@ export default function Home() {
   };
 
   return (
-            <div className="min-h-screen bg-gray-50">
-          <SideNav />
+    <ContentTracker 
+      contentType="page" 
+      contentId="home" 
+      contentTitle="ShoreAgents - Professional Filipino Staff Leasing"
+      pageSection="main"
+    >
+      <div className="min-h-screen bg-gray-50">
+        <SideNav />
                       {/* Hero Section - Full Viewport Height */}
             <section className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
               {/* Background Images Slider */}
@@ -688,5 +695,6 @@ export default function Home() {
                    </div>
                </section>
             </div>
-          );
+          </ContentTracker>
+        );
         }

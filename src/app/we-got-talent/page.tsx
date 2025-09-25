@@ -11,11 +11,11 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/lib/toast-context';
 import { useEngagementTracking } from '@/lib/useEngagementTracking';
 import { useFavorites } from '@/lib/favorites-context';
+import { Loader } from '@/components/ui/loader';
 import {
   Search,
   Users,
   RefreshCw,
-  Loader2,
   Heart
 } from 'lucide-react';
 
@@ -132,12 +132,11 @@ export default function EmployeesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-lime-600" />
-          <p className="text-gray-600">Loading employee data...</p>
-        </div>
-      </div>
+      <Loader 
+        size={80}
+        text="Loading employee data..."
+        showBackground={true}
+      />
     );
   }
 

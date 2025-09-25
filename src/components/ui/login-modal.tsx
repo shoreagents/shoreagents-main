@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ButtonLoader } from "@/components/ui/loader"
 import {
   Dialog,
   DialogContent,
@@ -407,7 +408,14 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
                       disabled={loading}
                       className="w-full bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
                     >
-                      {loading ? "Signing In..." : "Sign In"}
+                      {loading ? (
+                        <>
+                          <ButtonLoader size={16} className="mr-2" />
+                          Signing In...
+                        </>
+                      ) : (
+                        "Sign In"
+                      )}
                     </Button>
 
                     <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-gray-200">
@@ -786,9 +794,16 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
             <Button
               type="submit"
               disabled={loading}
-                          className="bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
+              className="bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
             >
-                          {loading ? "Creating Account..." : "Create Account"}
+              {loading ? (
+                <>
+                  <ButtonLoader size={16} className="mr-2" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
                       )}
                     </div>

@@ -23,6 +23,7 @@ import { PricingQuoteServiceClient, PricingQuoteData } from '@/lib/pricingQuoteS
 import { useUserAuth } from '@/lib/user-auth-context'
 import { generateUserId, savePageVisit } from '@/lib/userEngagementService';
 import { useFavorites } from '@/lib/favorites-context';
+import { LoginModal } from './login-modal';
 
 interface RoleDetail {
   id: string;
@@ -82,6 +83,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const [editingRoles, setEditingRoles] = useState<Set<string>>(new Set());
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   // Step 1: Member count
   const [memberCount, setMemberCount] = useState<number | null>(null);
@@ -458,6 +460,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     setSaveError(null);
     setSaveSuccess(false);
     setIsSaving(false);
+    setShowLoginModal(false);
   };
 
   // Only reset form when modal is first opened (not when reopening)
@@ -468,42 +471,47 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     }
   }, [isOpen, currentStep, memberCount, industry]);
 
-  // Create all role buttons upfront when memberCount is set (only for different roles)
-  useEffect(() => {
-    if (memberCount && memberCount > 1 && !sameRoles) {
-      // Only create new roles if we currently have exactly 1 role (the default)
-      setRoles(prevRoles => {
-        if (prevRoles.length === 1) {
-          return Array.from({ length: memberCount }, (_, index) => ({
-            id: (index + 1).toString(),
-            title: '',
-            description: '',
-            level: (index === 0 ? 'entry' : index === 1 ? 'mid' : 'senior') as 'entry' | 'mid' | 'senior',
-            count: 1,
-            workspace: 'wfh' as const,
-            isCompleted: false
-          }));
-        }
-        return prevRoles;
-      });
-    }
-  }, [memberCount, sameRoles]);
+  // This useEffect is now handled by the main role creation logic below
+  // Keeping this for reference but it's no longer needed
 
-  // Handle same roles toggle
+  // Handle same roles toggle - only create multiple roles when needed
   useEffect(() => {
     if (memberCount && memberCount > 1) {
-      // Always create the correct number of role objects for workplace setup
-      // But handle form display differently based on sameRoles
-      const newRoles = Array.from({ length: memberCount }, (_, index) => ({
-        id: (index + 1).toString(),
-        title: '',
-        description: '',
-        level: (index === 0 ? 'entry' : index === 1 ? 'mid' : 'senior') as 'entry' | 'mid' | 'senior',
-        count: 1,
-        workspace: 'wfh' as const,
-        isCompleted: false
-      }));
-      setRoles(newRoles);
+      // Only create multiple roles if we don't already have the correct number
+      setRoles(prevRoles => {
+        // If we already have the correct number of roles, don't recreate them
+        if (prevRoles.length === memberCount) {
+          return prevRoles;
+        }
+        
+        // Create the correct number of role objects for workplace setup
+        const newRoles = Array.from({ length: memberCount }, (_, index) => ({
+          id: (index + 1).toString(),
+          title: '',
+          description: '',
+          level: (index === 0 ? 'entry' : index === 1 ? 'mid' : 'senior') as 'entry' | 'mid' | 'senior',
+          count: 1,
+          workspace: 'wfh' as const,
+          isCompleted: false
+        }));
+        return newRoles;
+      });
+    } else if (memberCount === 1) {
+      // For single member, ensure we only have one role
+      setRoles(prevRoles => {
+        if (prevRoles.length === 1) {
+          return prevRoles;
+        }
+        return [{
+          id: '1',
+          title: prevRoles[0]?.title || '',
+          description: prevRoles[0]?.description || '',
+          level: prevRoles[0]?.level || 'entry',
+          count: 1,
+          workspace: prevRoles[0]?.workspace || 'wfh',
+          isCompleted: prevRoles[0]?.isCompleted || false
+        }];
+      });
     }
   }, [sameRoles, memberCount]);
 
@@ -648,6 +656,28 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     return formatCurrency(amount, selectedCurrency.code);
   };
 
+  // Handle save quotation action
+  const handleSaveQuotation = () => {
+    if (isAuthenticated) {
+      // If user is already authenticated, save the quote directly
+      if (quoteData) {
+        saveQuoteToDatabase(quoteData);
+      }
+    } else {
+      // If user is not authenticated, show login modal
+      setShowLoginModal(true);
+    }
+  };
+
+  // Handle successful login/signup
+  const handleAuthSuccess = () => {
+    setShowLoginModal(false);
+    // After successful authentication, save the quote
+    if (quoteData) {
+      saveQuoteToDatabase(quoteData);
+    }
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 1: return memberCount !== null;
@@ -728,7 +758,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         }}
       >
         {/* Compact Header */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between px-4 py-1.5 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-lime-600">{currentStep === 5 ? '5/5' : `${currentStep}/5`}</span>
             <Calculator className="w-5 h-5 text-lime-600" />
@@ -751,12 +781,12 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         </div>
 
         {/* Compact Progress Bar */}
-        <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <div className="px-4 py-1 bg-gray-50 border-b border-gray-100">
           <Progress value={currentStep === 5 ? 100 : (currentStep / 5) * 100} className="h-1" />
         </div>
 
         {/* Step Content */}
-        <div className="p-6 max-h-[calc(95vh-200px)] overflow-y-auto scrollbar-hide relative transition-all duration-500 ease-in-out">
+        <div className="p-4 max-h-[calc(95vh-160px)] overflow-y-auto scrollbar-hide relative transition-all duration-500 ease-in-out">
           <div 
             key={currentStep}
             className={slideDirection === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left'}
@@ -1260,16 +1290,16 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
           {currentStep === 5 && quoteData && (
             <div className="max-w-6xl mx-auto transition-all duration-500 ease-in-out">
-              <div className="text-center mb-6">
-                <CheckCircle className="w-12 h-12 text-lime-600 mx-auto mb-3" />
+              <div className="text-center mb-4">
+                <CheckCircle className="w-10 h-10 text-lime-600 mx-auto mb-2" />
                 <p className="text-gray-600 text-sm">Personalized recommendations for your team</p>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Quote Summary */}
                 <Card className="bg-lime-50 border-lime-200">
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <CardContent className="p-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-center">
                       <div>
                         <div className="text-2xl font-bold text-lime-600">{formatPriceDisplay(quoteData.totalMonthlyCost)}</div>
                         <div className="text-sm text-gray-600">per month</div>
@@ -1283,19 +1313,19 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                 </Card>
 
                 {/* Candidate Recommendations */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* BPOC Candidate Recommendations */}
                 {quoteData.roles.some(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length) && (
                  <Card>
-                   <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Users className="w-5 h-5 text-lime-600" />
+                   <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Users className="w-4 h-4 text-lime-600" />
                         Recommended Candidates
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-sm">
                         Top candidates from our talent pool for your requirements
                       </CardDescription>
-                      <div className="mt-2 flex items-center gap-4 text-sm">
+                      <div className="mt-1 flex items-center gap-3 text-xs">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 bg-lime-500 rounded-full"></div>
                           <span className="text-gray-600">Top Pick</span>
@@ -1374,26 +1404,26 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                 {/* Fallback when no BPOC candidates */}
                 {!quoteData.roles.some(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length) && (
                   <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Users className="w-5 h-5 text-lime-600" />
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Users className="w-4 h-4 text-lime-600" />
                         Candidate Recommendations
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-sm">
                         We're building our talent pool. Contact us to find the perfect candidates for your team.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-8">
-                        <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Users className="w-8 h-8 text-lime-600" />
+                    <CardContent className="pt-0">
+                      <div className="text-center py-4">
+                        <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Users className="w-6 h-6 text-lime-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Find Your Perfect Team</h3>
-                        <p className="text-gray-600 mb-4">
+                        <h3 className="text-base font-semibold text-gray-900 mb-2">Find Your Perfect Team</h3>
+                        <p className="text-gray-600 mb-3 text-sm">
                           Our recruitment team can help you find qualified candidates for your specific requirements.
                         </p>
                         <Button 
-                          size="lg" 
+                          size="sm" 
                           className="bg-lime-600 hover:bg-lime-700 text-white"
                         >
                           Ask Maya
@@ -1405,7 +1435,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
                 {/* Save Status */}
                 {isAuthenticated && (
-                  <div className="mb-6">
+                  <div className="mb-3">
                     {isSaving && (
                       <div className="flex items-center justify-center space-x-2 text-lime-600">
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -1428,16 +1458,19 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button 
-                    size="lg" 
-                    className="bg-lime-600 hover:bg-lime-700 text-white px-8"
-                  >
-                    Book Consultation
-                  </Button>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <LoginModal onSuccess={handleAuthSuccess}>
+                    <Button 
+                      size="sm" 
+                      className="bg-lime-600 hover:bg-lime-700 text-white px-6"
+                      onClick={handleSaveQuotation}
+                    >
+                      Save Quotation
+                    </Button>
+                  </LoginModal>
                   {isAuthenticated && !saveSuccess && !isSaving && (
                     <Button 
-                      size="lg"
+                      size="sm"
                       variant="outline"
                       onClick={() => quoteData && saveQuoteToDatabase(quoteData)}
                       className="border-lime-300 text-lime-700 hover:bg-lime-50"
@@ -1447,7 +1480,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                   )}
                   <Button 
                     variant="outline" 
-                    size="lg"
+                    size="sm"
                     onClick={resetForm}
                     className="border-lime-300 text-lime-700 hover:bg-lime-50"
                   >
@@ -1463,7 +1496,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
         {/* Navigation */}
         {currentStep < 4 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 bg-gray-50">
             <div>
             {currentStep > 1 && (
               <Button
