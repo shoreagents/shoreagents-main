@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/lib/toast-context';
 import { useEngagementTracking } from '@/lib/useEngagementTracking';
 import { useFavorites } from '@/lib/favorites-context';
-import { Loader } from '@/components/ui/loader';
+import { ButtonLoader } from '@/components/ui/loader';
 import {
   Search,
   Users,
@@ -132,11 +132,10 @@ export default function EmployeesPage() {
 
   if (loading) {
     return (
-      <Loader 
-        size={80}
-        text="Loading employee data..."
-        showBackground={true}
-      />
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <ButtonLoader size={80} />
+        <p className="text-lg text-gray-600">Loading employee data...</p>
+      </div>
     );
   }
 

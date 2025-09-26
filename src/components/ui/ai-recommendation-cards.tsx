@@ -3,7 +3,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { InlineLoader } from '@/components/ui/loader'
+import { ButtonLoader } from '@/components/ui/loader'
 import { 
   User, 
   MessageCircle, 
@@ -100,7 +100,10 @@ export function CandidateCard({
         
         {/* Content */}
         <div className="flex-1 flex flex-col items-center justify-center p-3">
-          <InlineLoader size={20} text="Loading candidate..." />
+          <div className="flex items-center space-x-2">
+            <ButtonLoader size={20} />
+            <span className="text-sm text-gray-600">Loading candidate...</span>
+          </div>
         </div>
       </div>
     )
@@ -278,7 +281,6 @@ export const PersonalisedMessageCard = ({ onClick }: { onClick?: () => void }) =
     headerTitle="Message"
     headerIcon={<Mail className="w-3 h-3 text-lime-50" />}
     onClick={onClick}
-    style={{ borderColor: 'rgb(101, 163, 13)', filter: 'brightness(1.2)' }}
   />
 )
 
@@ -359,7 +361,10 @@ export const PricingCard = ({ onClick }: PricingCardProps) => {
         
         {/* Loading Content */}
         <div className="flex-1 flex items-center justify-center p-3">
-          <InlineLoader size="sm" text="Loading quote..." />
+          <div className="flex items-center space-x-2">
+            <ButtonLoader size={24} />
+            <span className="text-sm text-gray-600">Loading quote...</span>
+          </div>
         </div>
       </div>
     )
@@ -384,7 +389,25 @@ export const PricingCard = ({ onClick }: PricingCardProps) => {
         <div className="flex-1 flex flex-col items-center justify-center p-3">
           <div className="text-gray-800 text-center">
             <div className="text-sm font-semibold">No recent quotes</div>
-            <div className="text-xs text-gray-600">Create your first quote</div>
+            {!appUser ? (
+              <Button 
+                size="sm" 
+                className="text-xs px-3 py-1 h-6 mt-2"
+                style={{ backgroundColor: 'rgb(101, 163, 13)', color: 'white' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  // Dispatch custom event to open pricing modal on main page
+                  window.dispatchEvent(new CustomEvent('openPricingModal'))
+                  // Dispatch custom event to close AI recommendations drawer
+                  window.dispatchEvent(new CustomEvent('closeAIDrawer'))
+                  // Don't call onClick() to prevent navigation to /pricing page
+                }}
+              >
+                Create your first quote
+              </Button>
+            ) : (
+              <div className="text-xs text-gray-600">Create your first quote</div>
+            )}
           </div>
         </div>
       </div>

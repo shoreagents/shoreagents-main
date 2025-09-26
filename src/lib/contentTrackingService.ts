@@ -89,13 +89,91 @@ class ContentTrackingService {
     try {
       let deviceId = localStorage.getItem('content_tracking_device_id');
       if (!deviceId) {
-        deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // Use the same sophisticated device fingerprinting as user page visits
+        deviceId = this.generateDeviceFingerprint();
         localStorage.setItem('content_tracking_device_id', deviceId);
+        console.log('🆕 Generated new device fingerprint ID:', deviceId);
+      } else {
+        console.log('♻️ Using existing device fingerprint ID:', deviceId);
       }
       return deviceId;
     } catch (error) {
       console.error('❌ Error in getOrCreateDeviceId:', error);
       return `device_${Date.now()}_fallback`;
+    }
+  }
+
+  // Generate a device fingerprint based on hardware and browser characteristics
+  // (Same logic as userEngagementService.ts)
+  private generateDeviceFingerprint(): string {
+    try {
+      // Collect device characteristics
+      const deviceInfo = [
+        navigator.userAgent,
+        navigator.language,
+        screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
+        navigator.hardwareConcurrency || 'unknown',
+        navigator.platform,
+        new Date().getTimezoneOffset().toString(),
+        navigator.maxTouchPoints || '0',
+        (navigator as { deviceMemory?: number }).deviceMemory || 'unknown',
+        // Add canvas fingerprint for additional uniqueness
+        this.getCanvasFingerprint()
+      ].join('|');
+      
+      // Create a hash of the device info
+      const hash = this.createSimpleHash(deviceInfo);
+      return `device_${hash}`;
+    } catch (error) {
+      console.warn('Failed to generate device fingerprint, using fallback:', error);
+      // Fallback to timestamp-based ID if fingerprinting fails
+      return `device_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    }
+  }
+
+  // Create a canvas fingerprint for additional uniqueness
+  private getCanvasFingerprint(): string {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return 'no-canvas';
+      
+      // Draw some text and shapes
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#f60';
+      ctx.fillRect(125, 1, 62, 20);
+      ctx.fillStyle = '#069';
+      ctx.fillText('Device fingerprint', 2, 15);
+      ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+      ctx.fillText('Device fingerprint', 4, 17);
+      
+      return canvas.toDataURL().substring(22, 50); // Get part of the data URL
+    } catch {
+      return 'canvas-error';
+    }
+  }
+
+  // Create a simple hash function
+  private createSimpleHash(str: string): string {
+    let hash = 0;
+    if (str.length === 0) return hash.toString(36);
+    
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Convert to base36 and ensure it's positive
+    return Math.abs(hash).toString(36).substring(0, 12);
+  }
+
+  // Method to clear device ID for testing (call from browser console)
+  public clearDeviceId(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('content_tracking_device_id');
+      console.log('🗑️ Device ID cleared. Next page load will generate a new one.');
     }
   }
 

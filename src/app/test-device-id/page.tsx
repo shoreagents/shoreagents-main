@@ -1,159 +1,150 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { 
-  generateUserId, 
-  getDeviceInfo, 
-  resetDeviceId, 
-  testDeviceIdGeneration 
-} from '@/lib/userEngagementService'
+import React, { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function TestDeviceIdPage() {
-  const [deviceId, setDeviceId] = useState<string>('')
-  const [deviceInfo, setDeviceInfo] = useState<Record<string, string | number>>({})
-  const [testResults, setTestResults] = useState<string[]>([])
+  const [deviceId, setDeviceId] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [userAgent, setUserAgent] = useState<string | null>(null)
 
   useEffect(() => {
-    // Generate device ID and get device info
-    const id = generateUserId()
-    const info = getDeviceInfo()
-    
-    setDeviceId(id)
-    setDeviceInfo(info)
+    if (typeof window !== 'undefined') {
+      setDeviceId(localStorage.getItem('content_tracking_device_id'))
+      setSessionId(sessionStorage.getItem('content_tracking_session_id'))
+      setUserAgent(navigator.userAgent)
+    }
   }, [])
 
-  const handleResetDeviceId = () => {
-    const newId = resetDeviceId()
-    setDeviceId(newId)
-    setDeviceInfo(getDeviceInfo())
+  const clearDeviceId = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('content_tracking_device_id')
+      setDeviceId(null)
+      console.log('Device ID cleared')
+    }
   }
 
-  const handleRunTests = () => {
-    const results: string[] = []
+  const generateNewDeviceId = () => {
+    if (typeof window !== 'undefined') {
+      // Use the same device fingerprinting logic as the content tracking service
+      const deviceInfo = [
+        navigator.userAgent,
+        navigator.language,
+        screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
+        navigator.hardwareConcurrency || 'unknown',
+        navigator.platform,
+        new Date().getTimezoneOffset().toString(),
+        navigator.maxTouchPoints || '0',
+        (navigator as { deviceMemory?: number }).deviceMemory || 'unknown',
+        getCanvasFingerprint()
+      ].join('|')
+      
+      const hash = createSimpleHash(deviceInfo)
+      const newDeviceId = `device_${hash}`
+      
+      localStorage.setItem('content_tracking_device_id', newDeviceId)
+      setDeviceId(newDeviceId)
+      console.log('New device fingerprint ID generated:', newDeviceId)
+      console.log('Device info used:', deviceInfo)
+    }
+  }
+
+  const getCanvasFingerprint = () => {
+    try {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return 'no-canvas'
+      
+      ctx.textBaseline = 'top'
+      ctx.font = '14px Arial'
+      ctx.fillStyle = '#f60'
+      ctx.fillRect(125, 1, 62, 20)
+      ctx.fillStyle = '#069'
+      ctx.fillText('Device fingerprint', 2, 15)
+      ctx.fillStyle = 'rgba(102, 204, 0, 0.7)'
+      ctx.fillText('Device fingerprint', 4, 17)
+      
+      return canvas.toDataURL().substring(22, 50)
+    } catch {
+      return 'canvas-error'
+    }
+  }
+
+  const createSimpleHash = (str: string) => {
+    let hash = 0
+    if (str.length === 0) return hash.toString(36)
     
-    // Run the test function and capture console output
-    const originalLog = console.log
-    console.log = (...args) => {
-      results.push(args.join(' '))
-      originalLog(...args)
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash
     }
     
-    testDeviceIdGeneration()
-    
-    // Restore console.log
-    console.log = originalLog
-    
-    setTestResults(results)
+    return Math.abs(hash).toString(36).substring(0, 12)
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            Fingerprint-Based Device ID System Test
-          </h1>
-          
-          {/* Current Device ID */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">
-              Current Device ID
-            </h2>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <code className="text-lg font-mono text-gray-800 break-all">
-                {deviceId}
-              </code>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">
-              This ID is based on comprehensive device fingerprinting including hardware, browser, and canvas characteristics.
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Device ID Test Page</h1>
+      <p className="mb-4">This page helps debug device ID generation and uniqueness.</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Device ID</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-2">Device ID from localStorage:</p>
+            <p className="font-mono text-sm bg-gray-100 p-2 rounded break-all">
+              {deviceId || 'No device ID found'}
             </p>
-          </div>
-
-          {/* Device Information */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">
-              Device Information
-            </h2>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(deviceInfo).map(([key, value]) => (
-                  <div key={key} className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-600 capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}:
-                    </span>
-                    <span className="text-sm text-gray-800 break-all">
-                      {String(value)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-4 space-x-2">
+              <Button onClick={clearDeviceId} variant="outline" size="sm">
+                Clear Device ID
+              </Button>
+              <Button onClick={generateNewDeviceId} size="sm" className="bg-lime-600 hover:bg-lime-700">
+                Generate New
+              </Button>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Test Controls */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">
-              Test Controls
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              <button
-                onClick={handleResetDeviceId}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Reset Device ID
-              </button>
-              <button
-                onClick={handleRunTests}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Run Tests
-              </button>
-              <button
-                onClick={() => {
-                  setDeviceId(generateUserId())
-                  setDeviceInfo(getDeviceInfo())
-                }}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Refresh Data
-              </button>
+        <Card>
+          <CardHeader>
+            <CardTitle>Session Info</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-2">Session ID:</p>
+            <p className="font-mono text-sm bg-gray-100 p-2 rounded break-all">
+              {sessionId || 'No session ID found'}
+            </p>
+            <p className="text-sm text-gray-600 mt-4 mb-2">User Agent (last 8 chars):</p>
+            <p className="font-mono text-sm bg-gray-100 p-2 rounded">
+              {userAgent ? userAgent.slice(-8) : 'N/A'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Device Fingerprinting Logic (Same as User Page Visits)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              <p><strong>Format:</strong> device_[hash] (where hash is based on device characteristics)</p>
+              <p><strong>User Agent:</strong> {userAgent ? userAgent.substring(0, 50) + '...' : 'N/A'}</p>
+              <p><strong>Language:</strong> {navigator.language}</p>
+              <p><strong>Screen:</strong> {screen.width}x{screen.height}x{screen.colorDepth}</p>
+              <p><strong>CPU Cores:</strong> {navigator.hardwareConcurrency || 'unknown'}</p>
+              <p><strong>Platform:</strong> {navigator.platform}</p>
+              <p><strong>Timezone:</strong> {new Date().getTimezoneOffset()}</p>
+              <p><strong>Touch Points:</strong> {navigator.maxTouchPoints || '0'}</p>
+              <p><strong>Device Memory:</strong> {(navigator as { deviceMemory?: number }).deviceMemory || 'unknown'}</p>
+              <p><strong>Canvas Fingerprint:</strong> {getCanvasFingerprint()}</p>
             </div>
-          </div>
-
-          {/* Test Results */}
-          {testResults.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-3">
-                Test Results
-              </h2>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="space-y-2">
-                  {testResults.map((result, index) => (
-                    <div key={index} className="text-sm font-mono text-gray-700">
-                      {result}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Information */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">
-              How Fingerprint-Based Device IDs Work
-            </h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• <strong>Hardware Fingerprinting:</strong> Screen resolution, CPU cores, platform, device memory</li>
-              <li>• <strong>Browser Characteristics:</strong> User agent, language, timezone, touch support</li>
-              <li>• <strong>Canvas Fingerprinting:</strong> Renders unique graphics to identify device rendering differences</li>
-              <li>• <strong>Comprehensive Hashing:</strong> All characteristics combined into a single unique hash</li>
-              <li>• <strong>Persistence:</strong> Stored in localStorage, survives browser restarts</li>
-              <li>• <strong>Privacy:</strong> No personal information, only device characteristics</li>
-              <li>• <strong>Maximum Uniqueness:</strong> Most comprehensive device identification method</li>
-            </ul>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

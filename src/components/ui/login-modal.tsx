@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ButtonLoader } from "@/components/ui/loader"
+// Remove ButtonLoader import - we'll use a simple spinner instead
 import {
   Dialog,
   DialogContent,
@@ -36,8 +36,8 @@ const signupSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
   phoneNumber: z.string().min(1, "Phone number is required"),
-  company: z.string().min(1, "Company is required"),
-  country: z.string().min(1, "Country is required"),
+  company: z.string().optional(),
+  country: z.string().optional(),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -51,9 +51,14 @@ type SignupFormData = z.infer<typeof signupSchema>
 interface LoginModalProps {
   children?: React.ReactNode
   onSuccess?: () => void
+  prefillData?: {
+    firstName?: string
+    lastName?: string
+    email?: string
+  }
 }
 
-export function LoginModal({ children, onSuccess }: LoginModalProps) {
+export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isSignup, setIsSignup] = useState(false)
@@ -65,6 +70,15 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
   const { refreshUser } = useAuth()
   const { refreshAdmin } = useAdminAuth()
+
+  // Auto-open modal and switch to signup if prefill data is provided
+  React.useEffect(() => {
+    if (prefillData && (prefillData.firstName || prefillData.lastName || prefillData.email)) {
+      setOpen(true)
+      setIsSignup(true)
+      setCurrentStep(1)
+    }
+  }, [prefillData])
 
   // Check email availability
   const checkEmailAvailability = async (email: string) => {
@@ -106,11 +120,11 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
   // Signup form
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    mode: "onSubmit",
+    mode: "onBlur",
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
+      firstName: prefillData?.firstName || "",
+      lastName: prefillData?.lastName || "",
+      email: prefillData?.email || "",
       phoneNumber: "",
       company: "",
       country: "",
@@ -279,7 +293,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
   const nextStep = async () => {
     const fieldsToValidate = currentStep === 1 
       ? ['firstName', 'lastName', 'email', 'phoneNumber'] 
-      : ['company', 'country', 'password', 'confirmPassword']
+      : ['password', 'confirmPassword']
     
     const isValid = await signupForm.trigger(fieldsToValidate as (keyof SignupFormData)[])
     
@@ -410,7 +424,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
                     >
                       {loading ? (
                         <>
-                          <ButtonLoader size={16} className="mr-2" />
+                          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
                           Signing In...
                         </>
                       ) : (
@@ -624,8 +638,8 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
                     {currentStep === 2 && (
                       <div className="space-y-4">
                         <div className="text-center mb-6">
-                          <h3 className="text-lg font-semibold text-gray-900">Company & Security</h3>
-                          <p className="text-sm text-gray-600">Complete your account setup</p>
+                          <h3 className="text-lg font-semibold text-gray-900">Account Security</h3>
+                          <p className="text-sm text-gray-600">Set up your password</p>
               </div>
 
                         <FormField
@@ -693,7 +707,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     type={showPassword ? "text" : "password"}
-                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Password"}
+                                    placeholder="Password"
                                     className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
                                     {...field}
                                     onChange={(e) => {
@@ -728,7 +742,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
                                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                   <Input
                                     type={showConfirmPassword ? "text" : "password"}
-                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Confirm your password"}
+                                    placeholder="Confirm your password"
                                     className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
                                     {...field}
                                     onChange={(e) => {
@@ -798,7 +812,7 @@ export function LoginModal({ children, onSuccess }: LoginModalProps) {
             >
               {loading ? (
                 <>
-                  <ButtonLoader size={16} className="mr-2" />
+                  <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Creating Account...
                 </>
               ) : (

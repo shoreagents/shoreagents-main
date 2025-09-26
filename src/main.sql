@@ -2,14 +2,14 @@
 
 CREATE SCHEMA public AUTHORIZATION postgres;
 
--- DROP DOMAIN public.content_type;
+-- DROP DOMAIN public."content_type";
 
-CREATE DOMAIN public.content_type AS text
+CREATE DOMAIN public."content_type" AS text
 	COLLATE "default"
 	CONSTRAINT content_type_check CHECK (VALUE ~ '^\S+\/\S+'::text);
--- DROP DOMAIN public.http_method;
+-- DROP DOMAIN public."http_method";
 
-CREATE DOMAIN public.http_method AS text
+CREATE DOMAIN public."http_method" AS text
 	COLLATE "default";
 -- DROP TYPE public."user_type_enum";
 
@@ -30,6 +30,15 @@ CREATE SEQUENCE public.ai_analysis_id_seq
 -- DROP SEQUENCE public.bpoc_employees_id_seq;
 
 CREATE SEQUENCE public.bpoc_employees_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public.candidate_views_id_seq;
+
+CREATE SEQUENCE public.candidate_views_id_seq
 	INCREMENT BY 1
 	MINVALUE 1
 	MAXVALUE 2147483647
@@ -85,6 +94,52 @@ create trigger update_bpoc_employees_updated_at before
 update
     on
     public.bpoc_employees for each row execute function update_bpoc_employees_updated_at();
+
+
+-- public.content_views definition
+
+-- Drop table
+
+-- DROP TABLE public.content_views;
+
+CREATE TABLE public.content_views (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	user_id varchar(255) NULL,
+	"content_type" varchar(50) NOT NULL,
+	content_id varchar(255) NOT NULL,
+	content_title varchar(500) NULL,
+	content_url text NULL,
+	page_section varchar(100) NULL,
+	referrer_url text NULL,
+	referrer_type varchar(50) NULL,
+	view_duration int4 NULL,
+	scroll_depth int4 NULL,
+	viewed_at timestamptz DEFAULT now() NULL,
+	created_at timestamptz DEFAULT now() NULL,
+	updated_at timestamptz DEFAULT now() NULL,
+	interaction_type varchar(50) DEFAULT 'view'::character varying NULL,
+	activity_count int4 DEFAULT 1 NULL,
+	CONSTRAINT content_views_activity_count_check CHECK ((activity_count > 0)),
+	CONSTRAINT content_views_interaction_type_check CHECK (((interaction_type)::text = ANY (ARRAY[('view'::character varying)::text, ('click'::character varying)::text, ('scroll'::character varying)::text, ('form_submit'::character varying)::text, ('page_exit'::character varying)::text, ('return_visit'::character varying)::text]))),
+	CONSTRAINT content_views_pkey PRIMARY KEY (id)
+);
+CREATE INDEX idx_content_views_activity_count ON public.content_views USING btree (activity_count);
+CREATE INDEX idx_content_views_content_analytics ON public.content_views USING btree (content_type, content_id, viewed_at);
+CREATE INDEX idx_content_views_content_id ON public.content_views USING btree (content_id);
+CREATE INDEX idx_content_views_content_type ON public.content_views USING btree (content_type);
+CREATE INDEX idx_content_views_interaction_analytics ON public.content_views USING btree (content_type, content_id, interaction_type);
+CREATE INDEX idx_content_views_interaction_type ON public.content_views USING btree (interaction_type);
+CREATE INDEX idx_content_views_referrer_type ON public.content_views USING btree (referrer_type);
+CREATE INDEX idx_content_views_user_analytics ON public.content_views USING btree (user_id, viewed_at);
+CREATE INDEX idx_content_views_user_id ON public.content_views USING btree (user_id);
+CREATE INDEX idx_content_views_viewed_at ON public.content_views USING btree (viewed_at);
+
+-- Table Triggers
+
+create trigger trigger_update_content_views_updated_at before
+update
+    on
+    public.content_views for each row execute function update_content_views_updated_at();
 
 
 -- public.user_page_visits definition
@@ -191,6 +246,45 @@ CREATE TABLE public.ai_analysis (
 	CONSTRAINT ai_analysis_skills_alignment_score_check CHECK (((skills_alignment_score >= 0) AND (skills_alignment_score <= 100))),
 	CONSTRAINT ai_analysis_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.bpoc_employees(user_id) ON DELETE CASCADE
 );
+CREATE INDEX idx_ai_analysis_analysis_id ON public.ai_analysis USING btree (analysis_id);
+CREATE INDEX idx_ai_analysis_created_at ON public.ai_analysis USING btree (created_at);
+CREATE INDEX idx_ai_analysis_overall_score ON public.ai_analysis USING btree (overall_score);
+CREATE INDEX idx_ai_analysis_updated_at ON public.ai_analysis USING btree (updated_at);
+CREATE INDEX idx_ai_analysis_user_id ON public.ai_analysis USING btree (user_id);
+
+
+-- public.candidate_views definition
+
+-- Drop table
+
+-- DROP TABLE public.candidate_views;
+
+CREATE TABLE public.candidate_views (
+	id serial4 NOT NULL,
+	user_id varchar(255) NOT NULL,
+	candidate_id varchar(255) NOT NULL,
+	candidate_name varchar(255) NULL,
+	view_duration int4 NULL,
+	page_views int4 DEFAULT 1 NULL,
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
+	updated_at timestamptz DEFAULT CURRENT_TIMESTAMP NULL,
+	scroll_percentage int4 DEFAULT 0 NULL,
+	CONSTRAINT candidate_views_candidate_id_check CHECK (((candidate_id IS NOT NULL) AND ((candidate_id)::text <> ''::text))),
+	CONSTRAINT candidate_views_page_views_check CHECK ((page_views > 0)),
+	CONSTRAINT candidate_views_pkey PRIMARY KEY (id),
+	CONSTRAINT candidate_views_scroll_percentage_check CHECK (((scroll_percentage >= 0) AND (scroll_percentage <= 100))),
+	CONSTRAINT candidate_views_user_id_check CHECK (((user_id IS NOT NULL) AND ((user_id)::text <> ''::text))),
+	CONSTRAINT candidate_views_user_id_format_check CHECK (((user_id IS NOT NULL) AND ((user_id)::text <> ''::text) AND (length((user_id)::text) >= 3))),
+	CONSTRAINT candidate_views_view_duration_check CHECK ((view_duration >= 0)),
+	CONSTRAINT candidate_views_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX idx_candidate_views_candidate_created ON public.candidate_views USING btree (candidate_id, created_at);
+CREATE INDEX idx_candidate_views_candidate_id ON public.candidate_views USING btree (candidate_id);
+CREATE INDEX idx_candidate_views_candidate_name ON public.candidate_views USING btree (candidate_name);
+CREATE INDEX idx_candidate_views_created_at ON public.candidate_views USING btree (created_at);
+CREATE INDEX idx_candidate_views_scroll_percentage ON public.candidate_views USING btree (scroll_percentage);
+CREATE INDEX idx_candidate_views_user_created ON public.candidate_views USING btree (user_id, created_at);
+CREATE INDEX idx_candidate_views_user_id ON public.candidate_views USING btree (user_id);
 
 
 -- public.pricing_quotes definition
@@ -220,14 +314,14 @@ CREATE INDEX idx_pricing_quotes_user_id ON public.pricing_quotes USING btree (us
 
 -- Table Triggers
 
-create trigger trigger_generate_quote_number before
-insert
-    on
-    public.pricing_quotes for each row execute function generate_quote_number();
 create trigger trigger_update_pricing_quotes_updated_at before
 update
     on
     public.pricing_quotes for each row execute function update_updated_at_column();
+create trigger trigger_generate_quote_number before
+insert
+    on
+    public.pricing_quotes for each row execute function generate_quote_number();
 
 
 -- public.pricing_quote_roles definition
@@ -263,6 +357,42 @@ update
     public.pricing_quote_roles for each row execute function update_updated_at_column();
 
 
+-- public.candidate_view_summary source
+
+CREATE OR REPLACE VIEW public.candidate_view_summary
+AS SELECT candidate_id,
+    candidate_name,
+    count(*) AS total_views,
+    sum(view_duration) AS total_duration,
+    avg(view_duration) AS avg_duration,
+    max(view_duration) AS max_duration,
+    avg(scroll_percentage) AS avg_scroll_percentage,
+    max(scroll_percentage) AS max_scroll_percentage,
+    count(DISTINCT user_id) AS unique_users,
+    min(created_at) AS first_viewed,
+    max(created_at) AS last_viewed
+   FROM candidate_views
+  GROUP BY candidate_id, candidate_name;
+
+
+-- public.user_candidate_relationships source
+
+CREATE OR REPLACE VIEW public.user_candidate_relationships
+AS SELECT user_id,
+    candidate_id,
+    candidate_name,
+    count(*) AS total_views,
+    sum(view_duration) AS total_duration,
+    avg(view_duration) AS avg_duration,
+    max(view_duration) AS max_duration,
+    avg(scroll_percentage) AS avg_scroll_percentage,
+    max(scroll_percentage) AS max_scroll_percentage,
+    min(created_at) AS first_viewed,
+    max(created_at) AS last_viewed
+   FROM candidate_views
+  GROUP BY user_id, candidate_id, candidate_name;
+
+
 
 -- DROP FUNCTION public.bytea_to_text(bytea);
 
@@ -291,6 +421,42 @@ BEGIN
     ON CONFLICT (user_id) DO NOTHING;
     
     RETURN NEW;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.ensure_user_exists(varchar);
+
+CREATE OR REPLACE FUNCTION public.ensure_user_exists(p_user_id character varying)
+ RETURNS character varying
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    existing_user_id VARCHAR(255);
+BEGIN
+    -- Check if user already exists
+    SELECT user_id INTO existing_user_id
+    FROM users
+    WHERE user_id = p_user_id
+    LIMIT 1;
+    
+    -- If user exists, return it
+    IF existing_user_id IS NOT NULL THEN
+        RETURN existing_user_id;
+    END IF;
+    
+    -- If user doesn't exist, create it
+    INSERT INTO users (
+        user_id,
+        user_type,
+        created_at
+    ) VALUES (
+        p_user_id,
+        'Anonymous',
+        NOW()
+    );
+    
+    RETURN p_user_id;
 END;
 $function$
 ;
@@ -361,6 +527,41 @@ END;
 $function$
 ;
 
+-- DROP FUNCTION public.get_all_users_activity(int4, int4);
+
+CREATE OR REPLACE FUNCTION public.get_all_users_activity(p_days_back integer DEFAULT 30, p_limit integer DEFAULT 50)
+ RETURNS TABLE(user_id character varying, user_name character varying, user_company character varying, user_email character varying, total_views bigint, unique_candidates_viewed bigint, total_favorites bigint, last_activity timestamp with time zone, activity_level character varying)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.user_id,
+        CONCAT(u.first_name, ' ', u.last_name) as user_name,
+        u.company as user_company,
+        u.email as user_email,
+        COALESCE(COUNT(cv.id), 0) as total_views,
+        COALESCE(COUNT(DISTINCT cv.candidate_id), 0) as unique_candidates_viewed,
+        COALESCE(COUNT(CASE WHEN cv.interaction_type = 'favorite' THEN 1 END), 0) as total_favorites,
+        MAX(cv.created_at) as last_activity,
+        CASE 
+            WHEN COUNT(cv.id) >= 20 THEN 'High'
+            WHEN COUNT(cv.id) >= 10 THEN 'Medium'
+            WHEN COUNT(cv.id) >= 1 THEN 'Low'
+            ELSE 'None'
+        END as activity_level
+    FROM users u
+    LEFT JOIN candidate_views cv ON u.user_id = cv.user_id 
+        AND cv.created_at >= CURRENT_DATE - INTERVAL '1 day' * p_days_back
+    GROUP BY u.user_id, u.first_name, u.last_name, u.company, u.email
+    ORDER BY total_views DESC, last_activity DESC
+    LIMIT p_limit;
+END;
+$function$
+;
+
+COMMENT ON FUNCTION public.get_all_users_activity(int4, int4) IS 'Returns activity summary for all users with their candidate viewing statistics';
+
 -- DROP FUNCTION public.get_bpoc_employee_stats();
 
 CREATE OR REPLACE FUNCTION public.get_bpoc_employee_stats()
@@ -392,6 +593,238 @@ BEGIN
 END;
 $function$
 ;
+
+-- DROP FUNCTION public.get_candidate_analytics(varchar);
+
+CREATE OR REPLACE FUNCTION public.get_candidate_analytics(p_candidate_id character varying)
+ RETURNS TABLE(candidate_id character varying, candidate_name character varying, total_views bigint, unique_users bigint, total_favorites bigint, total_clicks bigint, total_ai_views bigint, avg_view_duration numeric, hotness_score integer, last_viewed timestamp with time zone, first_viewed timestamp with time zone)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        cv.candidate_id::VARCHAR(255),
+        MAX(cv.candidate_name)::VARCHAR(255),
+        COUNT(*)::BIGINT,
+        COUNT(DISTINCT cv.user_id)::BIGINT,
+        COUNT(CASE WHEN cv.interaction_type = 'favorite' THEN 1 END)::BIGINT,
+        COUNT(CASE WHEN cv.interaction_type IN ('click', 'profile_click', 'skills_click', 'experience_click') THEN 1 END)::BIGINT,
+        COUNT(CASE WHEN cv.interaction_type = 'ai_analysis_view' THEN 1 END)::BIGINT,
+        ROUND(AVG(cv.view_duration)::NUMERIC, 2),
+        LEAST(100, GREATEST(0, 
+            (COUNT(*) * 2) + 
+            (COUNT(CASE WHEN cv.interaction_type = 'favorite' THEN 1 END) * 5) + 
+            (COUNT(CASE WHEN cv.interaction_type IN ('click', 'profile_click', 'skills_click', 'experience_click') THEN 1 END) * 3) + 
+            (COUNT(CASE WHEN cv.interaction_type = 'ai_analysis_view' THEN 1 END) * 4) + 
+            (CASE WHEN AVG(cv.view_duration) > 30 THEN 10 ELSE 0 END)
+        ))::INTEGER,
+        MAX(cv.created_at)::TIMESTAMPTZ,
+        MIN(cv.created_at)::TIMESTAMPTZ
+    FROM candidate_views cv
+    WHERE cv.candidate_id = p_candidate_id
+    GROUP BY cv.candidate_id;
+END;
+$function$
+;
+
+COMMENT ON FUNCTION public.get_candidate_analytics(varchar) IS 'Returns detailed analytics for a specific candidate including hotness score';
+
+-- DROP FUNCTION public.get_candidate_analytics(varchar, int4);
+
+CREATE OR REPLACE FUNCTION public.get_candidate_analytics(p_candidate_id character varying DEFAULT NULL::character varying, p_days_back integer DEFAULT 30)
+ RETURNS TABLE(candidate_id character varying, total_views bigint, unique_viewers bigint, total_favorites bigint, total_clicks bigint, total_ai_views bigint, avg_view_duration numeric, total_page_views bigint, daily_views jsonb, hotness_score numeric)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY
+    WITH candidate_stats AS (
+        SELECT 
+            cv.candidate_id,
+            MAX(cv.candidate_name) as candidate_name,
+            COUNT(*) as total_views,
+            COUNT(DISTINCT cv.user_id) as unique_viewers,
+            COUNT(CASE WHEN cv.interaction_type = 'favorite' THEN 1 END) as total_favorites,
+            COUNT(CASE WHEN cv.interaction_type IN ('click', 'profile_click', 'skills_click', 'experience_click') THEN 1 END) as total_clicks,
+            COUNT(CASE WHEN cv.interaction_type = 'ai_analysis_view' THEN 1 END) as total_ai_views,
+            AVG(cv.view_duration) as avg_view_duration,
+            SUM(cv.page_views) as total_page_views
+        FROM candidate_views cv
+        WHERE (p_candidate_id IS NULL OR cv.candidate_id = p_candidate_id)
+          AND cv.created_at >= CURRENT_DATE - INTERVAL '1 day' * p_days_back
+        GROUP BY cv.candidate_id
+    ),
+    daily_stats AS (
+        SELECT 
+            cv.candidate_id,
+            JSONB_OBJECT_AGG(
+                DATE(cv.created_at)::TEXT, 
+                daily_count
+            ) as daily_views
+        FROM (
+            SELECT 
+                candidate_id,
+                DATE(created_at) as created_at,
+                COUNT(*) as daily_count
+            FROM candidate_views cv
+            WHERE (p_candidate_id IS NULL OR cv.candidate_id = p_candidate_id)
+              AND cv.created_at >= CURRENT_DATE - INTERVAL '1 day' * p_days_back
+            GROUP BY candidate_id, DATE(created_at)
+            ORDER BY DATE(created_at)
+        ) cv
+        GROUP BY cv.candidate_id
+    )
+    SELECT 
+        cs.candidate_id,
+        cs.total_views,
+        cs.unique_viewers,
+        cs.total_favorites,
+        cs.total_clicks,
+        cs.total_ai_views,
+        ROUND(cs.avg_view_duration::NUMERIC, 2) as avg_view_duration,
+        cs.total_page_views,
+        COALESCE(daily.daily_views, '{}'::JSONB) as daily_views,
+        -- Calculate hotness score (0-100)
+        ROUND(
+            LEAST(100, 
+                (cs.total_views * 0.3) + 
+                (cs.unique_viewers * 0.4) + 
+                (cs.total_favorites * 2.0) + 
+                (cs.total_clicks * 0.5) + 
+                (cs.total_ai_views * 1.5) +
+                (COALESCE(cs.avg_view_duration, 0) * 0.1)
+            )::NUMERIC, 2
+        ) as hotness_score
+    FROM candidate_stats cs
+    LEFT JOIN daily_stats daily ON cs.candidate_id = daily.candidate_id
+    ORDER BY hotness_score DESC, cs.total_views DESC;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.get_candidate_hotness_score(varchar, int4);
+
+CREATE OR REPLACE FUNCTION public.get_candidate_hotness_score(p_candidate_id character varying, p_days_back integer DEFAULT 30)
+ RETURNS numeric
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    hotness_score NUMERIC;
+BEGIN
+    SELECT ROUND(
+        LEAST(100, 
+            (COUNT(*) * 0.3) + 
+            (COUNT(DISTINCT user_id) * 0.4) + 
+            (COUNT(CASE WHEN interaction_type = 'favorite' THEN 1 END) * 2.0) + 
+            (COUNT(CASE WHEN interaction_type IN ('click', 'profile_click', 'skills_click', 'experience_click') THEN 1 END) * 0.5) + 
+            (COUNT(CASE WHEN interaction_type = 'ai_analysis_view' THEN 1 END) * 1.5) +
+            (COALESCE(AVG(view_duration), 0) * 0.1)
+        )::NUMERIC, 2
+    ) INTO hotness_score
+    FROM candidate_views
+    WHERE candidate_id = p_candidate_id
+      AND created_at >= CURRENT_DATE - INTERVAL '1 day' * p_days_back;
+    
+    RETURN COALESCE(hotness_score, 0);
+END;
+$function$
+;
+
+-- DROP FUNCTION public.get_existing_anonymous_user();
+
+CREATE OR REPLACE FUNCTION public.get_existing_anonymous_user()
+ RETURNS character varying
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    anon_user_id VARCHAR(255);
+BEGIN
+    SELECT user_id INTO anon_user_id
+    FROM users
+    WHERE user_type = 'Anonymous'
+    ORDER BY created_at DESC
+    LIMIT 1;
+    
+    RETURN anon_user_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.get_existing_authenticated_user(uuid);
+
+CREATE OR REPLACE FUNCTION public.get_existing_authenticated_user(p_auth_user_id uuid)
+ RETURNS character varying
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    auth_user_id_str VARCHAR(255);
+BEGIN
+    SELECT user_id INTO auth_user_id_str
+    FROM users
+    WHERE auth_user_id = p_auth_user_id
+    LIMIT 1;
+    
+    RETURN auth_user_id_str;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.get_user_candidate_analytics(varchar, int4);
+
+CREATE OR REPLACE FUNCTION public.get_user_candidate_analytics(p_user_id character varying, p_days_back integer DEFAULT 30)
+ RETURNS TABLE(user_id character varying, user_name character varying, user_company character varying, total_views bigint, unique_candidates_viewed bigint, total_favorites bigint, total_clicks bigint, avg_view_duration numeric, most_viewed_candidate character varying, most_viewed_candidate_name character varying, last_activity timestamp with time zone)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY
+    WITH user_stats AS (
+        SELECT 
+            cv.user_id,
+            CONCAT(u.first_name, ' ', u.last_name) as user_name,
+            u.company as user_company,
+            COUNT(*) as total_views,
+            COUNT(DISTINCT cv.candidate_id) as unique_candidates_viewed,
+            COUNT(CASE WHEN cv.interaction_type = 'favorite' THEN 1 END) as total_favorites,
+            COUNT(CASE WHEN cv.interaction_type IN ('click', 'profile_click', 'skills_click', 'experience_click') THEN 1 END) as total_clicks,
+            AVG(cv.view_duration) as avg_view_duration,
+            MAX(cv.created_at) as last_activity
+        FROM candidate_views cv
+        JOIN users u ON cv.user_id = u.user_id
+        WHERE cv.user_id = p_user_id
+          AND cv.created_at >= CURRENT_DATE - INTERVAL '1 day' * p_days_back
+        GROUP BY cv.user_id, u.first_name, u.last_name, u.company
+    ),
+    most_viewed AS (
+        SELECT 
+            cv.user_id,
+            cv.candidate_id,
+            cv.candidate_name,
+            COUNT(*) as view_count
+        FROM candidate_views cv
+        WHERE cv.user_id = p_user_id
+          AND cv.created_at >= CURRENT_DATE - INTERVAL '1 day' * p_days_back
+        GROUP BY cv.user_id, cv.candidate_id, cv.candidate_name
+        ORDER BY view_count DESC
+        LIMIT 1
+    )
+    SELECT 
+        us.user_id,
+        us.user_name,
+        us.user_company,
+        us.total_views,
+        us.unique_candidates_viewed,
+        us.total_favorites,
+        us.total_clicks,
+        ROUND(us.avg_view_duration::NUMERIC, 2) as avg_view_duration,
+        mv.candidate_id as most_viewed_candidate,
+        mv.candidate_name as most_viewed_candidate_name,
+        us.last_activity
+    FROM user_stats us
+    LEFT JOIN most_viewed mv ON us.user_id = mv.user_id;
+END;
+$function$
+;
+
+COMMENT ON FUNCTION public.get_user_candidate_analytics(varchar, int4) IS 'Returns detailed analytics for a specific user including their candidate viewing behavior';
 
 -- DROP FUNCTION public.http(http_request);
 
@@ -507,6 +940,537 @@ CREATE OR REPLACE FUNCTION public.http_set_curlopt(curlopt character varying, va
  RETURNS boolean
  LANGUAGE c
 AS '$libdir/http', $function$http_set_curlopt$function$
+;
+
+-- DROP FUNCTION public.increment_activity_count();
+
+CREATE OR REPLACE FUNCTION public.increment_activity_count()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    -- Check if there's an existing record with the same user_id, candidate_id, and interaction_type
+    -- If yes, increment the activity_count; if no, keep it as 1 (default)
+    IF EXISTS (
+        SELECT 1 FROM candidate_views 
+        WHERE user_id = NEW.user_id 
+          AND candidate_id = NEW.candidate_id 
+          AND interaction_type = NEW.interaction_type
+          AND id != COALESCE(NEW.id, 0)  -- Exclude current record if updating
+    ) THEN
+        -- Get the maximum activity_count for this combination and increment it
+        SELECT COALESCE(MAX(activity_count), 0) + 1 
+        INTO NEW.activity_count
+        FROM candidate_views 
+        WHERE user_id = NEW.user_id 
+          AND candidate_id = NEW.candidate_id 
+          AND interaction_type = NEW.interaction_type
+          AND id != COALESCE(NEW.id, 0);
+    ELSE
+        -- First time this interaction type for this user-candidate combination
+        NEW.activity_count := 1;
+    END IF;
+    
+    RETURN NEW;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.increment_candidate_activity(varchar, varchar, varchar, varchar);
+
+CREATE OR REPLACE FUNCTION public.increment_candidate_activity(p_user_id character varying, p_candidate_id character varying, p_candidate_name character varying DEFAULT NULL::character varying, p_interaction_type character varying DEFAULT 'view'::character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    view_id INTEGER;
+    existing_record RECORD;
+BEGIN
+    -- Look for existing record with same user_id, candidate_id, and interaction_type
+    SELECT id, activity_count INTO existing_record
+    FROM candidate_views
+    WHERE user_id = p_user_id 
+      AND candidate_id = p_candidate_id 
+      AND interaction_type = p_interaction_type
+    ORDER BY created_at DESC
+    LIMIT 1;
+    
+    IF existing_record.id IS NOT NULL THEN
+        -- Update existing record: increment activity_count only
+        UPDATE candidate_views
+        SET 
+            activity_count = existing_record.activity_count + 1,
+            candidate_name = COALESCE(p_candidate_name, candidate_name),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = existing_record.id
+        RETURNING id INTO view_id;
+        
+        RAISE NOTICE 'Incremented activity_count: id=%, new_count=%', 
+            view_id, existing_record.activity_count + 1;
+    ELSE
+        -- Insert new record only if no existing record found
+        INSERT INTO candidate_views (
+            user_id, 
+            candidate_id, 
+            candidate_name, 
+            interaction_type,
+            page_views,
+            activity_count
+        ) VALUES (
+            p_user_id, 
+            p_candidate_id, 
+            p_candidate_name, 
+            p_interaction_type,
+            1,
+            1
+        ) RETURNING id INTO view_id;
+        
+        RAISE NOTICE 'Created new record: id=%, activity_count=1', 
+            view_id;
+    END IF;
+    
+    RETURN view_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.record_candidate_interaction(varchar, varchar, varchar, int4, varchar);
+
+CREATE OR REPLACE FUNCTION public.record_candidate_interaction(p_user_id character varying, p_candidate_id character varying, p_candidate_name character varying DEFAULT NULL::character varying, p_view_duration integer DEFAULT NULL::integer, p_interaction_type character varying DEFAULT 'view'::character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    view_id INTEGER;
+    valid_user_id VARCHAR(255);
+BEGIN
+    -- Check if the provided user_id exists in users table
+    SELECT user_id INTO valid_user_id
+    FROM users
+    WHERE user_id = p_user_id
+    LIMIT 1;
+    
+    -- If user_id doesn't exist, get any available user
+    IF valid_user_id IS NULL THEN
+        SELECT user_id INTO valid_user_id
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 1;
+    END IF;
+    
+    -- Insert the record with the valid user_id
+    INSERT INTO candidate_views (
+        user_id, 
+        candidate_id, 
+        candidate_name, 
+        view_duration, 
+        interaction_type,
+        page_views,
+        activity_count
+    ) VALUES (
+        valid_user_id, 
+        p_candidate_id, 
+        p_candidate_name, 
+        p_view_duration, 
+        p_interaction_type,
+        1,
+        1
+    ) RETURNING id INTO view_id;
+    
+    RETURN view_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.record_candidate_view(varchar, varchar, varchar, int4, varchar);
+
+CREATE OR REPLACE FUNCTION public.record_candidate_view(p_user_id character varying, p_candidate_id character varying, p_candidate_name character varying DEFAULT NULL::character varying, p_view_duration integer DEFAULT NULL::integer, p_interaction_type character varying DEFAULT 'view'::character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    view_id INTEGER;
+BEGIN
+    INSERT INTO candidate_views (
+        user_id, 
+        candidate_id, 
+        candidate_name, 
+        view_duration, 
+        interaction_type,
+        page_views,
+        activity_count
+    ) VALUES (
+        p_user_id, 
+        p_candidate_id, 
+        p_candidate_name, 
+        p_view_duration, 
+        p_interaction_type,
+        1,
+        1
+    ) RETURNING id INTO view_id;
+    
+    RETURN view_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.record_candidate_view_safe(varchar, varchar, varchar, int4, varchar);
+
+CREATE OR REPLACE FUNCTION public.record_candidate_view_safe(p_user_id character varying, p_candidate_id character varying, p_candidate_name character varying DEFAULT NULL::character varying, p_view_duration integer DEFAULT NULL::integer, p_interaction_type character varying DEFAULT 'view'::character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    view_id INTEGER;
+    safe_user_id VARCHAR(255);
+BEGIN
+    -- Ensure user exists before inserting
+    SELECT ensure_user_exists(p_user_id) INTO safe_user_id;
+    
+    -- Insert the candidate view record
+    INSERT INTO candidate_views (
+        user_id, 
+        candidate_id, 
+        candidate_name, 
+        view_duration, 
+        interaction_type,
+        page_views,
+        activity_count
+    ) VALUES (
+        safe_user_id, 
+        p_candidate_id, 
+        p_candidate_name, 
+        p_view_duration, 
+        p_interaction_type,
+        1,
+        1
+    ) RETURNING id INTO view_id;
+    
+    RETURN view_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.simple_get_analytics(varchar);
+
+CREATE OR REPLACE FUNCTION public.simple_get_analytics(p_candidate_id character varying)
+ RETURNS TABLE(candidate_id character varying, candidate_name character varying, total_views bigint, unique_users bigint, total_favorites bigint, total_clicks bigint, total_ai_views bigint, avg_view_duration numeric, hotness_score integer, last_viewed timestamp with time zone, first_viewed timestamp with time zone)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        cv.candidate_id::VARCHAR(255),
+        MAX(cv.candidate_name)::VARCHAR(255),
+        COUNT(*)::BIGINT,
+        COUNT(DISTINCT cv.user_id)::BIGINT,
+        COUNT(CASE WHEN cv.interaction_type = 'favorite' THEN 1 END)::BIGINT,
+        COUNT(CASE WHEN cv.interaction_type IN ('click', 'profile_click', 'skills_click', 'experience_click') THEN 1 END)::BIGINT,
+        COUNT(CASE WHEN cv.interaction_type = 'ai_analysis_view' THEN 1 END)::BIGINT,
+        ROUND(AVG(cv.view_duration)::NUMERIC, 2),
+        LEAST(100, GREATEST(0, 
+            (COUNT(*) * 2) + 
+            (COUNT(CASE WHEN cv.interaction_type = 'favorite' THEN 1 END) * 5) + 
+            (COUNT(CASE WHEN cv.interaction_type IN ('click', 'profile_click', 'skills_click', 'experience_click') THEN 1 END) * 3) + 
+            (COUNT(CASE WHEN cv.interaction_type = 'ai_analysis_view' THEN 1 END) * 4) + 
+            (CASE WHEN AVG(cv.view_duration) > 30 THEN 10 ELSE 0 END)
+        ))::INTEGER,
+        MAX(cv.created_at)::TIMESTAMPTZ,
+        MIN(cv.created_at)::TIMESTAMPTZ
+    FROM candidate_views cv
+    WHERE cv.candidate_id = p_candidate_id
+    GROUP BY cv.candidate_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.simple_get_anonymous_user(varchar);
+
+CREATE OR REPLACE FUNCTION public.simple_get_anonymous_user(p_user_id character varying DEFAULT NULL::character varying)
+ RETURNS character varying
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    any_user_id VARCHAR(255);
+    new_user_id VARCHAR(255);
+BEGIN
+    -- If a user_id is provided, check if it exists in users table
+    IF p_user_id IS NOT NULL THEN
+        SELECT user_id INTO any_user_id
+        FROM users
+        WHERE user_id = p_user_id
+        LIMIT 1;
+        
+        -- If the provided user_id exists, return it
+        IF any_user_id IS NOT NULL THEN
+            RETURN any_user_id;
+        END IF;
+    END IF;
+    
+    -- If no user_id provided or it doesn't exist, create a new anonymous user
+    -- Generate a unique user_id for anonymous user
+    new_user_id := 'anon_' || extract(epoch from now())::bigint || '_' || floor(random() * 10000)::int;
+    
+    -- Insert new anonymous user
+    INSERT INTO users (
+        user_id,
+        user_type,
+        created_at
+    ) VALUES (
+        new_user_id,
+        'Anonymous',
+        NOW()
+    );
+    
+    RETURN new_user_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.simple_get_authenticated_user(varchar);
+
+CREATE OR REPLACE FUNCTION public.simple_get_authenticated_user(p_auth_user_id character varying)
+ RETURNS character varying
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    user_id_result VARCHAR(255);
+    uuid_value UUID;
+BEGIN
+    -- First, try to find by user_id (in case the passed value is already a user_id)
+    SELECT user_id INTO user_id_result
+    FROM users
+    WHERE user_id = p_auth_user_id
+    LIMIT 1;
+    
+    -- If not found by user_id, try to find by auth_user_id (cast VARCHAR to UUID)
+    IF user_id_result IS NULL THEN
+        BEGIN
+            -- Try to cast to UUID, handle potential errors
+            uuid_value := p_auth_user_id::uuid;
+            
+            SELECT user_id INTO user_id_result
+            FROM users
+            WHERE auth_user_id = uuid_value
+            LIMIT 1;
+            
+        EXCEPTION
+            WHEN invalid_text_representation THEN
+                -- If UUID casting fails, continue to fallback
+                user_id_result := NULL;
+        END;
+    END IF;
+    
+    -- If still not found, get any available user
+    IF user_id_result IS NULL THEN
+        SELECT user_id INTO user_id_result
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 1;
+    END IF;
+    
+    RETURN user_id_result;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.simple_get_authenticated_user(uuid);
+
+CREATE OR REPLACE FUNCTION public.simple_get_authenticated_user(p_auth_user_id uuid)
+ RETURNS character varying
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    auth_user_id_str VARCHAR(255);
+BEGIN
+    SELECT user_id INTO auth_user_id_str
+    FROM users
+    WHERE auth_user_id = p_auth_user_id
+    LIMIT 1;
+    
+    RETURN auth_user_id_str;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.simple_record_view(varchar, varchar, varchar, int4, varchar);
+
+CREATE OR REPLACE FUNCTION public.simple_record_view(p_user_id character varying, p_candidate_id character varying, p_candidate_name character varying DEFAULT NULL::character varying, p_view_duration integer DEFAULT NULL::integer, p_interaction_type character varying DEFAULT 'view'::character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    view_id INTEGER;
+    valid_user_id VARCHAR(255);
+BEGIN
+    -- Get a valid user_id (either the provided one or any available one)
+    SELECT simple_get_anonymous_user(p_user_id) INTO valid_user_id;
+    
+    -- Insert the record with the valid user_id
+    INSERT INTO candidate_views (
+        user_id, 
+        candidate_id, 
+        candidate_name, 
+        view_duration, 
+        interaction_type,
+        page_views,
+        activity_count
+    ) VALUES (
+        valid_user_id, 
+        p_candidate_id, 
+        p_candidate_name, 
+        p_view_duration, 
+        p_interaction_type,
+        1,
+        1
+    ) RETURNING id INTO view_id;
+    
+    RETURN view_id;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.sync_ai_analysis_data();
+
+CREATE OR REPLACE FUNCTION public.sync_ai_analysis_data()
+ RETURNS TABLE(total_fetched integer, new_analyses integer, updated_analyses integer, errors integer)
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    api_response JSONB;
+    employee_data JSONB;
+    analysis_record RECORD;
+    total_count INTEGER := 0;
+    new_count INTEGER := 0;
+    updated_count INTEGER := 0;
+    error_count INTEGER := 0;
+    http_response TEXT;
+BEGIN
+    -- Make HTTP request to BPOC API
+    BEGIN
+        SELECT content INTO http_response
+        FROM http((
+            'GET',
+            'https://www.bpoc.io/api/public/user-data',
+            ARRAY[http_header('Accept', 'application/json')],
+            NULL,
+            NULL
+        )::http_request);
+        
+        api_response := http_response::jsonb;
+        
+        -- Check if API response is successful
+        IF NOT (api_response->>'success')::boolean THEN
+            RAISE EXCEPTION 'BPOC API returned unsuccessful response: %', api_response->>'message';
+        END IF;
+        
+        -- Process each employee's analysis data
+        FOR employee_data IN SELECT * FROM jsonb_array_elements(api_response->'data')
+        LOOP
+            total_count := total_count + 1;
+            
+            BEGIN
+                -- Check if analysis data exists for this user
+                SELECT * INTO analysis_record 
+                FROM ai_analysis 
+                WHERE user_id = (employee_data->>'user_id');
+                
+                -- Prepare analysis data
+                IF analysis_record IS NULL THEN
+                    -- Insert new analysis record
+                    INSERT INTO ai_analysis (
+                        user_id,
+                        analysis_id,
+                        session_id,
+                        overall_score,
+                        ats_compatibility_score,
+                        content_quality_score,
+                        professional_presentation_score,
+                        skills_alignment_score,
+                        key_strengths,
+                        improvements,
+                        recommendations,
+                        improved_summary,
+                        strengths_analysis,
+                        salary_analysis,
+                        career_path,
+                        section_analysis,
+                        candidate_profile,
+                        skills_snapshot,
+                        experience_snapshot,
+                        education_snapshot,
+                        portfolio_links,
+                        analysis_created_at,
+                        analysis_updated_at
+                    ) VALUES (
+                        employee_data->>'user_id',
+                        employee_data->>'analysis_id',
+                        employee_data->>'session_id',
+                        (employee_data->>'overall_score')::integer,
+                        (employee_data->>'ats_compatibility_score')::integer,
+                        (employee_data->>'content_quality_score')::integer,
+                        (employee_data->>'professional_presentation_score')::integer,
+                        (employee_data->>'skills_alignment_score')::integer,
+                        COALESCE(employee_data->'key_strengths', '[]'::jsonb),
+                        COALESCE(employee_data->'improvements', '[]'::jsonb),
+                        COALESCE(employee_data->'recommendations', '[]'::jsonb),
+                        employee_data->>'improved_summary',
+                        employee_data->'strengths_analysis',
+                        employee_data->'salary_analysis',
+                        employee_data->'career_path',
+                        employee_data->'section_analysis',
+                        employee_data->'candidate_profile',
+                        COALESCE(employee_data->'skills_snapshot', '[]'::jsonb),
+                        employee_data->'experience_snapshot',
+                        employee_data->'education_snapshot',
+                        COALESCE(employee_data->'portfolio_links', '[]'::jsonb),
+                        (employee_data->>'analysis_created_at')::timestamptz,
+                        (employee_data->>'analysis_updated_at')::timestamptz
+                    );
+                    new_count := new_count + 1;
+                ELSE
+                    -- Update existing analysis record
+                    UPDATE ai_analysis SET
+                        analysis_id = employee_data->>'analysis_id',
+                        session_id = employee_data->>'session_id',
+                        overall_score = (employee_data->>'overall_score')::integer,
+                        ats_compatibility_score = (employee_data->>'ats_compatibility_score')::integer,
+                        content_quality_score = (employee_data->>'content_quality_score')::integer,
+                        professional_presentation_score = (employee_data->>'professional_presentation_score')::integer,
+                        skills_alignment_score = (employee_data->>'skills_alignment_score')::integer,
+                        key_strengths = COALESCE(employee_data->'key_strengths', '[]'::jsonb),
+                        improvements = COALESCE(employee_data->'improvements', '[]'::jsonb),
+                        recommendations = COALESCE(employee_data->'recommendations', '[]'::jsonb),
+                        improved_summary = employee_data->>'improved_summary',
+                        strengths_analysis = employee_data->'strengths_analysis',
+                        salary_analysis = employee_data->'salary_analysis',
+                        career_path = employee_data->'career_path',
+                        section_analysis = employee_data->'section_analysis',
+                        candidate_profile = employee_data->'candidate_profile',
+                        skills_snapshot = COALESCE(employee_data->'skills_snapshot', '[]'::jsonb),
+                        experience_snapshot = employee_data->'experience_snapshot',
+                        education_snapshot = employee_data->'education_snapshot',
+                        portfolio_links = COALESCE(employee_data->'portfolio_links', '[]'::jsonb),
+                        analysis_created_at = (employee_data->>'analysis_created_at')::timestamptz,
+                        analysis_updated_at = (employee_data->>'analysis_updated_at')::timestamptz
+                    WHERE user_id = employee_data->>'user_id';
+                    updated_count := updated_count + 1;
+                END IF;
+                
+            EXCEPTION WHEN OTHERS THEN
+                error_count := error_count + 1;
+                RAISE WARNING 'Error processing analysis for user %: %', employee_data->>'user_id', SQLERRM;
+            END;
+        END LOOP;
+        
+    EXCEPTION WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error fetching BPOC API data: %', SQLERRM;
+    END;
+    
+    -- Return summary
+    RETURN QUERY SELECT total_count, new_count, updated_count, error_count;
+END;
+$function$
 ;
 
 -- DROP FUNCTION public.sync_bpoc_employees_data();
@@ -748,6 +1712,32 @@ CREATE OR REPLACE FUNCTION public.update_bpoc_employees_updated_at()
 AS $function$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.update_candidate_views_updated_at();
+
+CREATE OR REPLACE FUNCTION public.update_candidate_views_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$function$
+;
+
+-- DROP FUNCTION public.update_content_views_updated_at();
+
+CREATE OR REPLACE FUNCTION public.update_content_views_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    NEW.updated_at = NOW();
     RETURN NEW;
 END;
 $function$

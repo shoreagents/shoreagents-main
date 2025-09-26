@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, Calendar, Clock, User, Building, Phone, Mail } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, User } from 'lucide-react';
+import { LoginModal } from '@/components/ui/login-modal';
 
 interface InterviewRequestModalProps {
   isOpen: boolean;
@@ -28,11 +28,6 @@ export interface InterviewRequestData {
   firstName: string;
   lastName: string;
   email: string;
-  company: string;
-  phoneNumber: string;
-  preferredDate: string;
-  preferredTime: string;
-  interviewType: string;
 }
 
 export function InterviewRequestModal({
@@ -45,15 +40,11 @@ export function InterviewRequestModal({
   const [formData, setFormData] = useState<InterviewRequestData>({
     firstName: '',
     lastName: '',
-    email: '',
-    company: '',
-    phoneNumber: '',
-    preferredDate: '',
-    preferredTime: '',
-    interviewType: ''
+    email: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleInputChange = (field: keyof InterviewRequestData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -70,32 +61,9 @@ export function InterviewRequestModal({
       return;
     }
 
-    if (!formData.preferredDate || !formData.preferredTime || !formData.interviewType) {
-      setError('Please select your preferred date, time, and interview type');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await onSubmit(formData);
-      // Reset form on success
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        company: '',
-        phoneNumber: '',
-        preferredDate: '',
-        preferredTime: '',
-        interviewType: ''
-      });
-      onClose();
-    } catch (err) {
-      setError('Failed to submit interview request. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // Close the interview modal and open the login modal with pre-filled data
+    onClose();
+    setShowLoginModal(true);
   };
 
   const handleClose = () => {
@@ -103,21 +71,26 @@ export function InterviewRequestModal({
       setFormData({
         firstName: '',
         lastName: '',
-        email: '',
-        company: '',
-        phoneNumber: '',
-        preferredDate: '',
-        preferredTime: '',
-        interviewType: ''
+        email: ''
       });
       setError('');
       onClose();
     }
   };
 
+  const handleLoginModalClose = () => {
+    setShowLoginModal(false);
+    // Reset form when login modal is closed
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: ''
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center">
@@ -142,8 +115,7 @@ export function InterviewRequestModal({
             </Alert>
           )}
 
-
-          {/* Personal Information */}
+          {/* Contact Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <User className="w-5 h-5 text-lime-600" />
@@ -190,98 +162,6 @@ export function InterviewRequestModal({
                 disabled={loading}
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  type="text"
-                  placeholder="Your Company"
-                  value={formData.company}
-                  onChange={(e) => handleInputChange('company', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  value={formData.phoneNumber}
-                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Interview Preferences */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-lime-600" />
-              Interview Preferences
-            </h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="preferredDate">Preferred Date *</Label>
-                <Input
-                  id="preferredDate"
-                  type="date"
-                  value={formData.preferredDate}
-                  onChange={(e) => handleInputChange('preferredDate', e.target.value)}
-                  required
-                  disabled={loading}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="preferredTime">Preferred Time *</Label>
-                <Select
-                  value={formData.preferredTime}
-                  onValueChange={(value) => handleInputChange('preferredTime', value)}
-                  disabled={loading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="09:00">9:00 AM</SelectItem>
-                    <SelectItem value="10:00">10:00 AM</SelectItem>
-                    <SelectItem value="11:00">11:00 AM</SelectItem>
-                    <SelectItem value="12:00">12:00 PM</SelectItem>
-                    <SelectItem value="13:00">1:00 PM</SelectItem>
-                    <SelectItem value="14:00">2:00 PM</SelectItem>
-                    <SelectItem value="15:00">3:00 PM</SelectItem>
-                    <SelectItem value="16:00">4:00 PM</SelectItem>
-                    <SelectItem value="17:00">5:00 PM</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="interviewType">Interview Type *</Label>
-              <Select
-                value={formData.interviewType}
-                onValueChange={(value) => handleInputChange('interviewType', value)}
-                disabled={loading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select interview type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="video">Video Call (Zoom/Teams)</SelectItem>
-                  <SelectItem value="phone">Phone Call</SelectItem>
-                  <SelectItem value="in-person">In-Person Meeting</SelectItem>
-                  <SelectItem value="hybrid">Hybrid (Video + In-Person)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
 
@@ -315,6 +195,20 @@ export function InterviewRequestModal({
           </DialogFooter>
         </form>
       </DialogContent>
+      
+      {/* Login Modal with pre-filled data */}
+      {showLoginModal && (
+        <LoginModal 
+          onSuccess={handleLoginModalClose}
+          prefillData={{
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email
+          }}
+        >
+          <div style={{ display: 'none' }} />
+        </LoginModal>
+      )}
     </Dialog>
   );
 }

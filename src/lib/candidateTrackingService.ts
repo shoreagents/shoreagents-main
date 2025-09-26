@@ -5,13 +5,15 @@ export interface CandidateViewData {
   user_id: string;
   candidate_id: string;
   candidate_name?: string;
-  interaction_type: 'view' | 'favorite' | 'unfavorite' | 'contact' | 'download' | 'share' | 'click' | 'ai_analysis_view' | 'profile_click' | 'skills_click' | 'experience_click';
+  view_duration?: number;
+  scroll_percentage?: number;
 }
 
 export class CandidateTrackingService {
   private static instance: CandidateTrackingService;
   private currentCandidateId: string | null = null;
   private currentUserId: string | null = null;
+  private startTime: number = 0;
 
   private constructor() {}
 
@@ -32,22 +34,16 @@ export class CandidateTrackingService {
         timestamp: new Date().toISOString()
       });
 
-      // Get existing user from users table
-      let trackingUserId: string | null = null;
-      if (userId) {
-        // For authenticated users, find existing user by auth_user_id
-        trackingUserId = await this.getExistingAuthenticatedUser(userId);
-        
-        // If authenticated user lookup fails, fall back to any available user
-        if (!trackingUserId) {
-          console.log('⚠️ Authenticated user lookup failed, falling back to any available user');
-          trackingUserId = await this.getExistingUser();
-        }
-      } else {
-        // For anonymous users, use the actual user from the frontend context
-        // This should be the actual user_id from the frontend, not a random one
-        trackingUserId = userId || await this.getExistingUser();
+      // Use the provided userId directly (this should be the device ID from content tracking)
+      let trackingUserId: string | null = userId;
+      
+      if (!trackingUserId) {
+        console.log('❌ No user ID provided for candidate tracking');
+        return;
       }
+      
+      // Ensure the user exists in the users table (create if needed)
+      trackingUserId = await this.ensureUserExists(trackingUserId);
 
       // If no user found, skip tracking
       if (!trackingUserId) {
@@ -57,6 +53,7 @@ export class CandidateTrackingService {
       
       this.currentUserId = trackingUserId;
       this.currentCandidateId = candidateId;
+      this.startTime = Date.now(); // Record start time for duration tracking
 
       // Get candidate name from BPOC API if not provided
       let finalCandidateName = candidateName;
@@ -65,11 +62,13 @@ export class CandidateTrackingService {
       }
 
       // Record initial view using the new function that accepts actual user_id
+      // This will either create a new record or update an existing one
       await this.recordInteractionDirect({
         user_id: trackingUserId,
         candidate_id: candidateId,
         candidate_name: finalCandidateName,
-        interaction_type: 'view'
+        view_duration: 0, // Initial duration, will be updated in endTracking()
+        scroll_percentage: 0 // Initial scroll percentage, will be updated during tracking
       });
 
       console.log(`✅ Started tracking view for candidate: ${finalCandidateName || candidateId} (User: ${trackingUserId})`);
@@ -105,27 +104,51 @@ export class CandidateTrackingService {
     }
   }
 
-  // Get existing user from users table (any available user_id)
-  private async getExistingUser(): Promise<string | null> {
+  // Ensure user exists in users table (create if needed)
+  private async ensureUserExists(userId: string): Promise<string | null> {
     try {
       const supabase = createClient();
-      const { data, error } = await supabase
-        .rpc('simple_get_anonymous_user'); // This function returns any available user_id
+      
+      // First check if user already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('user_id')
+        .eq('user_id', userId)
+        .single();
 
-      if (error) {
-        console.error('❌ Error getting existing user_id:', error);
-        return null;
+      // If user exists, return it
+      if (!checkError && existingUser) {
+        console.log('✅ User already exists:', userId);
+        return userId;
       }
 
-      if (data) {
-        console.log('✅ Got existing user_id from users table:', data);
-        return data;
+      // If user doesn't exist (checkError.code === 'PGRST116' means no rows found)
+      if (checkError && checkError.code === 'PGRST116') {
+        console.log('🔧 User does not exist, creating new user:', userId);
+        
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            user_id: userId,
+            user_type: 'Anonymous'
+          })
+          .select('user_id')
+          .single();
+
+        if (createError) {
+          console.error('❌ Error creating user:', createError);
+          return null;
+        }
+
+        console.log('✅ Created new user:', newUser.user_id);
+        return newUser.user_id;
       } else {
-        console.log('❌ No users found in users table');
+        // Some other error occurred
+        console.error('❌ Error checking user existence:', checkError);
         return null;
       }
     } catch (error) {
-      console.error('❌ Error in getExistingUser:', error);
+      console.error('❌ Error in ensureUserExists:', error);
       return null;
     }
   }
@@ -196,7 +219,8 @@ export class CandidateTrackingService {
         user_id: data.user_id,
         candidate_id: data.candidate_id,
         candidate_name: data.candidate_name,
-        interaction_type: data.interaction_type
+        view_duration: data.view_duration,
+        scroll_percentage: data.scroll_percentage
       });
 
       const supabase = createClient();
@@ -208,7 +232,7 @@ export class CandidateTrackingService {
           p_candidate_id: data.candidate_id,
           p_candidate_name: data.candidate_name,
           p_view_duration: data.view_duration,
-          p_interaction_type: data.interaction_type
+          p_scroll_percentage: data.scroll_percentage || 0
         });
 
       if (error) {
@@ -222,7 +246,7 @@ export class CandidateTrackingService {
         return;
       }
 
-      console.log(`✅ Successfully recorded ${data.interaction_type} for candidate: ${data.candidate_name || data.candidate_id}`, result);
+      console.log(`✅ Successfully recorded view for candidate: ${data.candidate_name || data.candidate_id}`, result);
     } catch (error) {
       console.error('❌ Exception in recordInteraction:', error);
     }
@@ -235,105 +259,214 @@ export class CandidateTrackingService {
         user_id: data.user_id,
         candidate_id: data.candidate_id,
         candidate_name: data.candidate_name,
-        interaction_type: data.interaction_type
+        scroll_percentage: data.scroll_percentage
       });
 
       const supabase = createClient();
       
-      // Use the increment function (no fallback to prevent duplicates)
-      const { data: incrementResult, error: incrementError } = await supabase
-        .rpc('increment_candidate_activity', {
-          p_user_id: data.user_id,
-          p_candidate_id: data.candidate_id,
-          p_candidate_name: data.candidate_name,
-          p_interaction_type: data.interaction_type
-        });
+      // Check if there's already a record for this user-candidate combination
+      const { data: existingView, error: findError } = await supabase
+        .from('candidate_views')
+        .select('id, view_duration, scroll_percentage')
+        .eq('user_id', data.user_id)
+        .eq('candidate_id', data.candidate_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
 
-      if (!incrementError && incrementResult) {
-        console.log(`✅ Successfully recorded ${data.interaction_type} via increment for candidate: ${data.candidate_name || data.candidate_id}`, incrementResult);
+      if (findError && findError.code !== 'PGRST116') {
+        console.error('❌ Error checking for existing view:', findError);
         return;
       }
 
-      // If increment function fails, log error and skip recording to prevent duplicates
-      console.error('❌ Increment function failed, skipping recording to prevent duplicates:', {
-        incrementError: incrementError,
-        message: incrementError?.message,
-        details: incrementError?.details,
-        hint: incrementError?.hint,
-        code: incrementError?.code,
-        fullError: JSON.stringify(incrementError, null, 2)
-      });
+      if (existingView) {
+        // Update existing record instead of creating new one
+        console.log('🔄 Updating existing view record instead of creating duplicate');
+        const { error: updateError } = await supabase
+          .from('candidate_views')
+          .update({
+            candidate_name: data.candidate_name,
+            view_duration: data.view_duration,
+            scroll_percentage: data.scroll_percentage,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingView.id);
+
+        if (updateError) {
+          console.error('❌ Error updating existing view:', updateError);
+        } else {
+          console.log('✅ Existing view record updated successfully');
+        }
+        return;
+      }
       
-      // Don't fall back to old function that creates duplicates
-      console.log('⚠️ Skipping recording to prevent duplicate records');
-      return;
+      // Insert new record when no existing record found
+      const { data: result, error } = await supabase
+        .from('candidate_views')
+        .insert({
+          user_id: data.user_id,
+          candidate_id: data.candidate_id,
+          candidate_name: data.candidate_name,
+          view_duration: data.view_duration,
+          scroll_percentage: data.scroll_percentage,
+          page_views: 1
+        })
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('❌ Error recording candidate interaction:', {
+          error: error,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        return;
+      }
+
+      console.log(`✅ Successfully recorded view for candidate: ${data.candidate_name || data.candidate_id}`, result);
     } catch (error) {
       console.error('❌ Exception in recordInteractionDirect:', error);
     }
   }
 
-  // Record favorite/unfavorite action
-  public async recordFavoriteAction(candidateId: string, candidateName: string, isFavorite: boolean): Promise<void> {
-    if (!this.currentUserId) return;
+  // Record scroll percentage during viewing
+  public async recordScrollPercentage(scrollPercentage: number): Promise<void> {
+    if (!this.currentUserId || !this.currentCandidateId) return;
 
-    // Get candidate name from BPOC API if not provided
-    let finalCandidateName = candidateName;
-    if (!finalCandidateName) {
-      finalCandidateName = await this.getCandidateNameFromBPOC(candidateId) || '';
+    try {
+      const supabase = createClient();
+      
+      // Update the current view record with scroll percentage
+      const { error } = await supabase
+        .from('candidate_views')
+        .update({
+          scroll_percentage: scrollPercentage,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', this.currentUserId)
+        .eq('candidate_id', this.currentCandidateId);
+
+      if (error) {
+        console.error('❌ Error updating scroll percentage:', error);
+      } else {
+        console.log(`✅ Updated scroll percentage: ${scrollPercentage}%`);
+      }
+    } catch (error) {
+      console.error('❌ Exception in recordScrollPercentage:', error);
     }
-
-    await this.recordInteractionDirect({
-      user_id: this.currentUserId,
-      candidate_id: candidateId,
-      candidate_name: finalCandidateName,
-      interaction_type: isFavorite ? 'favorite' : 'unfavorite'
-    });
   }
 
-  // Record AI analysis view
-  public async recordAIAnalysisView(): Promise<void> {
-    if (!this.currentUserId || !this.currentCandidateId) return;
-
-    // Get candidate name from BPOC API
-    const candidateName = await this.getCandidateNameFromBPOC(this.currentCandidateId);
-
-    await this.recordInteractionDirect({
-      user_id: this.currentUserId,
-      candidate_id: this.currentCandidateId,
-      candidate_name: candidateName || undefined,
-      interaction_type: 'ai_analysis_view'
-    });
-  }
-
-  // Record tab/section clicks
-  public async recordSectionClick(section: 'profile_click' | 'skills_click' | 'experience_click'): Promise<void> {
-    if (!this.currentUserId || !this.currentCandidateId) return;
-
-    // Get candidate name from BPOC API
-    const candidateName = await this.getCandidateNameFromBPOC(this.currentCandidateId);
-
-    await this.recordInteractionDirect({
-      user_id: this.currentUserId,
-      candidate_id: this.currentCandidateId,
-      candidate_name: candidateName || undefined,
-      interaction_type: section
-    });
-  }
-
-  // End tracking (simplified - no duration tracking)
+  // End tracking with duration calculation
   public async endTracking(): Promise<void> {
     try {
-      if (!this.currentUserId || !this.currentCandidateId) {
+      if (!this.currentUserId || !this.currentCandidateId || this.startTime === 0) {
+        console.log('⚠️ No active tracking session to end');
         return;
       }
 
-      console.log('📊 Ending tracking session');
+      // Calculate view duration in seconds
+      const viewDuration = Math.round((Date.now() - this.startTime) / 1000);
+      console.log(`📊 Ending tracking session - Duration: ${viewDuration} seconds`);
+
+      // Update the candidate view record with the calculated duration
+      await this.updateViewDuration(this.currentUserId, this.currentCandidateId, viewDuration);
 
       // Reset tracking state
       this.currentCandidateId = null;
       this.currentUserId = null;
+      this.startTime = 0;
     } catch (error) {
       console.error('Error ending candidate tracking:', error);
+    }
+  }
+
+  // Update view duration for a specific candidate view
+  private async updateViewDuration(userId: string, candidateId: string, duration: number): Promise<void> {
+    try {
+      const supabase = createClient();
+      
+      console.log(`🔍 Looking for candidate view to update: user=${userId}, candidate=${candidateId}, duration=${duration}`);
+      
+      // Find the most recent view record for this user and candidate
+      const { data: existingViews, error: findError } = await supabase
+        .from('candidate_views')
+        .select('id, view_duration, scroll_percentage, created_at')
+        .eq('user_id', userId)
+        .eq('candidate_id', candidateId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (findError) {
+        console.error('❌ Error finding candidate view to update:', findError);
+        return;
+      }
+
+      console.log(`📊 Found ${existingViews?.length || 0} existing views for this user-candidate combination`);
+
+      if (existingViews && existingViews.length > 0) {
+        // Update the most recent record by ADDING to the existing duration
+        const mostRecentView = existingViews[0];
+        const currentDuration = mostRecentView.view_duration || 0;
+        const newTotalDuration = currentDuration + duration;
+        
+        console.log(`🔄 Adding ${duration} seconds to existing duration ${currentDuration} = ${newTotalDuration} seconds for view ID ${mostRecentView.id}`);
+        
+        const { error: updateError } = await supabase
+          .from('candidate_views')
+          .update({ 
+            view_duration: newTotalDuration,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', mostRecentView.id);
+
+        if (updateError) {
+          console.error('❌ Error updating view duration:', updateError);
+        } else {
+          console.log(`✅ Updated view duration: ${newTotalDuration} seconds (${currentDuration} + ${duration}) for candidate ${candidateId}`);
+        }
+      } else {
+        console.log('⚠️ No existing view record found - this should not happen if startTracking() was called first');
+        console.log('⚠️ Skipping duration update to prevent duplicate records');
+      }
+    } catch (error) {
+      console.error('❌ Exception in updateViewDuration:', error);
+    }
+  }
+
+  // Manually update view duration for testing
+  public async updateViewDurationManually(userId: string, candidateId: string, duration: number): Promise<void> {
+    console.log(`🔧 Manually updating view duration: user=${userId}, candidate=${candidateId}, duration=${duration}`);
+    await this.updateViewDuration(userId, candidateId, duration);
+  }
+
+  // Test duration accumulation for a specific candidate
+  public async testDurationAccumulation(userId: string, candidateId: string, candidateName: string): Promise<void> {
+    try {
+      console.log(`🧪 Testing duration accumulation for candidate: ${candidateName}`);
+      
+      // First visit - should create record
+      console.log('🔄 First visit - creating initial record...');
+      await this.startTracking(userId, candidateId, candidateName);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 seconds
+      await this.endTracking();
+      
+      // Second visit - should update existing record
+      console.log('🔄 Second visit - updating existing record...');
+      await this.startTracking(userId, candidateId, candidateName);
+      await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds
+      await this.endTracking();
+      
+      // Third visit - should update existing record again
+      console.log('🔄 Third visit - updating existing record again...');
+      await this.startTracking(userId, candidateId, candidateName);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second
+      await this.endTracking();
+      
+      console.log('✅ Duration accumulation test completed - should have ~6 seconds total');
+    } catch (error) {
+      console.error('❌ Error in testDurationAccumulation:', error);
     }
   }
 
@@ -343,8 +476,11 @@ export class CandidateTrackingService {
       console.log('🔍 Fetching analytics for candidate:', candidateId);
       
       const supabase = createClient();
+      // Query candidate_views table directly for analytics
       const { data, error } = await supabase
-        .rpc('simple_get_analytics', { p_candidate_id: candidateId as string });
+        .from('candidate_views')
+        .select('candidate_id, candidate_name, view_duration, scroll_percentage, created_at, user_id')
+        .eq('candidate_id', candidateId);
 
       if (error) {
         console.error('❌ Error fetching candidate analytics:', {
@@ -360,42 +496,134 @@ export class CandidateTrackingService {
 
       console.log('📊 Analytics data received:', { data, candidateId, dataLength: data?.length });
 
-      // Handle different response formats
-      let result = null;
-      
-      if (data) {
-        if (Array.isArray(data)) {
-          // If it's an array, take the first element
-          result = data.length > 0 ? data[0] : null;
-        } else if (typeof data === 'object') {
-          // If it's a single object, use it directly
-          result = data;
-        }
-      }
-      
-      console.log('📈 Processed analytics result:', result);
-      
-      // If no data exists for this candidate, return a default structure
-      if (!result) {
+      // Process the data to create analytics
+      if (!data || data.length === 0) {
         console.log('📊 No analytics data found for candidate, returning default structure');
         return {
           candidate_id: candidateId,
           candidate_name: null,
           total_views: 0,
           unique_users: 0,
-          total_favorites: 0,
-          total_clicks: 0,
-          total_ai_views: 0,
-          avg_view_duration: 0,
+          total_duration: 0,
+          avg_duration: 0,
+          max_duration: 0,
+          avg_scroll_percentage: 0,
+          max_scroll_percentage: 0,
           hotness_score: 0,
           last_viewed: null,
           first_viewed: null
         };
       }
-      
+
+      // Calculate analytics from the raw data
+      const totalViews = data.length;
+      const uniqueUsers = new Set(data.map(d => d.user_id)).size;
+      const totalDuration = data.reduce((sum, d) => sum + (d.view_duration || 0), 0);
+      const avgDuration = totalDuration / totalViews;
+      const maxDuration = Math.max(...data.map(d => d.view_duration || 0));
+      const avgScrollPercentage = data.reduce((sum, d) => sum + (d.scroll_percentage || 0), 0) / totalViews;
+      const maxScrollPercentage = Math.max(...data.map(d => d.scroll_percentage || 0));
+      const firstViewed = data.reduce((earliest, d) => 
+        new Date(d.created_at) < new Date(earliest) ? d.created_at : earliest, data[0].created_at);
+      const lastViewed = data.reduce((latest, d) => 
+        new Date(d.created_at) > new Date(latest) ? d.created_at : latest, data[0].created_at);
+
+      const result = {
+        candidate_id: candidateId,
+        candidate_name: data[0].candidate_name,
+        total_views: totalViews,
+        unique_users: uniqueUsers,
+        total_duration: totalDuration,
+        avg_duration: Math.round(avgDuration),
+        max_duration: maxDuration,
+        avg_scroll_percentage: Math.round(avgScrollPercentage),
+        max_scroll_percentage: maxScrollPercentage,
+        hotness_score: totalDuration, // Use total duration as hotness score
+        last_viewed: lastViewed,
+        first_viewed: firstViewed
+      };
+
+      console.log('✅ Analytics data processed successfully:', result);
       return result;
     } catch (error) {
       console.error('❌ Exception in getCandidateAnalytics:', error);
+      return null;
+    }
+  }
+
+  // Get the most viewed candidate for a specific user (authenticated or anonymous)
+  public async getUserMostViewedCandidate(userId: string): Promise<any> {
+    try {
+      console.log('🔍 Fetching most viewed candidate for user/device:', userId);
+      
+      const supabase = createClient();
+      console.log('✅ Supabase client created');
+      
+      // First, let's check what device IDs exist in the database
+      const { data: allDeviceIds, error: deviceError } = await supabase
+        .from('candidate_views')
+        .select('user_id')
+        .limit(10);
+      
+      console.log('📱 Available device IDs in database:', allDeviceIds?.map(d => d.user_id));
+      console.log('🔍 Looking for device ID:', userId);
+      
+      // Try to get all views for this user/device
+      // Note: This will work if the user exists in users table, or if we bypass the foreign key constraint
+      console.log('📊 Querying candidate_views table...');
+      const { data: allViews, error: viewsError } = await supabase
+        .from('candidate_views')
+        .select('candidate_id, candidate_name, page_views, view_duration, scroll_percentage, created_at')
+        .eq('user_id', userId);
+
+      console.log('📊 Query result for user-specific data:', { 
+        dataLength: allViews?.length || 0, 
+        error: viewsError,
+        userId: userId,
+        userSpecific: true,
+        sampleData: allViews?.[0] 
+      });
+
+      if (viewsError) {
+        console.error('❌ Error fetching user candidate views:', viewsError);
+        console.error('❌ Error details:', {
+          code: viewsError.code,
+          message: viewsError.message,
+          details: viewsError.details,
+          hint: viewsError.hint
+        });
+        // If it's a foreign key constraint error, the user doesn't exist in users table
+        if (viewsError.code === '23503') {
+          console.log('📭 User not found in users table (foreign key constraint):', userId);
+          return null;
+        }
+        return null;
+      }
+
+      if (!allViews || allViews.length === 0) {
+        console.log('📭 No candidate views found for user:', userId);
+        console.log('❌ No fallback - returning null for user-specific data only');
+        return null;
+      }
+
+      console.log('📊 Processing', allViews.length, 'view records...');
+
+      // Since we're now accumulating durations in single records, we can directly find the highest
+      const mostViewed = allViews.reduce((prev: any, current: any) => {
+        const prevDuration = prev.view_duration || 0;
+        const currentDuration = current.view_duration || 0;
+        console.log('🔄 Comparing candidates:', { 
+          prev: { candidate_id: prev.candidate_id, duration: prevDuration },
+          current: { candidate_id: current.candidate_id, duration: currentDuration }
+        });
+        return currentDuration > prevDuration ? current : prev;
+      });
+
+      console.log('✅ Found most viewed candidate for user:', mostViewed);
+      console.log('🎯 User-specific data only - no fallback used');
+      return mostViewed;
+    } catch (error) {
+      console.error('❌ Exception in getUserMostViewedCandidate:', error);
       return null;
     }
   }
