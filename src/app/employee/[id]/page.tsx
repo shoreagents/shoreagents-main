@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader } from '@/components/ui/loader';
+import { ButtonLoader } from '@/components/ui/loader';
 import { 
   ArrowLeft, 
   Briefcase,
@@ -24,6 +24,7 @@ import {
 import { useFavorites } from '@/lib/favorites-context';
 import { candidateTracker } from '@/lib/candidateTrackingService';
 import { useAuth } from '@/lib/auth-context';
+import { generateUserId } from '@/lib/userEngagementService';
 import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/interview-request-modal';
 
 interface EmployeeProfile {
@@ -117,8 +118,14 @@ export default function EmployeeProfilePage() {
         setEmployee(employeeProfile);
         
         // Start tracking (works with or without user authentication)
+        // For authenticated users, use appUser.user_id; for anonymous users, use the SAME generateUserId() as users.user_id
+        const trackingUserId = appUser?.user_id || 
+          (typeof window !== 'undefined' ? generateUserId() : '') || 
+          '';
+        
+        console.log('🔍 Starting candidate tracking with user ID:', trackingUserId);
         await candidateTracker.startTracking(
-          appUser?.user_id || '', // Use the actual user_id from the users table
+          trackingUserId,
           employeeProfile.id, 
           employeeProfile.name
         );
@@ -135,10 +142,20 @@ export default function EmployeeProfilePage() {
     }
   }, [params.id, appUser?.user_id]);
 
-  // Cleanup tracking when component unmounts
+  // Cleanup tracking when component unmounts or user navigates away
   useEffect(() => {
+    const handleBeforeUnload = () => {
+      candidateTracker.endTracking();
+    };
+
+    // Listen for page unload events
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+
     return () => {
       candidateTracker.endTracking();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
     };
   }, []);
 
@@ -167,9 +184,9 @@ export default function EmployeeProfilePage() {
     const newState = !showAIAnalysis;
     setShowAIAnalysis(newState);
     
-    // Track AI analysis view
+    // AI analysis view is now tracked as part of the overall view duration
     if (newState && employee) {
-      await candidateTracker.recordAIAnalysisView();
+      console.log(`📊 User opened AI analysis for ${employee.name}`);
     }
   };
 
@@ -179,23 +196,16 @@ export default function EmployeeProfilePage() {
     const newFavoriteState = !isFavorite(employee.id);
     toggleFavorite(employee.id);
     
-    // Track favorite action
-    await candidateTracker.recordFavoriteAction(
-      employee.id, 
-      employee.name, 
-      newFavoriteState
-    );
+    // Favorite actions are now tracked as part of the overall view duration
+    console.log(`📊 User ${newFavoriteState ? 'favorited' : 'unfavorited'} ${employee.name}`);
   };
 
   const handleTabClick = async (tabValue: string) => {
     if (!employee) return;
     
-    // Track section clicks
-    if (tabValue === 'skills') {
-      await candidateTracker.recordSectionClick('skills_click');
-    } else if (tabValue === 'overview') {
-      await candidateTracker.recordSectionClick('profile_click');
-    }
+    // Tab switching is now tracked as part of the overall view duration
+    // No need for separate section click tracking
+    console.log(`📊 User switched to ${tabValue} tab`);
   };
 
   const handleAskForInterview = () => {
@@ -205,13 +215,8 @@ export default function EmployeeProfilePage() {
   const handleInterviewSubmit = async (data: InterviewRequestData) => {
     if (!employee) return;
     
-    // Track interview request
-    await candidateTracker.recordInteractionDirect({
-      user_id: appUser?.user_id || '',
-      candidate_id: employee.id,
-      candidate_name: employee.name,
-      interaction_type: 'contact'
-    });
+    // Interview requests are now tracked as part of the overall view duration
+    console.log(`📊 User requested interview for ${employee.name}`);
     
     // Here you would typically send the data to your backend
     console.log('Interview request data:', data);
@@ -224,11 +229,10 @@ export default function EmployeeProfilePage() {
 
   if (loading) {
     return (
-      <Loader 
-        size={80}
-        text="Loading employee profile..."
-        showBackground={true}
-      />
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <ButtonLoader size={80} />
+        <p className="text-lg text-gray-600">Loading employee profile...</p>
+      </div>
     );
   }
 

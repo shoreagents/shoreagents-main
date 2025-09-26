@@ -167,6 +167,7 @@ export default function Home() {
     fetchTopEmployees();
   }, []);
 
+
   const handleViewDetails = (employee: EmployeeCardData) => {
     console.log('View details for:', employee.user.name);
   };
@@ -177,13 +178,13 @@ export default function Home() {
   };
 
   return (
-    <ContentTracker 
-      contentType="page" 
-      contentId="home" 
-      contentTitle="ShoreAgents - Professional Filipino Staff Leasing"
-      pageSection="main"
-    >
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
+      <ContentTracker 
+        contentType="page" 
+        contentId="home" 
+        contentTitle="ShoreAgents - Professional Filipino Staff Leasing"
+        pageSection="main"
+      >
         <SideNav />
                       {/* Hero Section - Full Viewport Height */}
             <section className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -694,7 +695,20 @@ export default function Home() {
                      </FadeInAnimation>
                    </div>
                </section>
-            </div>
+            
+            {/* Modals */}
+            {selectedResume && (
+              <ResumeModal
+                isOpen={isResumeModalOpen}
+                onClose={() => {
+                  setIsResumeModalOpen(false);
+                  setSelectedResume(null);
+                }}
+                resume={selectedResume}
+              />
+            )}
+            
           </ContentTracker>
-        );
-        }
+        </div>
+      );
+    }

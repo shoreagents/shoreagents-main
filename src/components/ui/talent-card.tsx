@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from './button';
 import { Card, CardContent } from './card';
 import { Badge } from './badge';
-import { InlineLoader } from './loader';
+import { ButtonLoader } from './loader';
 import { 
   User, 
   Mail, 
@@ -155,7 +155,10 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
         {/* Hotness Bar */}
         {isLoadingHotness ? (
           <div className="mb-4 flex items-center justify-center">
-            <InlineLoader size={20} text="Loading popularity..." />
+            <div className="flex items-center space-x-2">
+              <ButtonLoader size={20} />
+              <span className="text-sm text-gray-600">Loading popularity...</span>
+            </div>
           </div>
         ) : hotnessScore > 0 && (
           <div className="mb-4">

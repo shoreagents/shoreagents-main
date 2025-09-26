@@ -1,151 +1,252 @@
-"use client"
+"use client";
+import { motion } from "motion/react";
+import React from "react";
 
-import React from 'react'
-import { Spinner } from '@/components/ui/shadcn-io/spinner'
-import { cn } from '@/lib/utils'
-
-interface LoaderProps {
-  size?: number
-  className?: string
-  text?: string
-  showBackground?: boolean
-}
-
-export function Loader({ 
-  size = 64, 
-  className, 
-  text = "Loading...", 
-  showBackground = true 
-}: LoaderProps) {
+export const LoaderOne = () => {
+  const transition = (x: number) => {
+    return {
+      duration: 1,
+      repeat: Infinity,
+      repeatType: "loop" as const,
+      delay: x * 0.2,
+    };
+  };
   return (
-    <div className={cn(
-      "flex flex-col items-center justify-center min-h-screen",
-      showBackground && "relative overflow-hidden",
-      className
-    )}>
-      {/* Animated Background */}
-      {showBackground && (
-        <div className="absolute inset-0 bg-gradient-to-br from-lime-50 via-lime-100 to-lime-200">
-          {/* Animated gradient orbs */}
-          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-lime-300/30 rounded-full animate-pulse blur-xl"></div>
-          <div className="absolute top-3/4 right-1/4 w-24 h-24 bg-lime-400/40 rounded-full animate-pulse blur-lg animation-delay-1000"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-lime-500/20 rounded-full animate-pulse blur-md animation-delay-2000"></div>
-          
-          {/* Floating particles */}
-          <div className="absolute inset-0">
-            {[
-              { left: 20, top: 30, duration: 2.5 },
-              { left: 80, top: 20, duration: 3.0 },
-              { left: 60, top: 70, duration: 2.8 },
-              { left: 30, top: 80, duration: 3.2 },
-              { left: 90, top: 60, duration: 2.7 },
-              { left: 50, top: 40, duration: 3.1 }
-            ].map((particle, i) => (
-              <div
-                key={i}
-                className="absolute w-2 h-2 bg-lime-600/60 rounded-full animate-bounce"
-                style={{
-                  left: `${particle.left}%`,
-                  top: `${particle.top}%`,
-                  animationDelay: `${i * 0.5}s`,
-                  animationDuration: `${particle.duration}s`
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Loader Content */}
-      <div className="relative z-10 flex flex-col items-center space-y-4">
-        {/* Big Infinite Spinner */}
-        <div className="relative">
-          <Spinner 
-            variant="infinite" 
-            size={size}
-            className="text-lime-600"
-          />
-          
-          {/* Glow effect */}
-          <div 
-            className="absolute inset-0 rounded-full blur-md opacity-30"
-            style={{
-              background: 'radial-gradient(circle, rgba(132, 204, 22, 0.3) 0%, transparent 70%)',
-              transform: 'scale(1.5)'
-            }}
-          />
-        </div>
-
-        {/* Loading Text */}
-        {text && (
-          <div className="text-center">
-            <p className="text-lg font-medium text-lime-700 animate-pulse">
-              {text}
-            </p>
-            <div className="flex items-center justify-center space-x-1 mt-2">
-              <div className="w-2 h-2 bg-lime-600 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-lime-600 rounded-full animate-bounce animation-delay-200"></div>
-              <div className="w-2 h-2 bg-lime-600 rounded-full animate-bounce animation-delay-400"></div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// Full screen loader variant
-export function FullScreenLoader({ 
-  size = 80, 
-  text = "Loading...", 
-  className 
-}: Omit<LoaderProps, 'showBackground'>) {
-  return (
-    <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm">
-      <Loader 
-        size={size} 
-        text={text} 
-        showBackground={true}
-        className={className}
+    <div className="flex items-center gap-2">
+      <motion.div
+        initial={{
+          y: 0,
+        }}
+        animate={{
+          y: [0, 10, 0],
+        }}
+        transition={transition(0)}
+        className="h-4 w-4 rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-400 to-neutral-300"
+      />
+      <motion.div
+        initial={{
+          y: 0,
+        }}
+        animate={{
+          y: [0, 10, 0],
+        }}
+        transition={transition(1)}
+        className="h-4 w-4 rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-400 to-neutral-300"
+      />
+      <motion.div
+        initial={{
+          y: 0,
+        }}
+        animate={{
+          y: [0, 10, 0],
+        }}
+        transition={transition(2)}
+        className="h-4 w-4 rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-400 to-neutral-300"
       />
     </div>
-  )
-}
+  );
+};
 
-// Inline loader variant
-export function InlineLoader({ 
-  size = 32, 
-  text, 
-  className 
-}: Omit<LoaderProps, 'showBackground'>) {
+export const LoaderTwo = () => {
+  const transition = (x: number) => {
+    return {
+      duration: 2,
+      repeat: Infinity,
+      repeatType: "loop" as const,
+      delay: x * 0.2,
+    };
+  };
   return (
-    <div className={cn("flex items-center justify-center p-4", className)}>
-      <div className="flex items-center space-x-3">
-        <Spinner 
-          variant="infinite" 
-          size={size}
-          className="text-lime-600"
-        />
-        {text && (
-          <span className="text-lime-700 font-medium">
-            {text}
-          </span>
-        )}
-      </div>
+    <div className="flex items-center">
+      <motion.div
+        transition={transition(0)}
+        initial={{
+          x: 0,
+        }}
+        animate={{
+          x: [0, 20, 0],
+        }}
+        className="h-4 w-4 rounded-full bg-neutral-200 shadow-md dark:bg-neutral-500"
+      />
+      <motion.div
+        initial={{
+          x: 0,
+        }}
+        animate={{
+          x: [0, 20, 0],
+        }}
+        transition={transition(0.4)}
+        className="h-4 w-4 -translate-x-2 rounded-full bg-neutral-200 shadow-md dark:bg-neutral-500"
+      />
+      <motion.div
+        initial={{
+          x: 0,
+        }}
+        animate={{
+          x: [0, 20, 0],
+        }}
+        transition={transition(0.8)}
+        className="h-4 w-4 -translate-x-4 rounded-full bg-neutral-200 shadow-md dark:bg-neutral-500"
+      />
     </div>
-  )
-}
+  );
+};
 
-// Button loader variant
-export function ButtonLoader({ 
-  size = 16, 
-  className 
-}: Omit<LoaderProps, 'text' | 'showBackground'>) {
+export const LoaderThree = () => {
   return (
-    <Spinner 
-      variant="infinite" 
-      size={size}
-      className={cn("text-current", className)}
-    />
-  )
-}
+    <motion.svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-20 w-20 stroke-neutral-500 [--fill-final:var(--color-yellow-300)] [--fill-initial:var(--color-neutral-50)] dark:stroke-neutral-100 dark:[--fill-final:var(--color-yellow-500)] dark:[--fill-initial:var(--color-neutral-800)]"
+    >
+      <motion.path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <motion.path
+        initial={{ pathLength: 0, fill: "var(--fill-initial)" }}
+        animate={{ pathLength: 1, fill: "var(--fill-final)" }}
+        transition={{
+          duration: 2,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "reverse",
+        }}
+        d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"
+      />
+    </motion.svg>
+  );
+};
+
+export const LoaderFour = ({ text = "Loading..." }: { text?: string }) => {
+  return (
+    <div className="relative font-bold text-black [perspective:1000px] dark:text-white">
+      <motion.span
+        animate={{
+          scaleX: [1, 2, 1],
+        }}
+        transition={{
+          duration: 0.05,
+          repeat: Infinity,
+          repeatType: "reverse",
+          repeatDelay: 2,
+          ease: "linear",
+          times: [0, 0.2, 0.5, 0.8, 1],
+        }}
+        className="relative z-20 inline-block"
+      >
+        {text}
+      </motion.span>
+      <motion.span
+        className="absolute inset-0 text-[#00e571]/50 blur-[0.5px] dark:text-[#00e571]"
+        animate={{
+          x: [-2, 4, -3, 1.5, -2],
+          y: [-2, 4, -3, 1.5, -2],
+          opacity: [0.3, 0.9, 0.4, 0.8, 0.3],
+        }}
+        transition={{
+          duration: 0.5,
+          repeat: Infinity,
+          repeatType: "reverse",
+          ease: "linear",
+          times: [0, 0.2, 0.5, 0.8, 1],
+        }}
+      >
+        {text}
+      </motion.span>
+      <motion.span
+        className="absolute inset-0 text-[#8b00ff]/50 dark:text-[#8b00ff]"
+        animate={{
+          x: [0, 1, -1.5, 1.5, -1, 0],
+          y: [0, -1, 1.5, -0.5, 0],
+          opacity: [0.4, 0.8, 0.3, 0.9, 0.4],
+        }}
+        transition={{
+          duration: 0.8,
+          repeat: Infinity,
+          repeatType: "reverse",
+          ease: "linear",
+          times: [0, 0.3, 0.6, 0.8, 1],
+        }}
+      >
+        {text}
+      </motion.span>
+    </div>
+  );
+};
+
+export const LoaderFive = ({ text }: { text: string }) => {
+  return (
+    <div className="font-sans font-bold [--shadow-color:var(--color-neutral-500)] dark:[--shadow-color:var(--color-neutral-100)]">
+      {text.split("").map((char, i) => (
+        <motion.span
+          key={i}
+          className="inline-block"
+          initial={{ scale: 1, opacity: 0.5 }}
+          animate={{
+            scale: [1, 1.1, 1],
+            textShadow: [
+              "0 0 0 var(--shadow-color)",
+              "0 0 1px var(--shadow-color)",
+              "0 0 0 var(--shadow-color)",
+            ],
+            opacity: [0.5, 1, 0.5],
+          }}
+          transition={{
+            duration: 0.5,
+            repeat: Infinity,
+            repeatType: "loop",
+            delay: i * 0.05,
+            ease: "easeInOut",
+            repeatDelay: 2,
+          }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </div>
+  );
+};
+
+// Button loader component
+export const ButtonLoader = ({ 
+  size = 16, 
+  className = "" 
+}: { 
+  size?: number; 
+  className?: string; 
+}) => {
+  return (
+    <div className={`inline-flex items-center ${className}`}>
+      <div 
+        className="animate-spin rounded-full border-2 border-current border-t-transparent"
+        style={{ width: size, height: size }}
+      />
+    </div>
+  );
+};
+
+// Inline loader component
+export const InlineLoader = ({ 
+  size = 16, 
+  text = "Loading...",
+  className = "" 
+}: { 
+  size?: number; 
+  text?: string;
+  className?: string; 
+}) => {
+  return (
+    <div className={`inline-flex items-center gap-2 ${className}`}>
+      <div 
+        className="animate-spin rounded-full border-2 border-current border-t-transparent"
+        style={{ width: size, height: size }}
+      />
+      <span className="text-sm">{text}</span>
+    </div>
+  );
+};

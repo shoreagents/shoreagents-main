@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEngagementTracking } from '@/lib/useEngagementTracking'
+import { useAuth } from '@/lib/auth-context'
 import ChatConsole from '@/components/ui/ai-chat-console'
 import { getEmployeeCardData } from '@/lib/api'
 import { EmployeeCardData } from '@/types/api'
@@ -54,6 +55,7 @@ export function BottomNav() {
   
   // Use the engagement tracking hook only on client side
   const { recordInteraction } = useEngagementTracking()
+  const { appUser } = useAuth()
   
 
   useEffect(() => {
@@ -74,56 +76,111 @@ export function BottomNav() {
     }
   }, [isDrawerOpen, hottestCandidate, isLoadingCandidate])
 
+  // Listen for custom event to close AI drawer
+  useEffect(() => {
+    const handleCloseAIDrawer = () => {
+      setIsDrawerOpen(false)
+    }
+
+    window.addEventListener('closeAIDrawer', handleCloseAIDrawer)
+    
+    return () => {
+      window.removeEventListener('closeAIDrawer', handleCloseAIDrawer)
+    }
+  }, [])
+
   const handleChatWithClaude = () => {
     recordInteraction('chat')
     console.log('Chat button clicked - interaction recorded')
+    setIsDrawerOpen(false) // Close drawer before opening chat
     setIsChatOpen(true)
   }
 
   const handleBrowseTalent = () => {
     recordInteraction('navigation')
     console.log('Browse Talent button clicked - interaction recorded')
+    setIsDrawerOpen(false) // Close drawer before navigation
     router.push('/we-got-talent')
   }
 
   const handleSeePricing = () => {
     recordInteraction('navigation')
     console.log('See Pricing button clicked - interaction recorded')
+    setIsDrawerOpen(false) // Close drawer before navigation
     router.push('/pricing')
   }
 
   const fetchHottestCandidate = async () => {
     try {
       setIsLoadingCandidate(true)
-      const employees = await getEmployeeCardData()
       
-      if (employees.length === 0) {
+      let userId = null
+      
+      // Get user ID - either from authenticated user or device ID for anonymous users
+      if (appUser?.user_id) {
+        userId = appUser.user_id
+        console.log('Using authenticated user ID:', userId)
+      } else {
+        // For anonymous users, get device ID from localStorage
+        if (typeof window !== 'undefined') {
+          userId = localStorage.getItem('content_tracking_device_id')
+          console.log('Using device ID for anonymous user:', userId)
+          
+          // Also check for alternative device ID keys
+          const altDeviceId = localStorage.getItem('device_id') || localStorage.getItem('session_id')
+          console.log('Alternative device IDs found:', { altDeviceId })
+        }
+      }
+
+      // If no user ID or device ID available, show no candidate
+      if (!userId) {
+        console.log('No user ID or device ID available')
         setHottestCandidate(null)
         return
       }
 
-      // Get hotness scores for all candidates
-      const candidatesWithScores = await Promise.all(
-        employees.map(async (employee) => {
-          try {
-            const analytics = await candidateTracker.getCandidateAnalytics(employee.user.id)
-            const hotnessScore = analytics?.hotness_score || 0
-            return { ...employee, hotnessScore }
-          } catch (error) {
-            console.error('Error fetching hotness score for:', employee.user.id, error)
-            return { ...employee, hotnessScore: 0 }
+      // Get the most viewed candidate for this specific user/device
+      const mostViewedData = await candidateTracker.getUserMostViewedCandidate(userId)
+      
+      if (!mostViewedData) {
+        console.log('No most viewed candidate data found - showing fallback candidate')
+        // Show a fallback candidate when no viewing history exists
+        const employees = await getEmployeeCardData()
+        if (employees.length > 0) {
+          // Show the first available candidate as fallback
+          const fallbackCandidate = {
+            ...employees[0],
+            hotnessScore: 0 // No viewing history
           }
-        })
-      )
+          console.log('✅ Setting fallback candidate:', fallbackCandidate.user.name)
+          setHottestCandidate(fallbackCandidate)
+          return
+        } else {
+          setHottestCandidate(null)
+          return
+        }
+      }
 
-      // Find the candidate with the highest hotness score
-      const hottest = candidatesWithScores.reduce((prev, current) => 
-        (current.hotnessScore > prev.hotnessScore) ? current : prev
-      )
+      // Get all employees to find the one that matches the most viewed candidate
+      const employees = await getEmployeeCardData()
+      const targetEmployee = employees.find(emp => emp.user.id === mostViewedData.candidate_id)
+      
+      if (!targetEmployee) {
+        console.log('Target employee not found in employee data')
+        setHottestCandidate(null)
+        return
+      }
 
-      setHottestCandidate(hottest)
+      // Add the view duration as hotness score for display
+      const employeeWithScore = {
+        ...targetEmployee,
+        hotnessScore: mostViewedData.view_duration || 0
+      }
+
+      console.log('✅ Setting hottest candidate:', employeeWithScore.user.name)
+      setHottestCandidate(employeeWithScore)
     } catch (error) {
-      console.error('Error fetching hottest candidate:', error)
+      console.error('Error fetching user most viewed candidate:', error)
       setHottestCandidate(null)
     } finally {
       setIsLoadingCandidate(false)
@@ -133,6 +190,7 @@ export function BottomNav() {
   const handleAskForInterview = () => {
     recordInteraction('interview-request')
     console.log('Ask for interview clicked for hottest candidate')
+    setIsDrawerOpen(false) // Close drawer before opening interview modal
     setIsInterviewModalOpen(true)
   }
 
@@ -140,6 +198,7 @@ export function BottomNav() {
     if (hottestCandidate) {
       recordInteraction('view-profile')
       console.log('View profile clicked for hottest candidate')
+      setIsDrawerOpen(false) // Close drawer before navigation
       router.push(`/employee/${hottestCandidate.user.id}`)
     }
   }
