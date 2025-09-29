@@ -1,6 +1,22 @@
 'use client'
 
 import React from 'react'
+
+// Function to calculate gradual popularity score (0-100)
+const calculateGradualPopularity = (rawScore: number): number => {
+  if (rawScore <= 0) return 0;
+  
+  // Use logarithmic scaling to make it harder to reach 100%
+  // This creates a more gradual progression
+  const maxRawScore = 1000; // Adjust this based on your data range
+  const normalizedScore = Math.min(rawScore / maxRawScore, 1);
+  
+  // Apply logarithmic scaling: log(1 + x) / log(2) gives us 0-1 range
+  const logScore = Math.log(1 + normalizedScore * 9) / Math.log(10); // 9x multiplier for more spread
+  
+  // Convert to percentage and cap at 100
+  return Math.min(logScore * 100, 100);
+}
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ButtonLoader } from '@/components/ui/loader'
@@ -165,13 +181,13 @@ export function CandidateCard({
         <div className="w-full mb-1">
           <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
             <span>Popularity</span>
-            <span>{candidate.hotnessScore || 0}%</span>
+            <span>{Math.min(Math.round(calculateGradualPopularity(candidate.hotnessScore || 0)), 100)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1.5">
             <div 
-              className="h-1.5 rounded-full transition-all duration-300" 
+              className="h-1.5 rounded-full transition-all duration-500 ease-out" 
               style={{ 
-                width: `${Math.min(candidate.hotnessScore || 0, 100)}%`,
+                width: `${Math.min(calculateGradualPopularity(candidate.hotnessScore || 0), 100)}%`,
                 backgroundColor: 'rgb(101, 163, 13)'
               }}
             ></div>

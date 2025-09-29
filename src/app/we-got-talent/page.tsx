@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TalentCard } from '@/components/ui/talent-card';
 import { ResumeModal } from '@/components/ui/resume-modal';
+import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/interview-request-modal';
 import { SideNav } from '@/components/layout/SideNav';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
 import { getEmployeeCardData } from '@/lib/api';
@@ -29,8 +30,28 @@ export default function EmployeesPage() {
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const [selectedResume, setSelectedResume] = useState<ResumeGenerated | null>(null);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<EmployeeCardData | null>(null);
   const { showToast } = useToast();
   const { recordInteraction } = useEngagementTracking();
+
+  const handleInterviewSubmit = async (data: InterviewRequestData) => {
+    try {
+      // Here you would typically send the interview request to your backend
+      console.log('Interview request submitted:', {
+        candidateName: selectedCandidate?.user.name,
+        candidateId: selectedCandidate?.user.id,
+        ...data
+      });
+      
+      showToast('Interview request submitted successfully!', 'success');
+      setIsInterviewModalOpen(false);
+      setSelectedCandidate(null);
+    } catch (error) {
+      console.error('Error submitting interview request:', error);
+      showToast('Failed to submit interview request. Please try again.', 'error');
+    }
+  };
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -233,8 +254,10 @@ export default function EmployeesPage() {
                 data={employee}
                 onAskForInterview={() => {
                   // Handle interview request for this candidate
+                  recordInteraction('interview-request')
                   console.log('Interview requested for:', employee.user.name);
-                  // You can add modal opening logic here if needed
+                  setSelectedCandidate(employee);
+                  setIsInterviewModalOpen(true);
                 }}
               />
             ))}
@@ -251,6 +274,20 @@ export default function EmployeesPage() {
           setSelectedResume(null);
         }}
       />
+
+      {/* Interview Request Modal */}
+      {selectedCandidate && (
+        <InterviewRequestModal
+          isOpen={isInterviewModalOpen}
+          onClose={() => {
+            setIsInterviewModalOpen(false);
+            setSelectedCandidate(null);
+          }}
+          candidateName={selectedCandidate.user.name}
+          candidatePosition={selectedCandidate.user.position || 'Position not specified'}
+          onSubmit={handleInterviewSubmit}
+        />
+      )}
 
     </div>
   );

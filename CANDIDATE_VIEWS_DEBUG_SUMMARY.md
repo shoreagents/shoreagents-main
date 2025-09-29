@@ -104,3 +104,5 @@ After deployment, monitor:
 - Foreign key constraint violations (should be zero)
 
 The fix ensures that anonymous users can successfully track candidate views without foreign key constraint violations! 🎉
+
+

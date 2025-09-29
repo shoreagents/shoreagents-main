@@ -264,68 +264,88 @@ export class CandidateTrackingService {
 
       const supabase = createClient();
       
-      // Check if there's already a record for this user-candidate combination
-      const { data: existingView, error: findError } = await supabase
-        .from('candidate_views')
-        .select('id, view_duration, scroll_percentage')
-        .eq('user_id', data.user_id)
-        .eq('candidate_id', data.candidate_id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (findError && findError.code !== 'PGRST116') {
-        console.error('❌ Error checking for existing view:', findError);
-        return;
-      }
-
-      if (existingView) {
-        // Update existing record instead of creating new one
-        console.log('🔄 Updating existing view record instead of creating duplicate');
-        const { error: updateError } = await supabase
-          .from('candidate_views')
-          .update({
-            candidate_name: data.candidate_name,
-            view_duration: data.view_duration,
-            scroll_percentage: data.scroll_percentage,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingView.id);
-
-        if (updateError) {
-          console.error('❌ Error updating existing view:', updateError);
-        } else {
-          console.log('✅ Existing view record updated successfully');
-        }
-        return;
-      }
-      
-      // Insert new record when no existing record found
-      const { data: result, error } = await supabase
-        .from('candidate_views')
-        .insert({
-          user_id: data.user_id,
-          candidate_id: data.candidate_id,
-          candidate_name: data.candidate_name,
-          view_duration: data.view_duration,
-          scroll_percentage: data.scroll_percentage,
-          page_views: 1
-        })
-        .select('id')
-        .single();
-
-      if (error) {
-        console.error('❌ Error recording candidate interaction:', {
-          error: error,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
+      // Try the new database function first
+      try {
+        const { data: result, error } = await supabase.rpc('record_candidate_view_simple', {
+          p_user_id: data.user_id,
+          p_candidate_id: data.candidate_id,
+          p_candidate_name: data.candidate_name,
+          p_view_duration: data.view_duration,
+          p_scroll_percentage: data.scroll_percentage
         });
-        return;
-      }
 
-      console.log(`✅ Successfully recorded view for candidate: ${data.candidate_name || data.candidate_id}`, result);
+        if (error) {
+          console.warn('⚠️ RPC function failed, falling back to direct table operations:', error);
+          throw error; // This will trigger the fallback
+        }
+
+        console.log(`✅ Successfully recorded view using RPC for candidate: ${data.candidate_name || data.candidate_id}`, result);
+        return;
+      } catch (rpcError) {
+        console.log('🔄 RPC function not available, using fallback method...');
+        
+        // Fallback: Use direct table operations with duplicate prevention
+        const { data: existingView, error: findError } = await supabase
+          .from('candidate_views')
+          .select('id, view_duration, scroll_percentage')
+          .eq('user_id', data.user_id)
+          .eq('candidate_id', data.candidate_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (findError && findError.code !== 'PGRST116') {
+          console.error('❌ Error checking for existing view:', findError);
+          return;
+        }
+
+        if (existingView) {
+          // Update existing record instead of creating new one
+          console.log('🔄 Updating existing view record instead of creating duplicate');
+          const { error: updateError } = await supabase
+            .from('candidate_views')
+            .update({
+              candidate_name: data.candidate_name,
+              view_duration: (existingView.view_duration || 0) + (data.view_duration || 0),
+              scroll_percentage: Math.max(existingView.scroll_percentage || 0, data.scroll_percentage || 0),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingView.id);
+
+          if (updateError) {
+            console.error('❌ Error updating existing view:', updateError);
+          } else {
+            console.log('✅ Existing view record updated successfully');
+          }
+        } else {
+          // Insert new record when no existing record found
+          const { data: result, error } = await supabase
+            .from('candidate_views')
+            .insert({
+              user_id: data.user_id,
+              candidate_id: data.candidate_id,
+              candidate_name: data.candidate_name,
+              view_duration: data.view_duration,
+              scroll_percentage: data.scroll_percentage,
+              page_views: 1
+            })
+            .select('id')
+            .single();
+
+          if (error) {
+            console.error('❌ Error recording candidate interaction:', {
+              error: error,
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+              code: error.code
+            });
+            return;
+          }
+
+          console.log(`✅ Successfully recorded view for candidate: ${data.candidate_name || data.candidate_id}`, result);
+        }
+      }
     } catch (error) {
       console.error('❌ Exception in recordInteractionDirect:', error);
     }
@@ -338,15 +358,14 @@ export class CandidateTrackingService {
     try {
       const supabase = createClient();
       
-      // Update the current view record with scroll percentage
-      const { error } = await supabase
-        .from('candidate_views')
-        .update({
-          scroll_percentage: scrollPercentage,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', this.currentUserId)
-        .eq('candidate_id', this.currentCandidateId);
+      // Use the new database function to update scroll percentage
+      const { error } = await supabase.rpc('record_candidate_view_simple', {
+        p_user_id: this.currentUserId,
+        p_candidate_id: this.currentCandidateId,
+        p_candidate_name: null, // Keep existing name
+        p_view_duration: null, // Keep existing duration
+        p_scroll_percentage: scrollPercentage
+      });
 
       if (error) {
         console.error('❌ Error updating scroll percentage:', error);
@@ -387,48 +406,66 @@ export class CandidateTrackingService {
     try {
       const supabase = createClient();
       
-      console.log(`🔍 Looking for candidate view to update: user=${userId}, candidate=${candidateId}, duration=${duration}`);
+      console.log(`🔍 Updating view duration: user=${userId}, candidate=${candidateId}, duration=${duration}`);
       
-      // Find the most recent view record for this user and candidate
-      const { data: existingViews, error: findError } = await supabase
-        .from('candidate_views')
-        .select('id, view_duration, scroll_percentage, created_at')
-        .eq('user_id', userId)
-        .eq('candidate_id', candidateId)
-        .order('created_at', { ascending: false })
-        .limit(5);
+      // Try the RPC function first
+      try {
+        const { data: result, error } = await supabase.rpc('record_candidate_view_simple', {
+          p_user_id: userId,
+          p_candidate_id: candidateId,
+          p_candidate_name: null, // Keep existing name
+          p_view_duration: duration, // This will be added to existing duration by the function
+          p_scroll_percentage: null // Keep existing scroll percentage
+        });
 
-      if (findError) {
-        console.error('❌ Error finding candidate view to update:', findError);
-        return;
-      }
-
-      console.log(`📊 Found ${existingViews?.length || 0} existing views for this user-candidate combination`);
-
-      if (existingViews && existingViews.length > 0) {
-        // Update the most recent record by ADDING to the existing duration
-        const mostRecentView = existingViews[0];
-        const currentDuration = mostRecentView.view_duration || 0;
-        const newTotalDuration = currentDuration + duration;
-        
-        console.log(`🔄 Adding ${duration} seconds to existing duration ${currentDuration} = ${newTotalDuration} seconds for view ID ${mostRecentView.id}`);
-        
-        const { error: updateError } = await supabase
-          .from('candidate_views')
-          .update({ 
-            view_duration: newTotalDuration,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', mostRecentView.id);
-
-        if (updateError) {
-          console.error('❌ Error updating view duration:', updateError);
-        } else {
-          console.log(`✅ Updated view duration: ${newTotalDuration} seconds (${currentDuration} + ${duration}) for candidate ${candidateId}`);
+        if (error) {
+          console.warn('⚠️ RPC function failed for duration update, using fallback:', error);
+          throw error; // This will trigger the fallback
         }
-      } else {
-        console.log('⚠️ No existing view record found - this should not happen if startTracking() was called first');
-        console.log('⚠️ Skipping duration update to prevent duplicate records');
+
+        console.log(`✅ Updated view duration using RPC for candidate ${candidateId}:`, result);
+        return;
+      } catch (rpcError) {
+        console.log('🔄 RPC function not available for duration update, using fallback method...');
+        
+        // Fallback: Use direct table operations with duration accumulation
+        const { data: existingView, error: findError } = await supabase
+          .from('candidate_views')
+          .select('id, view_duration, scroll_percentage')
+          .eq('user_id', userId)
+          .eq('candidate_id', candidateId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (findError && findError.code !== 'PGRST116') {
+          console.error('❌ Error finding candidate view to update duration:', findError);
+          return;
+        }
+
+        if (existingView) {
+          // Update existing record by ADDING to the existing duration
+          const currentDuration = existingView.view_duration || 0;
+          const newTotalDuration = currentDuration + duration;
+          
+          console.log(`🔄 Adding ${duration} seconds to existing duration ${currentDuration} = ${newTotalDuration} seconds`);
+          
+          const { error: updateError } = await supabase
+            .from('candidate_views')
+            .update({ 
+              view_duration: newTotalDuration,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingView.id);
+
+          if (updateError) {
+            console.error('❌ Error updating view duration:', updateError);
+          } else {
+            console.log(`✅ Updated view duration: ${newTotalDuration} seconds (${currentDuration} + ${duration}) for candidate ${candidateId}`);
+          }
+        } else {
+          console.log('⚠️ No existing view record found for duration update');
+        }
       }
     } catch (error) {
       console.error('❌ Exception in updateViewDuration:', error);
@@ -555,73 +592,117 @@ export class CandidateTrackingService {
   public async getUserMostViewedCandidate(userId: string): Promise<any> {
     try {
       console.log('🔍 Fetching most viewed candidate for user/device:', userId);
+      console.log('🔍 Function called at:', new Date().toISOString());
+      console.log('🔍 User ID type:', typeof userId);
+      console.log('🔍 User ID length:', userId?.length);
+      console.log('🔍 User ID starts with device_:', userId?.startsWith('device_'));
+      console.log('🔍 User ID starts with anon_:', userId?.startsWith('anon_'));
       
       const supabase = createClient();
-      console.log('✅ Supabase client created');
       
-      // First, let's check what device IDs exist in the database
-      const { data: allDeviceIds, error: deviceError } = await supabase
-        .from('candidate_views')
-        .select('user_id')
-        .limit(10);
-      
-      console.log('📱 Available device IDs in database:', allDeviceIds?.map(d => d.user_id));
-      console.log('🔍 Looking for device ID:', userId);
-      
-      // Try to get all views for this user/device
-      // Note: This will work if the user exists in users table, or if we bypass the foreign key constraint
-      console.log('📊 Querying candidate_views table...');
-      const { data: allViews, error: viewsError } = await supabase
-        .from('candidate_views')
-        .select('candidate_id, candidate_name, page_views, view_duration, scroll_percentage, created_at')
-        .eq('user_id', userId);
-
-      console.log('📊 Query result for user-specific data:', { 
-        dataLength: allViews?.length || 0, 
-        error: viewsError,
-        userId: userId,
-        userSpecific: true,
-        sampleData: allViews?.[0] 
-      });
-
-      if (viewsError) {
-        console.error('❌ Error fetching user candidate views:', viewsError);
-        console.error('❌ Error details:', {
-          code: viewsError.code,
-          message: viewsError.message,
-          details: viewsError.details,
-          hint: viewsError.hint
+      // Use the proper database analytics function
+      try {
+        console.log('🔍 Calling get_most_viewed_candidate_smart with params:', { p_user_id: userId, p_days_back: 30 });
+        
+        const { data: analytics, error: analyticsError } = await supabase.rpc('get_most_viewed_candidate_smart', {
+          p_user_id: userId,
+          p_days_back: 30
         });
-        // If it's a foreign key constraint error, the user doesn't exist in users table
-        if (viewsError.code === '23503') {
-          console.log('📭 User not found in users table (foreign key constraint):', userId);
+
+        console.log('🔍 RPC call result:', { data: analytics, error: analyticsError });
+
+        if (analyticsError) {
+          console.warn('⚠️ Analytics function failed, using fallback method:', analyticsError);
+          throw analyticsError; // This will trigger the fallback
+        }
+
+        if (analytics && analytics.length > 0) {
+          const userAnalytics = analytics[0];
+          console.log('✅ Found user analytics:', userAnalytics);
+          
+          if (userAnalytics.candidate_id) {
+            const result = {
+              candidate_id: userAnalytics.candidate_id,
+              candidate_name: userAnalytics.candidate_name,
+              total_views: userAnalytics.total_views,
+              view_duration: userAnalytics.total_duration,
+              avg_view_duration: userAnalytics.avg_duration,
+              last_activity: userAnalytics.last_viewed
+            };
+            console.log('✅ Returning analytics result:', result);
+            return result;
+          }
+        }
+
+        console.log('📭 No most viewed candidate found in analytics');
+        console.log('📭 Analytics data:', analytics);
+        return null;
+      } catch (rpcError) {
+        console.log('🔄 Analytics function not available, using fallback method...');
+        
+        // Fallback: Direct query with proper aggregation
+        console.log('🔄 Using fallback method - direct query to candidate_views table');
+        console.log('🔄 Querying for user_id:', userId);
+        
+        const { data: allViews, error: viewsError } = await supabase
+          .from('candidate_views')
+          .select('candidate_id, candidate_name, page_views, view_duration, scroll_percentage, created_at')
+          .eq('user_id', userId);
+          
+        console.log('🔄 Direct query result:', { data: allViews, error: viewsError });
+
+        if (viewsError) {
+          console.error('❌ Error fetching user candidate views:', viewsError);
           return null;
         }
-        return null;
-      }
 
-      if (!allViews || allViews.length === 0) {
-        console.log('📭 No candidate views found for user:', userId);
-        console.log('❌ No fallback - returning null for user-specific data only');
-        return null;
-      }
+        if (!allViews || allViews.length === 0) {
+          console.log('📭 No candidate views found for user:', userId);
+          console.log('📭 Views error:', viewsError);
+          return null;
+        }
 
-      console.log('📊 Processing', allViews.length, 'view records...');
+        console.log('📊 Processing', allViews.length, 'view records...');
+        console.log('📊 Raw views data:', allViews);
 
-      // Since we're now accumulating durations in single records, we can directly find the highest
-      const mostViewed = allViews.reduce((prev: any, current: any) => {
-        const prevDuration = prev.view_duration || 0;
-        const currentDuration = current.view_duration || 0;
-        console.log('🔄 Comparing candidates:', { 
-          prev: { candidate_id: prev.candidate_id, duration: prevDuration },
-          current: { candidate_id: current.candidate_id, duration: currentDuration }
+        // Group by candidate and calculate totals
+        const candidateStats = allViews.reduce((acc: any, view: any) => {
+          const candidateId = view.candidate_id;
+          if (!acc[candidateId]) {
+            acc[candidateId] = {
+              candidate_id: candidateId,
+              candidate_name: view.candidate_name,
+              total_views: 0,
+              total_duration: 0,
+              max_duration: 0,
+              last_viewed: view.created_at
+            };
+          }
+          
+          acc[candidateId].total_views += view.page_views || 1;
+          acc[candidateId].total_duration += view.view_duration || 0;
+          acc[candidateId].max_duration = Math.max(acc[candidateId].max_duration, view.view_duration || 0);
+          
+          if (new Date(view.created_at) > new Date(acc[candidateId].last_viewed)) {
+            acc[candidateId].last_viewed = view.created_at;
+          }
+          
+          return acc;
+        }, {});
+
+        // Find the most viewed candidate (by total views, then by total duration)
+        const mostViewed = Object.values(candidateStats).reduce((prev: any, current: any) => {
+          if (current.total_views > prev.total_views) {
+            return current;
+          } else if (current.total_views === prev.total_views && current.total_duration > prev.total_duration) {
+            return current;
+          }
+          return prev;
         });
-        return currentDuration > prevDuration ? current : prev;
-      });
 
-      console.log('✅ Found most viewed candidate for user:', mostViewed);
-      console.log('🎯 User-specific data only - no fallback used');
-      return mostViewed;
+        console.log('✅ Found most viewed candidate for user:', mostViewed);
+        return mostViewed;
+      }
     } catch (error) {
       console.error('❌ Exception in getUserMostViewedCandidate:', error);
       return null;

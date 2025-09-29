@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Users, Building, CheckCircle, ArrowRight, ArrowLeft, Loader2, Sparkles, Calculator, Brain, Zap } from 'lucide-react';
+import { X, Users, Building, Briefcase, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Loader2, Sparkles, Calculator, Brain, Zap } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './alert-dialog';
 import { useCurrency } from '@/lib/currencyContext';
 import { Button } from './button';
@@ -1296,142 +1296,171 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               </div>
               
               <div className="space-y-4">
-                {/* Quote Summary */}
+                {/* Candidate Recommendations - Always Show */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="w-4 h-4 text-lime-600" />
+                      Recommended Candidates
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      Top candidates from our talent pool for your requirements
+                    </CardDescription>
+                    <div className="mt-1 flex items-center gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-lime-500 rounded-full"></div>
+                        <span className="text-gray-600">Top Pick</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-gray-600">Highly Recommended</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <span className="text-gray-600">Recommended</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(() => {
+                      // Check if there are any candidates available
+                      const hasCandidates = quoteData.roles.some(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length);
+                      
+                      if (!hasCandidates) {
+                        // Show fallback card when no candidates are available
+                        return (
+                          <div className="text-center py-8">
+                            <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                              <Users className="w-6 h-6 text-lime-600" />
+                            </div>
+                            <h3 className="text-base font-semibold text-gray-900 mb-2">Find Your Perfect Team</h3>
+                            <p className="text-gray-600 mb-3 text-sm">
+                              Our recruitment team can help you find qualified candidates for your specific requirements.
+                            </p>
+                            <Button 
+                              size="sm" 
+                              className="bg-lime-600 hover:bg-lime-700 text-white"
+                            >
+                              Ask Maya
+                            </Button>
+                          </div>
+                        );
+                      }
+                      
+                      // Collect all unique candidates from all roles to prevent duplication
+                      const allCandidates = new Map<string, { candidate: CandidateRecommendation, role: RoleDetail, rank: number }>();
+                      
+                      quoteData.roles
+                        .filter(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length)
+                        .forEach(role => {
+                          const rankedCandidates = rankEmployeesByScore((role.candidateMatch?.recommendedCandidates as CandidateRecommendation[]) || []);
+                          const topCandidates = rankedCandidates.slice(0, 5); // Show top 5 per role
+                          
+                          topCandidates.forEach(rankedCandidate => {
+                            const originalCandidate = (role.candidateMatch?.recommendedCandidates as CandidateRecommendation[])?.find((c: CandidateRecommendation) => c.id === rankedCandidate.id);
+                            if (originalCandidate && !allCandidates.has(originalCandidate.id)) {
+                              allCandidates.set(originalCandidate.id, {
+                                candidate: originalCandidate,
+                                role: role,
+                                rank: rankedCandidate.rank
+                              });
+                            }
+                          });
+                        });
+                      
+                      // Convert to array and sort by rank
+                      const uniqueCandidates = Array.from(allCandidates.values())
+                        .sort((a, b) => a.rank - b.rank)
+                        .slice(0, 12); // Show max 12 unique candidates
+                      
+                      if (uniqueCandidates.length === 0) {
+                        return (
+                          <div className="text-center py-8">
+                            <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                              <Users className="w-6 h-6 text-lime-600" />
+                            </div>
+                            <h3 className="text-base font-semibold text-gray-900 mb-2">Find Your Perfect Team</h3>
+                            <p className="text-gray-600 mb-3 text-sm">
+                              Our recruitment team can help you find qualified candidates for your specific requirements.
+                            </p>
+                            <Button 
+                              size="sm" 
+                              className="bg-lime-600 hover:bg-lime-700 text-white"
+                            >
+                              Ask Maya
+                            </Button>
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {uniqueCandidates.map(({ candidate, role, rank }) => {
+                            const employeeData = convertToEmployeeCardData(candidate, rank);
+                            
+                            return (
+                              <TalentCard
+                                key={`${candidate.id}-${role.id}`} // Unique key to prevent duplication
+                                data={employeeData}
+                                onAskForInterview={() => {
+                                  console.log('Ask for interview clicked for candidate:', candidate.name);
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+
+                {/* User Input Summary with Pricing - Compact */}
                 <Card className="bg-lime-50 border-lime-200">
                   <CardContent className="p-3">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-center">
-                      <div>
-                        <div className="text-2xl font-bold text-lime-600">{formatPriceDisplay(quoteData.totalMonthlyCost)}</div>
-                        <div className="text-sm text-gray-600">per month</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {/* Team Size */}
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <Users className="w-4 h-4 text-lime-600 mr-1" />
+                          <span className="text-xs font-medium text-gray-600">Team Size</span>
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">{quoteData.totalMembers} members</div>
                       </div>
-                      <div>
-                        <div className="text-lg font-semibold text-gray-900">{quoteData.totalMembers}</div>
-                        <div className="text-sm text-gray-600">team members</div>
+                      
+                      {/* Industry */}
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <Building className="w-4 h-4 text-lime-600 mr-1" />
+                          <span className="text-xs font-medium text-gray-600">Industry</span>
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">{industry || 'Not specified'}</div>
+                      </div>
+                      
+                      {/* Roles */}
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <Briefcase className="w-4 h-4 text-lime-600 mr-1" />
+                          <span className="text-xs font-medium text-gray-600">Roles</span>
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">{quoteData.roles.length} positions</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {quoteData.roles.map(role => role.title).join(', ')}
+                        </div>
+                      </div>
+
+                      {/* Total Cost */}
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <DollarSign className="w-4 h-4 text-lime-600 mr-1" />
+                          <span className="text-xs font-medium text-gray-600">Total Cost</span>
+                        </div>
+                        <div className="text-lg font-bold text-lime-600">{formatPriceDisplay(quoteData.totalMonthlyCost)}</div>
+                        <div className="text-xs text-gray-500">per month</div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Candidate Recommendations */}
-                <div className="space-y-3">
-                  {/* BPOC Candidate Recommendations */}
-                {quoteData.roles.some(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length) && (
-                 <Card>
-                   <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Users className="w-4 h-4 text-lime-600" />
-                        Recommended Candidates
-                      </CardTitle>
-                      <CardDescription className="text-sm">
-                        Top candidates from our talent pool for your requirements
-                      </CardDescription>
-                      <div className="mt-1 flex items-center gap-3 text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-lime-500 rounded-full"></div>
-                          <span className="text-gray-600">Top Pick</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                          <span className="text-gray-600">Highly Recommended</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                          <span className="text-gray-600">Recommended</span>
-                        </div>
-                      </div>
-                   </CardHeader>
-                    <CardContent className="space-y-4">
-                      {(() => {
-                        // Collect all unique candidates from all roles to prevent duplication
-                        const allCandidates = new Map<string, { candidate: CandidateRecommendation, role: RoleDetail, rank: number }>();
-                        
-                        quoteData.roles
-                          .filter(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length)
-                          .forEach(role => {
-                            const rankedCandidates = rankEmployeesByScore((role.candidateMatch?.recommendedCandidates as CandidateRecommendation[]) || []);
-                            const topCandidates = rankedCandidates.slice(0, 5); // Show top 5 per role
-                            
-                            topCandidates.forEach(rankedCandidate => {
-                              const originalCandidate = (role.candidateMatch?.recommendedCandidates as CandidateRecommendation[])?.find((c: CandidateRecommendation) => c.id === rankedCandidate.id);
-                              if (originalCandidate && !allCandidates.has(originalCandidate.id)) {
-                                allCandidates.set(originalCandidate.id, {
-                                  candidate: originalCandidate,
-                                  role: role,
-                                  rank: rankedCandidate.rank
-                                });
-                              }
-                            });
-                          });
-                        
-                        // Convert to array and sort by rank
-                        const uniqueCandidates = Array.from(allCandidates.values())
-                          .sort((a, b) => a.rank - b.rank)
-                          .slice(0, 12); // Show max 12 unique candidates
-                        
-                        if (uniqueCandidates.length === 0) {
-                          return (
-                            <div className="text-center py-8 text-gray-500">
-                              <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                              <p>No candidates found for the selected roles.</p>
-                            </div>
-                          );
-                        }
-                        
-                        return (
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {uniqueCandidates.map(({ candidate, role, rank }) => {
-                              const employeeData = convertToEmployeeCardData(candidate, rank);
-                              
-                              return (
-                                <TalentCard
-                                  key={`${candidate.id}-${role.id}`} // Unique key to prevent duplication
-                                  data={employeeData}
-                                  onAskForInterview={() => {
-                                    // Handle interview request for this candidate
-                                    console.log('Interview requested for:', candidate.name);
-                                    // You can add modal opening logic here if needed
-                                  }}
-                                />
-                              );
-                            })}
-                          </div>
-                        );
-                      })()}
-                   </CardContent>
-                 </Card>
-                )}
-
-                {/* Fallback when no BPOC candidates */}
-                {!quoteData.roles.some(role => role.isBPOCIntegrated && role.candidateMatch?.recommendedCandidates.length) && (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Users className="w-4 h-4 text-lime-600" />
-                        Candidate Recommendations
-                      </CardTitle>
-                      <CardDescription className="text-sm">
-                        We're building our talent pool. Contact us to find the perfect candidates for your team.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="text-center py-4">
-                        <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Users className="w-6 h-6 text-lime-600" />
-                        </div>
-                        <h3 className="text-base font-semibold text-gray-900 mb-2">Find Your Perfect Team</h3>
-                        <p className="text-gray-600 mb-3 text-sm">
-                          Our recruitment team can help you find qualified candidates for your specific requirements.
-                        </p>
-                        <Button 
-                          size="sm" 
-                          className="bg-lime-600 hover:bg-lime-700 text-white"
-                        >
-                          Ask Maya
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
 
                 {/* Save Status */}
                 {isAuthenticated && (
@@ -1487,11 +1516,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                     Start Over
                   </Button>
                 </div>
-                </div>
               </div>
             </div>
           )}
-          </div>
         </div>
 
         {/* Navigation */}
@@ -1531,6 +1558,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               </Button>
           </div>
         )}
+      </div>
       </div>
 
       {/* Roles Alert Dialog */}
