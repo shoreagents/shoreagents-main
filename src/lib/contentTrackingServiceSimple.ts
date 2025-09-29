@@ -1,6 +1,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface ContentViewData {
   user_id?: string | null;
@@ -20,7 +21,7 @@ export interface ContentViewData {
 }
 
 class ContentTrackingServiceSimple {
-  private supabase: any = null;
+  private supabase: SupabaseClient | null = null;
   private sessionId: string | null = null;
   private deviceId: string | null = null;
   private startTime: number = 0;

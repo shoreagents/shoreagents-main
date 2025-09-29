@@ -69,7 +69,7 @@ export function BottomNav() {
   useEffect(() => {
     const interval = setInterval(() => {
       console.log('🔄 Auto-refreshing AI recommendations...')
-      fetchHottestCandidate(true) // Force refresh
+      fetchHottestCandidate() // Force refresh
     }, 30000) // 30 seconds
 
     return () => clearInterval(interval)
@@ -78,7 +78,7 @@ export function BottomNav() {
   // Refresh on navigation (pathname change)
   useEffect(() => {
     console.log('🔄 Navigation detected, refreshing AI recommendations...')
-    fetchHottestCandidate(true) // Force refresh on navigation
+    fetchHottestCandidate() // Force refresh on navigation
   }, [pathname])
 
   // Listen for custom event to close AI drawer
@@ -179,15 +179,17 @@ export function BottomNav() {
       
       // If not found by ID, try matching by name
       if (!targetEmployee && mostViewedData.candidate_name) {
+        const candidateName = String(mostViewedData.candidate_name);
         targetEmployee = employees.find(emp => 
-          emp.user.name.toLowerCase().includes(mostViewedData.candidate_name.toLowerCase()) ||
-          mostViewedData.candidate_name.toLowerCase().includes(emp.user.name.toLowerCase())
+          emp.user.name.toLowerCase().includes(candidateName.toLowerCase()) ||
+          candidateName.toLowerCase().includes(emp.user.name.toLowerCase())
         )
       }
       
       // If still not found, try matching by first name or last name
       if (!targetEmployee && mostViewedData.candidate_name) {
-        const nameParts = mostViewedData.candidate_name.split(' ')
+        const candidateName = String(mostViewedData.candidate_name);
+        const nameParts = candidateName.split(' ')
         targetEmployee = employees.find(emp => {
           const empNameParts = emp.user.name.split(' ')
           return nameParts.some(part => 
@@ -211,7 +213,7 @@ export function BottomNav() {
       // Add the view duration as hotness score for display
       const employeeWithScore = {
         ...targetEmployee,
-        hotnessScore: mostViewedData.view_duration || 0
+        hotnessScore: Number(mostViewedData.view_duration) || 0
       }
 
       console.log('✅ Setting hottest candidate:', employeeWithScore.user.name)

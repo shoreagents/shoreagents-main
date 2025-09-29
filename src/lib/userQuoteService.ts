@@ -67,7 +67,7 @@ export class UserQuoteService {
         currency_code: quote.currency_code,
         created_at: quote.created_at,
         roles_count: roles.length,
-        roles_preview: roles.map((role: any) => ({
+        roles_preview: roles.map((role: Record<string, unknown>) => ({
           role_title: role.role_title,
           experience_level: role.experience_level,
           workspace_type: role.workspace_type
