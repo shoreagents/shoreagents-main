@@ -30,6 +30,22 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
   const [hotnessScore, setHotnessScore] = useState<number>(0);
   const [isLoadingHotness, setIsLoadingHotness] = useState(true);
   
+  // Function to calculate gradual popularity score (0-100)
+  const calculateGradualPopularity = (rawScore: number): number => {
+    if (rawScore <= 0) return 0;
+    
+    // Use logarithmic scaling to make it harder to reach 100%
+    // This creates a more gradual progression
+    const maxRawScore = 1000; // Adjust this based on your data range
+    const normalizedScore = Math.min(rawScore / maxRawScore, 1);
+    
+    // Apply logarithmic scaling: log(1 + x) / log(2) gives us 0-1 range
+    const logScore = Math.log(1 + normalizedScore * 9) / Math.log(10); // 9x multiplier for more spread
+    
+    // Convert to percentage and cap at 100
+    return Math.min(logScore * 100, 100);
+  }
+
   // Calculate score based on various factors
   const calculateScore = () => {
     let score = 0;
@@ -88,7 +104,8 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
     return { level: 'COLD', color: 'bg-gray-400', textColor: 'text-gray-600' };
   };
 
-  const hotness = getHotnessLevel(hotnessScore);
+  const gradualScore = calculateGradualPopularity(hotnessScore);
+  const hotness = getHotnessLevel(gradualScore);
   
 
 
@@ -164,12 +181,12 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
           <div className="mb-4">
             <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
               <span>Popularity</span>
-              <span className="font-semibold">{hotnessScore}%</span>
+              <span className="font-semibold">{Math.min(Math.round(calculateGradualPopularity(hotnessScore)), 100)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className={`h-2 rounded-full transition-all duration-500 ${hotness.color}`}
-                style={{ width: `${hotnessScore}%` }}
+                className={`h-2 rounded-full transition-all duration-500 ease-out ${hotness.color}`}
+                style={{ width: `${Math.min(calculateGradualPopularity(hotnessScore), 100)}%` }}
               ></div>
             </div>
           </div>

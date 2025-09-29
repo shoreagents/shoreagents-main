@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { ButtonLoader } from '@/components/ui/loader'
 import { 
   Drawer,
   DrawerContent,
@@ -22,9 +23,10 @@ import {
   Target,
   Mail,
   ArrowRight,
-  ChevronDown
+  ChevronDown,
+  RefreshCw
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useEngagementTracking } from '@/lib/useEngagementTracking'
 import { useAuth } from '@/lib/auth-context'
 import ChatConsole from '@/components/ui/ai-chat-console'
@@ -45,6 +47,7 @@ import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/int
 
 export function BottomNav() {
   const router = useRouter()
+  const pathname = usePathname()
   const [isVisible, setIsVisible] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isDrawerLocked, setIsDrawerLocked] = useState(false)
@@ -52,6 +55,8 @@ export function BottomNav() {
   const [hottestCandidate, setHottestCandidate] = useState<EmployeeCardData | null>(null)
   const [isLoadingCandidate, setIsLoadingCandidate] = useState(false)
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false)
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0)
+  const [refreshCount, setRefreshCount] = useState<number>(0)
   
   // Use the engagement tracking hook only on client side
   const { recordInteraction } = useEngagementTracking()
@@ -75,6 +80,22 @@ export function BottomNav() {
       fetchHottestCandidate()
     }
   }, [isDrawerOpen, hottestCandidate, isLoadingCandidate])
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing AI recommendations...')
+      fetchHottestCandidate(true) // Force refresh
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Refresh on navigation (pathname change)
+  useEffect(() => {
+    console.log('🔄 Navigation detected, refreshing AI recommendations...')
+    fetchHottestCandidate(true) // Force refresh on navigation
+  }, [pathname])
 
   // Listen for custom event to close AI drawer
   useEffect(() => {
@@ -110,8 +131,19 @@ export function BottomNav() {
     router.push('/pricing')
   }
 
-  const fetchHottestCandidate = async () => {
+  const fetchHottestCandidate = async (forceRefresh = false) => {
     try {
+      // Check if we need to refresh based on time
+      const now = Date.now()
+      const timeSinceLastRefresh = now - lastRefreshTime
+      const shouldRefresh = forceRefresh || timeSinceLastRefresh > 30000 // 30 seconds
+      
+      if (!shouldRefresh && hottestCandidate && !forceRefresh) {
+        console.log('🔄 Skipping refresh - too soon or candidate already loaded')
+        return
+      }
+      
+      console.log('🔄 Fetching hottest candidate...', { forceRefresh, timeSinceLastRefresh })
       setIsLoadingCandidate(true)
       
       let userId = null
@@ -142,8 +174,12 @@ export function BottomNav() {
       // Get the most viewed candidate for this specific user/device
       const mostViewedData = await candidateTracker.getUserMostViewedCandidate(userId)
       
+      console.log('🔍 Most viewed data received:', mostViewedData)
+      console.log('🔍 User ID being queried:', userId)
+      
       if (!mostViewedData) {
-        console.log('No most viewed candidate data found - showing fallback candidate')
+        console.log('❌ No most viewed candidate data found - showing fallback candidate')
+        console.log('❌ This means getUserMostViewedCandidate returned null/undefined')
         // Show a fallback candidate when no viewing history exists
         const employees = await getEmployeeCardData()
         if (employees.length > 0) {
@@ -163,10 +199,37 @@ export function BottomNav() {
 
       // Get all employees to find the one that matches the most viewed candidate
       const employees = await getEmployeeCardData()
-      const targetEmployee = employees.find(emp => emp.user.id === mostViewedData.candidate_id)
+      
+      // Try multiple matching strategies
+      let targetEmployee = employees.find(emp => emp.user.id === mostViewedData.candidate_id)
+      
+      // If not found by ID, try matching by name
+      if (!targetEmployee && mostViewedData.candidate_name) {
+        targetEmployee = employees.find(emp => 
+          emp.user.name.toLowerCase().includes(mostViewedData.candidate_name.toLowerCase()) ||
+          mostViewedData.candidate_name.toLowerCase().includes(emp.user.name.toLowerCase())
+        )
+      }
+      
+      // If still not found, try matching by first name or last name
+      if (!targetEmployee && mostViewedData.candidate_name) {
+        const nameParts = mostViewedData.candidate_name.split(' ')
+        targetEmployee = employees.find(emp => {
+          const empNameParts = emp.user.name.split(' ')
+          return nameParts.some(part => 
+            empNameParts.some(empPart => 
+              part.toLowerCase() === empPart.toLowerCase()
+            )
+          )
+        })
+      }
       
       if (!targetEmployee) {
-        console.log('Target employee not found in employee data')
+        console.log('Target employee not found in employee data', {
+          candidate_id: mostViewedData.candidate_id,
+          candidate_name: mostViewedData.candidate_name,
+          availableEmployees: employees.map(emp => ({ id: emp.user.id, name: emp.user.name }))
+        })
         setHottestCandidate(null)
         return
       }
@@ -179,6 +242,8 @@ export function BottomNav() {
 
       console.log('✅ Setting hottest candidate:', employeeWithScore.user.name)
       setHottestCandidate(employeeWithScore)
+      setLastRefreshTime(Date.now()) // Update last refresh time
+      setRefreshCount(prev => prev + 1) // Increment refresh count
     } catch (error) {
       console.error('Error fetching user most viewed candidate:', error)
       setHottestCandidate(null)
@@ -282,8 +347,29 @@ export function BottomNav() {
             scrollbarGutter: 'stable'
           } as React.CSSProperties}
         >
-          <DrawerHeader className="border-b border-lime-200 px-6 py-2 relative" style={{ backgroundColor: 'rgb(101, 163, 13)' }}>
+        <DrawerHeader className="border-b border-lime-200 px-6 py-2 relative" style={{ backgroundColor: 'rgb(101, 163, 13)' }}>
+          <div className="flex items-center justify-between">
             <DrawerTitle className="text-lime-50 ">AI Recommendations</DrawerTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchHottestCandidate(true)}
+              disabled={isLoadingCandidate}
+              className="text-lime-50 hover:bg-lime-600 hover:text-white"
+            >
+              {isLoadingCandidate ? (
+                <ButtonLoader size={16} />
+              ) : (
+                <RefreshCw className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+          {lastRefreshTime > 0 && (
+            <div className="text-xs text-lime-200 mt-1">
+              Last updated: {new Date(lastRefreshTime).toLocaleTimeString()} 
+              {refreshCount > 1 && ` (${refreshCount} refreshes)`}
+            </div>
+          )}
             <Button
               variant="ghost"
               size="sm"
