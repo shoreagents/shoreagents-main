@@ -17,9 +17,11 @@ import {
   Building,
   DollarSign,
   Smile,
-  Clock
+  Clock,
+  Heart
 } from 'lucide-react';
 import { ApplicationsModal } from './applications-modal';
+import { useFavorites } from '@/lib/favorites-context';
 
 interface EmployeeCardProps {
   data: EmployeeCardData;
@@ -30,6 +32,7 @@ interface EmployeeCardProps {
 export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCardProps) {
   const [showApplications, setShowApplications] = useState(false);
   const [isApplicationsModalOpen, setIsApplicationsModalOpen] = useState(false);
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const hasApplications = data.applications && data.applications.length > 0;
   const hasAppliedJobs = data.appliedJobs && data.appliedJobs.length > 0;
@@ -78,9 +81,27 @@ export function EmployeeCard({ data, onViewDetails, onViewResume }: EmployeeCard
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-lime-700 transition-colors duration-200">
-                {data.user.name}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-lime-700 transition-colors duration-200">
+                  {data.user.name}
+                </h3>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(data.user.id);
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                  title={isFavorite(data.user.id) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Heart 
+                    className={`w-4 h-4 ${
+                      isFavorite(data.user.id) 
+                        ? 'text-red-500 fill-current' 
+                        : 'text-gray-400 hover:text-red-500'
+                    }`} 
+                  />
+                </button>
+              </div>
               <p className="text-sm text-gray-600 truncate">
                 {hasWorkStatus && data.workStatus ? data.workStatus.currentPosition : (data.user.position || 'Position not specified')}
               </p>

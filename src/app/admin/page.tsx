@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader } from '@/components/ui/loader'
+// import { Loader } from '@/components/ui/loader' // Removed - will be recreated later
 import {
   Table,
   TableBody,
@@ -344,16 +344,7 @@ export default function AdminDashboard() {
   }
 
 
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <Loader 
-        size={80}
-        text="Checking authentication..."
-        showBackground={true}
-      />
-    )
-  }
+  // Removed loading state - show content immediately
 
   // Redirect to home if not admin
   if (!isAdmin) {

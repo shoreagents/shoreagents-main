@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ButtonLoader } from '@/components/ui/loader'
+// import { ButtonLoader } from '@/components/ui/loader' // Removed - will be recreated later
 import { 
   Drawer,
   DrawerContent,
@@ -11,20 +11,7 @@ import {
   DrawerTrigger
 } from '@/components/ui/drawer'
 import { 
-  Users, 
-  TrendingUp, 
-  BookOpen, 
-  MessageCircle, 
-  Lock,
-  Unlock,
-  FileText,
-  DollarSign,
-  Star,
-  Target,
-  Mail,
-  ArrowRight,
-  ChevronDown,
-  RefreshCw
+  ChevronDown
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEngagementTracking } from '@/lib/useEngagementTracking'
@@ -50,13 +37,10 @@ export function BottomNav() {
   const pathname = usePathname()
   const [isVisible, setIsVisible] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const [isDrawerLocked, setIsDrawerLocked] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [hottestCandidate, setHottestCandidate] = useState<EmployeeCardData | null>(null)
   const [isLoadingCandidate, setIsLoadingCandidate] = useState(false)
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false)
-  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0)
-  const [refreshCount, setRefreshCount] = useState<number>(0)
   
   // Use the engagement tracking hook only on client side
   const { recordInteraction } = useEngagementTracking()
@@ -131,19 +115,9 @@ export function BottomNav() {
     router.push('/pricing')
   }
 
-  const fetchHottestCandidate = async (forceRefresh = false) => {
+  const fetchHottestCandidate = async () => {
     try {
-      // Check if we need to refresh based on time
-      const now = Date.now()
-      const timeSinceLastRefresh = now - lastRefreshTime
-      const shouldRefresh = forceRefresh || timeSinceLastRefresh > 30000 // 30 seconds
-      
-      if (!shouldRefresh && hottestCandidate && !forceRefresh) {
-        console.log('🔄 Skipping refresh - too soon or candidate already loaded')
-        return
-      }
-      
-      console.log('🔄 Fetching hottest candidate...', { forceRefresh, timeSinceLastRefresh })
+      console.log('🔄 Fetching hottest candidate...')
       setIsLoadingCandidate(true)
       
       let userId = null
@@ -242,8 +216,6 @@ export function BottomNav() {
 
       console.log('✅ Setting hottest candidate:', employeeWithScore.user.name)
       setHottestCandidate(employeeWithScore)
-      setLastRefreshTime(Date.now()) // Update last refresh time
-      setRefreshCount(prev => prev + 1) // Increment refresh count
     } catch (error) {
       console.error('Error fetching user most viewed candidate:', error)
       setHottestCandidate(null)
@@ -288,23 +260,7 @@ export function BottomNav() {
     }
   }
 
-  const handleLockToggle = () => {
-    if (!isDrawerLocked) {
-      // When locking, open the drawer and keep it open
-      setIsDrawerLocked(true)
-      setIsDrawerOpen(true)
-    } else {
-      // When unlocking, close the drawer and restore normal behavior
-      setIsDrawerLocked(false)
-      setIsDrawerOpen(false)
-    }
-  }
-
   const handleDrawerOpenChange = (open: boolean) => {
-    // If drawer is locked, prevent it from closing
-    if (isDrawerLocked && !open) {
-      return
-    }
     setIsDrawerOpen(open)
   }
 
@@ -316,7 +272,7 @@ export function BottomNav() {
     >
       {/* Clean Bottom Navigation Bar - Entirely Clickable */}
       <Drawer open={isDrawerOpen} onOpenChange={handleDrawerOpenChange}>
-        {!isDrawerLocked && !isDrawerOpen && (
+        {!isDrawerOpen && (
           <div className="max-w-6xl mx-auto">
             {/* Arrow Down Indicator - Floating Above */}
             <div className="flex justify-center mb-2">
@@ -337,9 +293,7 @@ export function BottomNav() {
         )}
         
         <DrawerContent 
-          className={`max-h-[60vh] shadow-lg border-t-2 border-lime-200 max-w-6xl mx-auto ${
-            isDrawerLocked ? 'fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[100]' : ''
-          }`}
+          className="max-h-[60vh] shadow-lg border-t-2 border-lime-200 max-w-6xl mx-auto"
           style={{
             backgroundColor: 'rgb(101, 163, 13)',
             // Force scrollbar to always be visible to prevent content shift
@@ -347,42 +301,9 @@ export function BottomNav() {
             scrollbarGutter: 'stable'
           } as React.CSSProperties}
         >
-        <DrawerHeader className="border-b border-lime-200 px-6 py-2 relative" style={{ backgroundColor: 'rgb(101, 163, 13)' }}>
-          <div className="flex items-center justify-between">
-            <DrawerTitle className="text-lime-50 ">AI Recommendations</DrawerTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => fetchHottestCandidate(true)}
-              disabled={isLoadingCandidate}
-              className="text-lime-50 hover:bg-lime-600 hover:text-white"
-            >
-              {isLoadingCandidate ? (
-                <ButtonLoader size={16} />
-              ) : (
-                <RefreshCw className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
-          {lastRefreshTime > 0 && (
-            <div className="text-xs text-lime-200 mt-1">
-              Last updated: {new Date(lastRefreshTime).toLocaleTimeString()} 
-              {refreshCount > 1 && ` (${refreshCount} refreshes)`}
-            </div>
-          )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLockToggle}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-lime-50 hover:bg-lime-600"
-            >
-              {isDrawerLocked ? (
-                <Lock className="w-4 h-4" />
-              ) : (
-                <Unlock className="w-4 h-4" />
-              )}
-            </Button>
-          </DrawerHeader>
+        <DrawerHeader className="border-b border-lime-200 px-6 py-2" style={{ backgroundColor: 'rgb(101, 163, 13)' }}>
+          <DrawerTitle className="text-lime-50">AI Recommendations</DrawerTitle>
+        </DrawerHeader>
           
           {/* AI-Powered Sections - 4x2 Grid Layout */}
           <div className="px-6 py-6 bg-gradient-to-br from-lime-50 via-lime-100 to-lime-200 drawer-content-scrollable relative overflow-hidden">

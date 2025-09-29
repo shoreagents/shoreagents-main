@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, Search, Building2, Sparkles } from 'lucide-react';
 import { Input } from './input';
 import { Label } from './label';
-import { ButtonLoader } from './loader';
+// import { ButtonLoader } from './loader'; // Removed - will be recreated later
 
 interface AISuggestion {
   name: string;
@@ -295,7 +295,7 @@ export function AIIndustryAutocomplete({
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             {isLoading ? (
-              <ButtonLoader size={16} />
+              <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-4 h-4" />
             ) : (
               <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             )}
@@ -316,7 +316,7 @@ export function AIIndustryAutocomplete({
             <div className="max-h-60 overflow-y-auto" ref={listRef}>
               {isLoading ? (
                 <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                  <ButtonLoader size={20} />
+                  <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-5 h-5" />
                   <span className="ml-2">AI is finding the best suggestions...</span>
                 </div>
               ) : error ? (

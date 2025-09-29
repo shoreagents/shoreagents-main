@@ -23,7 +23,7 @@ export function BPOCEmployeeDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-lg">Loading employee data...</div>
+        <div className="text-lg"></div>
       </div>
     )
   }

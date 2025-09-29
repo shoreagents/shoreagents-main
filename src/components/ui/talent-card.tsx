@@ -6,17 +6,19 @@ import Image from 'next/image';
 import { Button } from './button';
 import { Card, CardContent } from './card';
 import { Badge } from './badge';
-import { ButtonLoader } from './loader';
+// import { ButtonLoader } from './loader'; // Removed - will be recreated later
 import { 
   User, 
   Mail, 
   Eye,
   Trophy,
   Calendar,
-  Flame
+  Flame,
+  Heart
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { candidateTracker } from '@/lib/candidateTrackingService';
+import { useFavorites } from '@/lib/favorites-context';
 
 interface TalentCardProps {
   data: EmployeeCardData;
@@ -29,6 +31,7 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
   const hasResume = data.resume;
   const [hotnessScore, setHotnessScore] = useState<number>(0);
   const [isLoadingHotness, setIsLoadingHotness] = useState(true);
+  const { toggleFavorite, isFavorite } = useFavorites();
   
   // Function to calculate gradual popularity score (0-100)
   const calculateGradualPopularity = (rawScore: number): number => {
@@ -144,9 +147,27 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
           
           {/* Name and Position */}
           <div className="text-center">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">
-              {data.user.name}
-            </h3>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <h3 className="text-lg font-bold text-gray-900">
+                {data.user.name}
+              </h3>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(data.user.id);
+                }}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                title={isFavorite(data.user.id) ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Heart 
+                  className={`w-4 h-4 ${
+                    isFavorite(data.user.id) 
+                      ? 'text-red-500 fill-current' 
+                      : 'text-gray-400 hover:text-red-500'
+                  }`} 
+                />
+              </button>
+            </div>
             <p className="text-sm text-gray-600">
               {(() => {
                 const position = hasWorkStatus && data.workStatus ? data.workStatus.currentPosition : (data.user.position || 'Position not specified');
@@ -173,8 +194,8 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
         {isLoadingHotness ? (
           <div className="mb-4 flex items-center justify-center">
             <div className="flex items-center space-x-2">
-              <ButtonLoader size={20} />
-              <span className="text-sm text-gray-600">Loading popularity...</span>
+              <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-5 h-5" />
+              <span className="text-sm text-gray-600"></span>
             </div>
           </div>
         ) : hotnessScore > 0 && (

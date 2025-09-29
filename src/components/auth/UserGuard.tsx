@@ -13,7 +13,7 @@ interface UserGuardProps {
 export function UserGuard({ 
   children, 
   requireVerification = false,
-  fallback = <div>Loading...</div> 
+  fallback = <div></div> 
 }: UserGuardProps) {
   const { user, loading, isAuthenticated, isVerified } = useUserAuth()
   const router = useRouter()

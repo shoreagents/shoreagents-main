@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/lib/toast-context';
 import { useEngagementTracking } from '@/lib/useEngagementTracking';
 import { useFavorites } from '@/lib/favorites-context';
-import { ButtonLoader } from '@/components/ui/loader';
+// import { ButtonLoader } from '@/components/ui/loader'; // Removed - will be recreated later
 import {
   Search,
   Users,
@@ -151,14 +151,7 @@ export default function EmployeesPage() {
 
 
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <ButtonLoader size={80} />
-        <p className="text-lg text-gray-600">Loading employee data...</p>
-      </div>
-    );
-  }
+  // Removed loading state - show content immediately
 
   if (error) {
     return (

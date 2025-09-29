@@ -13,7 +13,7 @@ interface AdminGuardProps {
 export function AdminGuard({ 
   children, 
   requiredPermission,
-  fallback = <div>Loading...</div> 
+  fallback = <div></div> 
 }: AdminGuardProps) {
   const { admin, loading, isAuthenticated, isVerified, hasPermission } = useAdminAuth()
   const router = useRouter()
