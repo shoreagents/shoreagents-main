@@ -112,7 +112,7 @@ export function useContentTracking({
     );
   }, [contentType, finalContentId, finalContentTitle, pageSection, user?.id]);
 
-  const updateView = useCallback(async (data: any) => {
+  const updateView = useCallback(async (data: Record<string, unknown>) => {
     return contentTracker.updateContentView({
       content_type: contentType,
       content_id: finalContentId,

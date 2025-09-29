@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { cn } from "@repo/shadcn-ui/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface BoxesProps {
   className?: string;

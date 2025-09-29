@@ -508,7 +508,7 @@ export class CandidateTrackingService {
   }
 
   // Get candidate analytics (using the database function)
-  public async getCandidateAnalytics(candidateId: string): Promise<any> {
+  public async getCandidateAnalytics(candidateId: string): Promise<Record<string, unknown> | null> {
     try {
       console.log('🔍 Fetching analytics for candidate:', candidateId);
       
@@ -589,7 +589,7 @@ export class CandidateTrackingService {
   }
 
   // Get the most viewed candidate for a specific user (authenticated or anonymous)
-  public async getUserMostViewedCandidate(userId: string): Promise<any> {
+  public async getUserMostViewedCandidate(userId: string): Promise<Record<string, unknown> | null> {
     try {
       console.log('🔍 Fetching most viewed candidate for user/device:', userId);
       console.log('🔍 Function called at:', new Date().toISOString());
@@ -666,8 +666,8 @@ export class CandidateTrackingService {
         console.log('📊 Raw views data:', allViews);
 
         // Group by candidate and calculate totals
-        const candidateStats = allViews.reduce((acc: any, view: any) => {
-          const candidateId = view.candidate_id;
+        const candidateStats = allViews.reduce((acc: Record<string, Record<string, unknown>>, view: Record<string, unknown>) => {
+          const candidateId = String(view.candidate_id);
           if (!acc[candidateId]) {
             acc[candidateId] = {
               candidate_id: candidateId,
@@ -679,9 +679,9 @@ export class CandidateTrackingService {
             };
           }
           
-          acc[candidateId].total_views += view.page_views || 1;
-          acc[candidateId].total_duration += view.view_duration || 0;
-          acc[candidateId].max_duration = Math.max(acc[candidateId].max_duration, view.view_duration || 0);
+          acc[candidateId].total_views += Number(view.page_views) || 1;
+          acc[candidateId].total_duration += Number(view.view_duration) || 0;
+          acc[candidateId].max_duration = Math.max(acc[candidateId].max_duration, Number(view.view_duration) || 0);
           
           if (new Date(view.created_at) > new Date(acc[candidateId].last_viewed)) {
             acc[candidateId].last_viewed = view.created_at;
@@ -691,7 +691,7 @@ export class CandidateTrackingService {
         }, {});
 
         // Find the most viewed candidate (by total views, then by total duration)
-        const mostViewed = Object.values(candidateStats).reduce((prev: any, current: any) => {
+        const mostViewed = Object.values(candidateStats).reduce((prev: Record<string, unknown>, current: Record<string, unknown>) => {
           if (current.total_views > prev.total_views) {
             return current;
           } else if (current.total_views === prev.total_views && current.total_duration > prev.total_duration) {
@@ -710,7 +710,7 @@ export class CandidateTrackingService {
   }
 
   // Get user's viewing history
-  public async getUserViewingHistory(userId: string, daysBack: number = 30): Promise<any> {
+  public async getUserViewingHistory(userId: string, daysBack: number = 30): Promise<Record<string, unknown>[] | null> {
     try {
       const supabase = createClient();
       const { data, error } = await supabase
