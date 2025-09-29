@@ -1,22 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Custom animation delays for loader */
-.animation-delay-200 {
-  animation-delay: 0.2s;
-}
-
-.animation-delay-400 {
-  animation-delay: 0.4s;
-}
-
-.animation-delay-1000 {
-  animation-delay: 1s;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
+/* Removed loader animation delays */
 
 @custom-variant dark (&:is(.dark *));
 

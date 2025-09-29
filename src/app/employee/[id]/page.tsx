@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ButtonLoader } from '@/components/ui/loader';
+// import { ButtonLoader } from '@/components/ui/loader'; // Removed - will be recreated later
 import { 
   ArrowLeft, 
   Briefcase,
@@ -227,14 +227,7 @@ export default function EmployeeProfilePage() {
   };
 
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <ButtonLoader size={80} />
-        <p className="text-lg text-gray-600">Loading employee profile...</p>
-      </div>
-    );
-  }
+  // Removed loading state - show content immediately
 
   if (!employee) {
     return (

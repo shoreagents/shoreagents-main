@@ -120,7 +120,6 @@ export function UserManagement() {
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="w-6 h-6 border-2 border-lime-600 border-t-transparent rounded-full animate-spin mr-2" />
-            Loading user data...
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-8 text-gray-500">

@@ -19,7 +19,7 @@ const calculateGradualPopularity = (rawScore: number): number => {
 }
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ButtonLoader } from '@/components/ui/loader'
+// import { ButtonLoader } from '@/components/ui/loader' // Removed - will be recreated later
 import { 
   User, 
   MessageCircle, 
@@ -34,11 +34,13 @@ import {
   TrendingUp,
   Users,
   MessageSquare,
-  ChevronRight
+  ChevronRight,
+  Heart
 } from 'lucide-react'
 import { EmployeeCardData } from '@/types/api'
 import { UserQuoteService, UserQuoteSummary } from '@/lib/userQuoteService'
 import { useAuth } from '@/lib/auth-context'
+import { useFavorites } from '@/lib/favorites-context'
 
 interface BaseCardProps {
   number: number
@@ -103,6 +105,7 @@ export function CandidateCard({
   onViewProfile, 
   className = '' 
 }: CandidateCardProps) {
+  const { toggleFavorite, isFavorite } = useFavorites();
   if (isLoading) {
     return (
       <div className={`bg-white border-2 rounded-lg overflow-hidden flex flex-col h-40 ${className}`} style={{ borderColor: 'rgb(101, 163, 13)' }}>
@@ -117,8 +120,8 @@ export function CandidateCard({
         {/* Content */}
         <div className="flex-1 flex flex-col items-center justify-center p-3">
           <div className="flex items-center space-x-2">
-            <ButtonLoader size={20} />
-            <span className="text-sm text-gray-600">Loading candidate...</span>
+            <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-5 h-5" />
+            <span className="text-sm text-gray-600"></span>
           </div>
         </div>
       </div>
@@ -168,8 +171,26 @@ export function CandidateCard({
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-gray-800 truncate" title={candidate.user.name}>
-              {candidate.user.name}
+            <div className="flex items-center gap-1">
+              <div className="text-xs font-semibold text-gray-800 truncate" title={candidate.user.name}>
+                {candidate.user.name}
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(candidate.user.id);
+                }}
+                className="p-0.5 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                title={isFavorite(candidate.user.id) ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Heart 
+                  className={`w-3 h-3 ${
+                    isFavorite(candidate.user.id) 
+                      ? 'text-red-500 fill-current' 
+                      : 'text-gray-400 hover:text-red-500'
+                  }`} 
+                />
+              </button>
             </div>
             <div className="text-xs text-gray-600 truncate" title={candidate.user.position || 'No position'}>
               {candidate.user.position || 'No position'}
@@ -378,8 +399,8 @@ export const PricingCard = ({ onClick }: PricingCardProps) => {
         {/* Loading Content */}
         <div className="flex-1 flex items-center justify-center p-3">
           <div className="flex items-center space-x-2">
-            <ButtonLoader size={24} />
-            <span className="text-sm text-gray-600">Loading quote...</span>
+            <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-6 h-6" />
+            <span className="text-sm text-gray-600"></span>
           </div>
         </div>
       </div>

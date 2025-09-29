@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, ChevronDown, ChevronUp, ExternalLink, Sparkles, MoreVertical, Pin, PinOff } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ButtonLoader } from './loader';
+// import { ButtonLoader } from './loader'; // Removed - will be recreated later
 
 interface Message {
   id: string;
@@ -433,7 +433,7 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
                     <div className="bg-gray-50 rounded-2xl px-4 py-3 border border-gray-100 shadow-sm">
                       <div className="flex items-center justify-center">
                         <div className="flex items-center space-x-2">
-                          <ButtonLoader size={24} />
+                          <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-6 h-6" />
                           <span className="text-sm text-gray-600">Maya is thinking...</span>
                         </div>
                       </div>
