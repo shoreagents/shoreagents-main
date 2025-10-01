@@ -2,29 +2,29 @@
 
 import Image from "next/image";
 import { SideNav } from "@/components/layout/SideNav";
-import { Carousel } from "@/components/ui/carousel";
-import { useEffect, useState } from "react";
+// import { Carousel } from "@/components/ui/carousel"; // Unused
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useCurrency } from "@/lib/currencyContext";
-import { EmployeeCard } from "@/components/ui/employee-card";
+// import { EmployeeCard } from "@/components/ui/employee-card"; // Unused
 import { ResumeModal } from "@/components/ui/resume-modal";
 import { EmployeeCardData, ResumeGenerated } from "@/types/api";
 import { getEmployeeCardData } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ImagesSlider } from "@/components/ui/images-slider";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { AnimatedTestimonials } from "@/components/ui/shadcn-io/animated-testimonials";
-import { FadeInAnimation, StaggeredFadeIn } from "@/components/ui/fade-in-animation";
+import { FadeInAnimation } from "@/components/ui/fade-in-animation";
 import { Shield, Users, CheckCircle, Building2, Monitor, FileText, UserCheck, BarChart3, Headphones, GraduationCap, ClipboardList, Target, Settings, MessageSquare, TrendingUp } from "lucide-react";
 import { ContentTracker } from "@/components/ContentTracker";
 // import { useEngagementTracking } from "@/lib/useEngagementTracking"; // Removed - using GlobalEngagementTracker
 
 export default function Home() {
-  const [isShoreAgentsWay, setIsShoreAgentsWay] = useState(true);
-  const { convertPrice, formatPrice } = useCurrency();
+  // const [isShoreAgentsWay, setIsShoreAgentsWay] = useState(true); // Unused
+  // const { convertPrice, formatPrice } = useCurrency(); // Unused
   // const { recordInteraction } = useEngagementTracking(); // Removed - using GlobalEngagementTracker
   
   // State for top employees
@@ -150,32 +150,32 @@ export default function Home() {
 
 
   // Fetch top employees
-  useEffect(() => {
-    const fetchTopEmployees = async () => {
-      try {
-        const data = await getEmployeeCardData();
-        // Get top 3 employees (you can modify this logic based on your criteria)
-        const top3 = data.slice(0, 3);
-        setTopEmployees(top3);
-      } catch (error) {
-        console.error('Error fetching top employees:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTopEmployees();
+  const fetchTopEmployees = useCallback(async () => {
+    try {
+      const data = await getEmployeeCardData();
+      // Get top 3 employees (you can modify this logic based on your criteria)
+      const top3 = data.slice(0, 3);
+      setTopEmployees(top3);
+    } catch (error) {
+      console.error('Error fetching top employees:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchTopEmployees();
+  }, [fetchTopEmployees]);
 
-  const handleViewDetails = (employee: EmployeeCardData) => {
+
+  const handleViewDetails = useCallback((employee: EmployeeCardData) => {
     console.log('View details for:', employee.user.name);
-  };
+  }, []);
 
-  const handleViewResume = (resume: ResumeGenerated) => {
+  const handleViewResume = useCallback((resume: ResumeGenerated) => {
     setSelectedResume(resume);
     setIsResumeModalOpen(true);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">

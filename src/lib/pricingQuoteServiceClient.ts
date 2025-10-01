@@ -7,6 +7,14 @@ export interface PricingQuoteData {
   industry: string
   total_monthly_cost: number
   currency_code?: string
+  candidate_recommendations?: Array<{
+    id: string
+    name: string
+    position: string
+    avatar?: string
+    score: number
+    isFavorite?: boolean
+  }>
   roles: Array<{
     role_title: string
     role_description?: string
@@ -28,6 +36,14 @@ export interface SavedPricingQuote {
   industry: string
   total_monthly_cost: number
   currency_code: string
+  candidate_recommendations?: Array<{
+    id: string
+    name: string
+    position: string
+    avatar?: string
+    score: number
+    isFavorite?: boolean
+  }>
   created_at: string
   updated_at: string
   roles: Array<{
@@ -70,7 +86,8 @@ export class PricingQuoteServiceClient {
           member_count: quoteData.member_count,
           industry: quoteData.industry,
           total_monthly_cost: quoteData.total_monthly_cost,
-          currency_code: quoteData.currency_code || 'PHP'
+          currency_code: quoteData.currency_code || 'PHP',
+          candidate_recommendations: quoteData.candidate_recommendations || []
         })
         .select()
         .single()

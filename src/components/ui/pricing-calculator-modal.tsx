@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Users, Building, Briefcase, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Loader2, Sparkles, Calculator, Brain, Zap } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { X, Users, Building, Briefcase, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Loader2, Calculator, Brain, Sparkles, Zap } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './alert-dialog';
 import { useCurrency } from '@/lib/currencyContext';
 import { Button } from './button';
@@ -12,18 +12,21 @@ import { Progress } from './progress';
 import { AIIndustryAutocomplete } from './ai-industry-autocomplete';
 import { AIRoleAutocomplete } from './ai-role-autocomplete';
 import { AIDescriptionGenerator } from './ai-description-generator';
-import { RoleCardCollapsed } from './role-card-collapsed';
+// import { RoleCardCollapsed } from './role-card-collapsed'; // Unused import
 import { getCandidateRecommendations, CandidateRecommendation } from '@/lib/bpocPricingService';
 import { TalentCard } from './talent-card';
 import { EmployeeCardData } from '@/types/api';
 import { rankEmployeesByScore } from '@/lib/employeeRankingService';
-import { getFixedSetupCost, getFixedWorkspaceCost, convertSalaryToCurrency, formatCurrency } from '@/lib/fixedPricingService';
+import { getFixedWorkspaceCost, convertSalaryToCurrency, formatCurrency } from '@/lib/fixedPricingService';
 import { getFallbackSalary } from '@/lib/salaryLookupService';
 import { PricingQuoteServiceClient, PricingQuoteData } from '@/lib/pricingQuoteServiceClient';
 import { useUserAuth } from '@/lib/user-auth-context'
 import { generateUserId, savePageVisit } from '@/lib/userEngagementService';
 import { useFavorites } from '@/lib/favorites-context';
 import { LoginModal } from './login-modal';
+import { InterviewRequestModal, InterviewRequestData } from './interview-request-modal';
+import { useToast } from '@/lib/toast-context';
+import { useEngagementTracking } from '@/lib/useEngagementTracking';
 
 interface RoleDetail {
   id: string;
@@ -76,14 +79,18 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const [isSaving, setIsSaving] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'right' | 'left'>('right');
   const [fadingOutRole, setFadingOutRole] = useState<string | null>(null);
-  const [fadeInNextRole, setFadeInNextRole] = useState<string | null>(null);
+  // const [fadeInNextRole, setFadeInNextRole] = useState<string | null>(null); // Unused
   const [expandingRole, setExpandingRole] = useState<string | null>(null);
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
   const [showRolesAlert, setShowRolesAlert] = useState(false);
   const [editingRoles, setEditingRoles] = useState<Set<string>>(new Set());
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  // const [showLoginModal, setShowLoginModal] = useState(false); // Unused
+  
+  // Interview request modal state
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<EmployeeCardData | null>(null);
   
   // Step 1: Member count
   const [memberCount, setMemberCount] = useState<number | null>(null);
@@ -102,16 +109,18 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // Currency context integration
   const { 
-    selectedCurrency, 
-    convertPrice, 
-    formatPrice 
+    selectedCurrency
   } = useCurrency();
 
   // User auth context
   const { user, isAuthenticated } = useUserAuth();
 
-  // Favorites context
-  const { isFavorite, toggleFavorite } = useFavorites();
+  // Favorites context - unused in this component
+  // const { isFavorite, toggleFavorite } = useFavorites();
+  
+  // Toast and engagement tracking
+  const { showToast } = useToast();
+  const { recordInteraction } = useEngagementTracking();
 
   // Convert BPOC candidate to EmployeeCardData format
   const convertToEmployeeCardData = (candidate: {
@@ -184,13 +193,31 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   // Get base salary range for level based on industry
   // Removed getBaseSalary - using internet salary data directly
 
-  // Get workspace cost per person using fixed pricing structure
-  const getWorkspaceCostPerPerson = (workspace: 'wfh' | 'hybrid' | 'office') => {
+  // Get workspace cost per person using fixed pricing structure - memoized
+  const getWorkspaceCostPerPerson = useCallback((workspace: 'wfh' | 'hybrid' | 'office') => {
     return getFixedWorkspaceCost(workspace, selectedCurrency.code);
+  }, [selectedCurrency.code]);
+
+  // Handle interview request submission
+  const handleInterviewSubmit = async (data: InterviewRequestData) => {
+    try {
+      console.log('Interview request submitted:', {
+        candidateName: selectedCandidate?.user.name,
+        candidateId: selectedCandidate?.user.id,
+        ...data
+      });
+      
+      showToast('Interview request submitted successfully!', 'success');
+      setIsInterviewModalOpen(false);
+      setSelectedCandidate(null);
+    } catch (error) {
+      console.error('Error submitting interview request:', error);
+      showToast('Failed to submit interview request. Please try again.', 'error');
+    }
   };
 
   // Save quote to database
-  const saveQuoteToDatabase = async (quoteData: QuoteData) => {
+  const saveQuoteToDatabase = useCallback(async (quoteData: QuoteData) => {
     // Allow saving for both authenticated and anonymous users
 
     setIsSaving(true);
@@ -216,6 +243,37 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         await savePageVisit('/pricing', undefined, 0)
       }
       
+      // Extract candidate recommendations from all roles
+      const candidateRecommendations: Array<{
+        id: string
+        name: string
+        position: string
+        avatar?: string
+        score: number
+        isFavorite?: boolean
+      }> = [];
+
+      quoteData.roles.forEach(role => {
+        if (role.candidateMatch?.recommendedCandidates) {
+          const rankedCandidates = rankEmployeesByScore((role.candidateMatch.recommendedCandidates as CandidateRecommendation[]) || []);
+          const topCandidates = rankedCandidates.slice(0, 3); // Get top 3 per role
+          
+          topCandidates.forEach(rankedCandidate => {
+            const originalCandidate = (role.candidateMatch?.recommendedCandidates as CandidateRecommendation[])?.find((c: CandidateRecommendation) => c.id === rankedCandidate.id);
+            if (originalCandidate && !candidateRecommendations.find(c => c.id === originalCandidate.id)) {
+              candidateRecommendations.push({
+                id: originalCandidate.id,
+                name: originalCandidate.name,
+                position: originalCandidate.position,
+                avatar: undefined, // Avatar not available in CandidateRecommendation interface
+                score: rankedCandidate.overallScore,
+                isFavorite: false // Default to false, can be updated later
+              });
+            }
+          });
+        }
+      });
+
       const pricingQuoteData: PricingQuoteData = {
         user_id: userId, // Use device fingerprint, not Supabase Auth UUID
         session_id: `session_${Date.now()}`, // Generate a session ID
@@ -223,6 +281,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         industry: quoteData.industry,
         total_monthly_cost: quoteData.totalMonthlyCost,
         currency_code: selectedCurrency.code,
+        candidate_recommendations: candidateRecommendations,
         roles: quoteData.breakdown.map((item, index) => {
           const role = quoteData.roles[index];
           return {
@@ -258,10 +317,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [user, selectedCurrency.code]);
 
   // AI Processing simulation
-    const processQuote = async () => {
+    const processQuote = useCallback(async () => {
       setIsProcessing(true);
       
       // Add a minimum delay to show the loading animation
@@ -301,6 +360,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
           // Use internet salary lookup service for realistic salaries
           const expectedSalary = getFallbackSalary(role.title, role.level);
           console.log(`📊 Using realistic internet salary for ${role.title} (${role.level}): ₱${expectedSalary.toLocaleString()}`);
+          console.log(`💰 Currency context: ${selectedCurrency.code}, rate: ${selectedCurrency.rate}`);
           const levelMultiplier = getMultiplier(role.level);
         
         // Formula: Salary = expected_salary × level multiplier + setup cost
@@ -417,9 +477,8 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
     setQuoteData(finalQuoteData);
 
-    // Save quote to database for both authenticated and anonymous users
-    console.log('💾 Saving quote to database...');
-    await saveQuoteToDatabase(finalQuoteData);
+    // Note: Quote will be saved manually when user clicks "Save Quote" button in step 5
+    console.log('📋 Quote processed successfully. Ready for user review and manual save.');
     
     } catch (error) {
       console.error('Error processing quote:', error);
@@ -430,7 +489,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     
     setIsProcessing(false);
       // Step 4 is already set, no need to change it
-  };
+  }, [roles, industry, memberCount, selectedCurrency.code, sameRoles]);
 
   useEffect(() => {
     if (isOpen) {
@@ -446,8 +505,20 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     };
   }, [isOpen]);
 
+  // Auto-close modal when quote is saved successfully
+  useEffect(() => {
+    if (saveSuccess) {
+      // Add a small delay to show the success message before closing
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000); // 2 seconds delay to show success message
+
+      return () => clearTimeout(timer);
+    }
+  }, [saveSuccess, onClose]);
+
   // Reset form only when explicitly starting over or when modal is first opened
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setCurrentStep(1);
     setMemberCount(null);
     setIndustry('');
@@ -460,8 +531,8 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     setSaveError(null);
     setSaveSuccess(false);
     setIsSaving(false);
-    setShowLoginModal(false);
-  };
+    // setShowLoginModal(false); // Unused variable
+  }, []);
 
   // Only reset form when modal is first opened (not when reopening)
   useEffect(() => {
@@ -469,7 +540,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       // Only reset if form is completely empty (first time opening)
       resetForm();
     }
-  }, [isOpen, currentStep, memberCount, industry]);
+  }, [isOpen, currentStep, memberCount, industry, resetForm]);
 
   // This useEffect is now handled by the main role creation logic below
   // Keeping this for reference but it's no longer needed
@@ -543,32 +614,32 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     }]);
   };
 
-  const removeRole = (id: string) => {
+  const removeRole = useCallback((id: string) => {
     if (roles.length > 1) {
       setRoles(roles.filter(role => role.id !== id));
     }
-  };
+  }, [roles.length]);
 
-  const updateRole = (id: string, field: keyof RoleDetail, value: string | number | boolean) => {
-    setRoles(roles.map(role => 
+  const updateRole = useCallback((id: string, field: keyof RoleDetail, value: string | number | boolean) => {
+    setRoles(prevRoles => prevRoles.map(role => 
       role.id === id ? { ...role, [field]: value } : role
     ));
-  };
+  }, []);
 
   // Function to select all roles for a specific workspace type
-  const selectAllWorkspace = (workspaceType: 'wfh' | 'hybrid' | 'office') => {
-    setRoles(roles.map(role => ({
+  const selectAllWorkspace = useCallback((workspaceType: 'wfh' | 'hybrid' | 'office') => {
+    setRoles(prevRoles => prevRoles.map(role => ({
       ...role,
       workspace: workspaceType
     })));
-  };
+  }, []);
 
-  // Function to check if all roles have the same workspace type
-  const isAllRolesSameWorkspace = (workspaceType: 'wfh' | 'hybrid' | 'office') => {
+  // Function to check if all roles have the same workspace type - memoized
+  const isAllRolesSameWorkspace = useCallback((workspaceType: 'wfh' | 'hybrid' | 'office') => {
     return roles.length > 0 && roles.every(role => role.workspace === workspaceType);
-  };
+  }, [roles]);
 
-  const handleRoleEditingChange = (roleId: string, isEditing: boolean) => {
+  const handleRoleEditingChange = useCallback((roleId: string, isEditing: boolean) => {
     setEditingRoles(prev => {
       const newSet = new Set(prev);
       if (isEditing) {
@@ -578,9 +649,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleRoleSave = (id: string) => {
+  const handleRoleSave = useCallback((id: string) => {
     // Start fade-out animation
     setFadingOutRole(id);
     
@@ -591,7 +662,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       
       // If sameRoles is true, update all roles with the same details but keep individual workspace
       if (sameRoles) {
-        setRoles(roles.map(role => ({
+        setRoles(prevRoles => prevRoles.map(role => ({
           ...role,
             title: currentRole.title,
           description: currentRole.description || '',
@@ -624,9 +695,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
         setActiveRoleId(null); // Clear active role when all are completed
       }
     }, 400); // Match animation duration
-  };
+  }, [roles, sameRoles, updateRole]);
 
-  const handleRoleEdit = (id: string) => {
+  const handleRoleEdit = useCallback((id: string) => {
     // Set this role as the active role to edit
     setActiveRoleId(id);
     
@@ -637,27 +708,27 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     setTimeout(() => {
       if (sameRoles) {
         // For same roles, mark all roles as not completed so they all show the same form
-        setRoles(roles.map(role => ({ ...role, isCompleted: false })));
+        setRoles(prevRoles => prevRoles.map(role => ({ ...role, isCompleted: false })));
       } else {
         // For different roles, only mark the clicked role as not completed
     updateRole(id, 'isCompleted', false);
       }
       setExpandingRole(null);
     }, 300); // Match animation duration
-  };
+  }, [sameRoles, updateRole]);
 
-  const handleRoleDelete = (id: string) => {
+  const handleRoleDelete = useCallback((id: string) => {
     if (roles.length > 1) {
-      setRoles(roles.filter(role => role.id !== id));
+      setRoles(prevRoles => prevRoles.filter(role => role.id !== id));
     }
-  };
+  }, []);
 
-  const formatPriceDisplay = (amount: number) => {
+  const formatPriceDisplay = useCallback((amount: number) => {
     return formatCurrency(amount, selectedCurrency.code);
-  };
+  }, [selectedCurrency.code]);
 
   // Handle save quotation action
-  const handleSaveQuotation = () => {
+  const handleSaveQuotation = useCallback(() => {
     if (isAuthenticated) {
       // If user is already authenticated, save the quote directly
       if (quoteData) {
@@ -665,20 +736,20 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       }
     } else {
       // If user is not authenticated, show login modal
-      setShowLoginModal(true);
+      // setShowLoginModal(true); // Unused variable
     }
-  };
+  }, [isAuthenticated, quoteData, saveQuoteToDatabase]);
 
   // Handle successful login/signup
-  const handleAuthSuccess = () => {
-    setShowLoginModal(false);
+  const handleAuthSuccess = useCallback(() => {
+    // setShowLoginModal(false); // Unused variable
     // After successful authentication, save the quote
     if (quoteData) {
       saveQuoteToDatabase(quoteData);
     }
-  };
+  }, [quoteData, saveQuoteToDatabase]);
 
-  const canProceed = () => {
+  const canProceed = useMemo(() => {
     switch (currentStep) {
       case 1: return memberCount !== null;
       case 2: 
@@ -688,9 +759,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       case 3: return roles.every(role => role.workspace !== undefined);
       default: return false;
     }
-  };
+  }, [currentStep, memberCount, industry, roles, sameRoles]);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (currentStep === 1) {
       // If only 1 member, skip the roles alert and go directly to step 2
       if (memberCount === 1) {
@@ -713,21 +784,21 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       setSlideDirection('right');
       setCurrentStep(currentStep + 1);
     }
-  };
+  }, [currentStep, memberCount, processQuote]);
 
-  const handleRolesAlertResponse = (allRolesSame: boolean) => {
+  const handleRolesAlertResponse = useCallback((allRolesSame: boolean) => {
     setSameRoles(allRolesSame);
     setShowRolesAlert(false);
     setSlideDirection('right');
     setCurrentStep(currentStep + 1);
-  };
+  }, [currentStep]);
 
-  const prevStep = () => {
+  const prevStep = useCallback(() => {
     if (currentStep > 1) {
       setSlideDirection('left');
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep]);
 
   if (!isOpen) return null;
 
@@ -769,7 +840,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               {currentStep === 2 && 'Industry & Roles'}
               {currentStep === 3 && 'Workplace Setup'}
               {currentStep === 4 && 'Quote Summary'}
-              {currentStep === 5 && 'Final Quote'}
+              {currentStep === 5 && 'Final Quote Review'}
             </span>
           </div>
           <button
@@ -932,8 +1003,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                        return (
                           <Card key={role.id} className={`p-3 border border-gray-200 ${
                             fadingOutRole === role.id ? 'role-form-fade-out' : ''
-                          } ${
-                            fadeInNextRole === role.id ? 'role-form-fade-in' : ''
                           } ${
                             expandingRole === role.id ? 'role-form-expand' : ''
                           }`}>
@@ -1292,7 +1361,8 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
             <div className="max-w-6xl mx-auto transition-all duration-500 ease-in-out">
               <div className="text-center mb-4">
                 <CheckCircle className="w-10 h-10 text-lime-600 mx-auto mb-2" />
-                <p className="text-gray-600 text-sm">Personalized recommendations for your team</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Review Your Quote</h3>
+                <p className="text-gray-600 text-sm">Review your personalized team recommendations and pricing</p>
               </div>
               
               <div className="space-y-4">
@@ -1403,7 +1473,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                                 key={`${candidate.id}-${role.id}`} // Unique key to prevent duplication
                                 data={employeeData}
                                 onAskForInterview={() => {
-                                  console.log('Ask for interview clicked for candidate:', candidate.name);
+                                  recordInteraction('interview-request');
+                                  console.log('Interview requested for:', candidate.name);
+                                  setSelectedCandidate(employeeData);
+                                  setIsInterviewModalOpen(true);
                                 }}
                               />
                             );
@@ -1463,55 +1536,82 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
 
                 {/* Save Status */}
-                {isAuthenticated && (
-                  <div className="mb-3">
-                    {isSaving && (
-                      <div className="flex items-center justify-center space-x-2 text-lime-600">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="text-sm">Saving quote to your account...</span>
-                      </div>
-                    )}
-                    {saveSuccess && (
-                      <div className="flex items-center justify-center space-x-2 text-green-600">
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="text-sm">Quote saved successfully!</span>
-                      </div>
-                    )}
-                    {saveError && (
-                      <div className="flex items-center justify-center space-x-2 text-red-600">
-                        <X className="w-4 h-4" />
-                        <span className="text-sm">Failed to save quote: {saveError}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="mb-3">
+                  {!saveSuccess && !isSaving && (
+                    <div className="flex items-center justify-center space-x-2 text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-sm font-medium">Ready to save - Click "Save Quote" below to save to your account</span>
+                    </div>
+                  )}
+                  {isSaving && (
+                    <div className="flex items-center justify-center space-x-2 text-lime-600">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Saving quote to your account...</span>
+                    </div>
+                  )}
+                  {saveSuccess && (
+                    <div className="flex items-center justify-center space-x-2 text-green-600">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-sm">Quote saved successfully!</span>
+                    </div>
+                  )}
+                  {saveError && (
+                    <div className="flex items-center justify-center space-x-2 text-red-600">
+                      <X className="w-4 h-4" />
+                      <span className="text-sm">Failed to save quote: {saveError}</span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <LoginModal onSuccess={handleAuthSuccess}>
+                  {isAuthenticated ? (
                     <Button 
-                      size="sm" 
-                      className="bg-lime-600 hover:bg-lime-700 text-white px-6"
+                      size="lg" 
+                      className="bg-lime-600 hover:bg-lime-700 text-white px-8 py-3 text-base font-semibold"
                       onClick={handleSaveQuotation}
+                      disabled={isSaving}
                     >
-                      Save Quotation
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Save Quote
+                        </>
+                      )}
                     </Button>
-                  </LoginModal>
-                  {isAuthenticated && !saveSuccess && !isSaving && (
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => quoteData && saveQuoteToDatabase(quoteData)}
-                      className="border-lime-300 text-lime-700 hover:bg-lime-50"
-                    >
-                      Save Quote
-                    </Button>
+                  ) : (
+                    <LoginModal onSuccess={handleAuthSuccess}>
+                      <Button 
+                        size="lg" 
+                        className="bg-lime-600 hover:bg-lime-700 text-white px-8 py-3 text-base font-semibold"
+                        onClick={handleSaveQuotation}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Save Quote
+                          </>
+                        )}
+                      </Button>
+                    </LoginModal>
                   )}
                   <Button 
                     variant="outline" 
-                    size="sm"
+                    size="lg"
                     onClick={resetForm}
-                    className="border-lime-300 text-lime-700 hover:bg-lime-50"
+                    className="border-lime-300 text-lime-700 hover:bg-lime-50 px-8 py-3"
+                    disabled={isSaving}
                   >
                     Start Over
                   </Button>
@@ -1540,7 +1640,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
             
               <Button
                 onClick={nextStep}
-                disabled={!canProceed() || isProcessing}
+                disabled={!canProceed || isProcessing}
               size="sm"
                 className="flex items-center space-x-2 bg-lime-600 hover:bg-lime-700"
               >
@@ -1580,6 +1680,21 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Interview Request Modal */}
+      {selectedCandidate && (
+        <InterviewRequestModal
+          isOpen={isInterviewModalOpen}
+          onClose={() => {
+            setIsInterviewModalOpen(false);
+            setSelectedCandidate(null);
+          }}
+          candidateName={selectedCandidate.user.name}
+          candidatePosition={selectedCandidate.user.position || 'Position not specified'}
+          candidateId={selectedCandidate.user.id}
+          onSubmit={handleInterviewSubmit}
+        />
+      )}
     </div>
   );
 }

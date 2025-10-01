@@ -14,9 +14,85 @@ export interface UserQuoteSummary {
     experience_level: string;
     workspace_type: string;
   }>;
+  candidate_recommendations?: Array<{
+    id: string;
+    name: string;
+    position: string;
+    avatar?: string;
+    score: number;
+    isFavorite?: boolean;
+  }>;
 }
 
 export class UserQuoteService {
+  /**
+   * Get all quotes for a user, ordered by most recent first
+   */
+  static async getAllQuotes(userId: string): Promise<{ success: boolean; data?: UserQuoteSummary[]; error?: string }> {
+    try {
+      const supabase = createClient();
+
+      console.log('🔍 Fetching all quotes for user:', userId);
+
+      // Get all quotes with roles, ordered by most recent first
+      const { data: quotes, error: quotesError } = await supabase
+        .from('pricing_quotes')
+        .select(`
+          id,
+          member_count,
+          industry,
+          total_monthly_cost,
+          currency_code,
+          created_at,
+          candidate_recommendations,
+          roles:pricing_quote_roles(
+            role_title,
+            experience_level,
+            workspace_type
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (quotesError) {
+        console.error('❌ Error fetching user quotes:', quotesError);
+        return { success: false, error: quotesError.message };
+      }
+
+      if (!quotes || quotes.length === 0) {
+        console.log('📭 No quotes found for user:', userId);
+        return { success: true, data: [] };
+      }
+
+      // Transform the data
+      const quoteSummaries: UserQuoteSummary[] = quotes.map(quote => {
+        const roles = quote.roles || [];
+        return {
+          id: quote.id,
+          member_count: quote.member_count,
+          industry: quote.industry,
+          total_monthly_cost: quote.total_monthly_cost,
+          currency_code: quote.currency_code,
+          created_at: quote.created_at,
+          roles_count: roles.length,
+          roles_preview: roles.map((role: Record<string, unknown>) => ({
+            role_title: String(role.role_title),
+            experience_level: String(role.experience_level),
+            workspace_type: String(role.workspace_type)
+          })),
+          candidate_recommendations: quote.candidate_recommendations || []
+        };
+      });
+
+      console.log('✅ All quotes fetched:', quoteSummaries.length);
+      return { success: true, data: quoteSummaries };
+
+    } catch (error) {
+      console.error('❌ Unexpected error in getAllQuotes:', error);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  }
+
   /**
    * Get the most recent quote for a user
    */
@@ -68,9 +144,9 @@ export class UserQuoteService {
         created_at: quote.created_at,
         roles_count: roles.length,
         roles_preview: roles.map((role: Record<string, unknown>) => ({
-          role_title: role.role_title,
-          experience_level: role.experience_level,
-          workspace_type: role.workspace_type
+          role_title: String(role.role_title),
+          experience_level: String(role.experience_level),
+          workspace_type: String(role.workspace_type)
         }))
       };
 

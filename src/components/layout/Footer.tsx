@@ -21,8 +21,8 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
   const pathname = usePathname()
   
-  // Hide footer on employee profile pages
-  if (pathname?.startsWith('/employee/')) {
+  // Hide footer on employee profile pages and user dashboard
+  if (pathname?.startsWith('/employee/') || pathname?.startsWith('/user-dashboard')) {
     return null
   }
 

@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { GlobalEngagementTracker } from "@/components/layout/GlobalEngagementTracker";
 import { GlobalPricingModal } from "@/components/GlobalPricingModal";
+import { AnonymousUserButton } from "@/components/ui/anonymous-user-button";
 import { CurrencyProvider } from "@/lib/currencyContext";
 import { ToastProvider } from "@/lib/toast-context";
 import { AuthProvider } from "@/lib/auth-context";
@@ -63,6 +64,7 @@ export default function RootLayout({
                     <Footer />
                     <BottomNav />
                     <GlobalPricingModal />
+                    <AnonymousUserButton />
                   </FavoritesProvider>
                 </AdminAuthProvider>
               </UserAuthProvider>
