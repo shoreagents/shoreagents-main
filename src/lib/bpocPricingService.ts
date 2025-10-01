@@ -130,7 +130,11 @@ function calculateMatchScore(candidatePosition: string, targetRole: string): num
     'admin': ['administrative assistant', 'office manager', 'executive assistant', 'admin assistant', 'administrative coordinator', 'office coordinator', 'personal assistant'],
     'accounting': ['bookkeeper', 'accountant', 'financial analyst', 'finance', 'accounting assistant', 'financial controller', 'auditor', 'tax specialist'],
     'hr': ['human resources', 'recruiter', 'talent acquisition', 'hr specialist', 'hr coordinator', 'people operations', 'talent manager'],
-    'project': ['project manager', 'project coordinator', 'scrum master', 'project lead', 'program manager', 'product manager', 'delivery manager']
+    'project': ['project manager', 'project coordinator', 'scrum master', 'project lead', 'program manager', 'product manager', 'delivery manager'],
+    'nurse': ['registered nurse', 'rn', 'nursing', 'healthcare', 'medical', 'patient care', 'clinical', 'nurse practitioner', 'lpn', 'licensed practical nurse', 'cna', 'certified nursing assistant', 'healthcare worker', 'medical assistant', 'healthcare assistant'],
+    'healthcare': ['nurse', 'registered nurse', 'rn', 'nursing', 'medical', 'patient care', 'clinical', 'nurse practitioner', 'lpn', 'licensed practical nurse', 'cna', 'certified nursing assistant', 'healthcare worker', 'medical assistant', 'healthcare assistant', 'doctor', 'physician', 'therapist', 'pharmacist', 'healthcare professional'],
+    'medical': ['nurse', 'registered nurse', 'rn', 'nursing', 'healthcare', 'patient care', 'clinical', 'nurse practitioner', 'lpn', 'licensed practical nurse', 'cna', 'certified nursing assistant', 'healthcare worker', 'medical assistant', 'healthcare assistant', 'doctor', 'physician', 'therapist', 'pharmacist', 'healthcare professional', 'medical professional'],
+    'care': ['nurse', 'registered nurse', 'rn', 'nursing', 'healthcare', 'medical', 'patient care', 'clinical', 'nurse practitioner', 'lpn', 'licensed practical nurse', 'cna', 'certified nursing assistant', 'healthcare worker', 'medical assistant', 'healthcare assistant', 'caregiver', 'care worker', 'patient care specialist']
   }
   
   // Check for role category matches - more strict matching

@@ -84,7 +84,7 @@
 
 body {
   font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
-  background-color: #365314; /* Match footer lime-800 color (All rights reserved section) */
+  background-color: #ffffff; /* White background */
 }
 
 .font-roboto {
@@ -95,7 +95,7 @@ body {
 /* Smooth scrolling for all elements */
 html {
   scroll-behavior: smooth;
-  background-color: #365314; /* Match footer lime-800 color (All rights reserved section) */
+  background-color: #ffffff; /* White background */
 }
 
 /* Bottom Navigation spacing */
@@ -538,6 +538,6 @@ body[data-vaul-drawer-visible] {
   }
   body {
     @apply text-foreground;
-    background-color: #365314 !important; /* Override Tailwind bg-background with lime-800 color */
+    background-color: #ffffff !important; /* White background */
   }
 }

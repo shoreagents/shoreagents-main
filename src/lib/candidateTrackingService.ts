@@ -666,32 +666,53 @@ export class CandidateTrackingService {
         console.log('📊 Raw views data:', allViews);
 
         // Group by candidate and calculate totals
-        const candidateStats = allViews.reduce((acc: Record<string, Record<string, unknown>>, view: Record<string, unknown>) => {
+        const candidateStats = allViews.reduce((acc: Record<string, {
+          candidate_id: string;
+          candidate_name: string;
+          total_views: number;
+          total_duration: number;
+          max_duration: number;
+          last_viewed: string;
+        }>, view: Record<string, unknown>) => {
           const candidateId = String(view.candidate_id);
           if (!acc[candidateId]) {
             acc[candidateId] = {
               candidate_id: candidateId,
-              candidate_name: view.candidate_name,
+              candidate_name: (view as Record<string, unknown>).candidate_name as string,
               total_views: 0,
               total_duration: 0,
               max_duration: 0,
-              last_viewed: view.created_at
+              last_viewed: (view as Record<string, unknown>).created_at as string
             };
           }
           
-          acc[candidateId].total_views += Number(view.page_views) || 1;
-          acc[candidateId].total_duration += Number(view.view_duration) || 0;
-          acc[candidateId].max_duration = Math.max(acc[candidateId].max_duration, Number(view.view_duration) || 0);
+          acc[candidateId].total_views += Number((view as Record<string, unknown>).page_views) || 1;
+          acc[candidateId].total_duration += Number((view as Record<string, unknown>).view_duration) || 0;
+          acc[candidateId].max_duration = Math.max(acc[candidateId].max_duration, Number((view as Record<string, unknown>).view_duration) || 0);
           
-          if (new Date(view.created_at) > new Date(acc[candidateId].last_viewed)) {
-            acc[candidateId].last_viewed = view.created_at;
+          if (new Date((view as Record<string, unknown>).created_at as string) > new Date(acc[candidateId].last_viewed)) {
+            acc[candidateId].last_viewed = (view as Record<string, unknown>).created_at as string;
           }
           
           return acc;
         }, {});
 
         // Find the most viewed candidate (by total views, then by total duration)
-        const mostViewed = Object.values(candidateStats).reduce((prev: Record<string, unknown>, current: Record<string, unknown>) => {
+        const mostViewed = Object.values(candidateStats).reduce((prev: {
+          candidate_id: string;
+          candidate_name: string;
+          total_views: number;
+          total_duration: number;
+          max_duration: number;
+          last_viewed: string;
+        }, current: {
+          candidate_id: string;
+          candidate_name: string;
+          total_views: number;
+          total_duration: number;
+          max_duration: number;
+          last_viewed: string;
+        }) => {
           if (current.total_views > prev.total_views) {
             return current;
           } else if (current.total_views === prev.total_views && current.total_duration > prev.total_duration) {

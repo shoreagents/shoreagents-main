@@ -13,7 +13,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from '@/components/ui/sidebar'
 import {
   LayoutDashboard,
@@ -23,6 +22,7 @@ import {
   Settings,
   LogOut,
   Quote,
+  MessageCircle,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -60,7 +60,11 @@ const userNavItems = [
   },
 ]
 
-export function UserDashboardSidebar() {
+interface UserDashboardSidebarProps {
+  onChatOpen?: () => void;
+}
+
+export function UserDashboardSidebar({ onChatOpen }: UserDashboardSidebarProps) {
   const { user, signOut } = useUserAuth()
   const pathname = usePathname()
 
@@ -69,6 +73,12 @@ export function UserDashboardSidebar() {
       await signOut()
     } catch (error) {
       console.error('Sign out error:', error)
+    }
+  }
+
+  const handleChatWithMaya = () => {
+    if (onChatOpen) {
+      onChatOpen()
     }
   }
 
@@ -106,6 +116,7 @@ export function UserDashboardSidebar() {
                     asChild
                     isActive={pathname === item.url}
                     tooltip={item.title}
+                    className={pathname === item.url ? '!bg-lime-600 !text-white hover:!bg-lime-700 data-[active=true]:!bg-lime-600 data-[active=true]:!text-white' : 'hover:!bg-lime-100 hover:!text-lime-800'}
                   >
                     <Link href={item.url}>
                       <item.icon />
@@ -118,6 +129,21 @@ export function UserDashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <div className="px-2 py-2">
+            <Button
+              onClick={handleChatWithMaya}
+              className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors"
+              size="sm"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Chat with Maya
+            </Button>
+          </div>
+        </SidebarGroupContent>
+      </SidebarGroup>
 
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 py-2">

@@ -88,6 +88,46 @@ const REALISTIC_SALARY_RANGES: Record<string, Record<string, { min: number; max:
     entry: { min: 20000, max: 35000, average: 27500 },
     mid: { min: 30000, max: 50000, average: 40000 },
     senior: { min: 45000, max: 70000, average: 57500 }
+  },
+  'nurse': {
+    entry: { min: 25000, max: 40000, average: 32500 },
+    mid: { min: 35000, max: 55000, average: 45000 },
+    senior: { min: 50000, max: 80000, average: 65000 }
+  },
+  'registered nurse': {
+    entry: { min: 25000, max: 40000, average: 32500 },
+    mid: { min: 35000, max: 55000, average: 45000 },
+    senior: { min: 50000, max: 80000, average: 65000 }
+  },
+  'healthcare': {
+    entry: { min: 20000, max: 35000, average: 27500 },
+    mid: { min: 30000, max: 50000, average: 40000 },
+    senior: { min: 45000, max: 70000, average: 57500 }
+  },
+  'medical': {
+    entry: { min: 20000, max: 35000, average: 27500 },
+    mid: { min: 30000, max: 50000, average: 40000 },
+    senior: { min: 45000, max: 70000, average: 57500 }
+  },
+  'healthcare worker': {
+    entry: { min: 20000, max: 35000, average: 27500 },
+    mid: { min: 30000, max: 50000, average: 40000 },
+    senior: { min: 45000, max: 70000, average: 57500 }
+  },
+  'medical assistant': {
+    entry: { min: 18000, max: 30000, average: 24000 },
+    mid: { min: 25000, max: 40000, average: 32500 },
+    senior: { min: 35000, max: 55000, average: 45000 }
+  },
+  'patient care': {
+    entry: { min: 20000, max: 35000, average: 27500 },
+    mid: { min: 30000, max: 50000, average: 40000 },
+    senior: { min: 45000, max: 70000, average: 57500 }
+  },
+  'caregiver': {
+    entry: { min: 18000, max: 30000, average: 24000 },
+    mid: { min: 25000, max: 40000, average: 32500 },
+    senior: { min: 35000, max: 55000, average: 45000 }
   }
 };
 

@@ -278,6 +278,7 @@ export default function EmployeesPage() {
           }}
           candidateName={selectedCandidate.user.name}
           candidatePosition={selectedCandidate.user.position || 'Position not specified'}
+          candidateId={selectedCandidate.user.id}
           onSubmit={handleInterviewSubmit}
         />
       )}
