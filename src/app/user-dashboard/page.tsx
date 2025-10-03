@@ -73,10 +73,10 @@ export default function UserDashboardPage() {
     }
   }, [topCandidate, recordInteraction, router, handleBrowseTalent]);
 
-  const handleAskForInterview = useCallback((candidateId: string, candidateName: string) => {
+  const handleAskForInterview = useCallback((candidateId: string, candidateName: string, candidatePosition?: string) => {
     recordInteraction('interview-request')
-    console.log('Ask for interview clicked for candidate:', candidateName, candidateId)
-    setSelectedCandidate({ name: candidateName, id: candidateId })
+    console.log('Ask for interview clicked for candidate:', candidateName, candidateId, candidatePosition)
+    setSelectedCandidate({ name: candidateName, id: candidateId, position: candidatePosition })
     setIsInterviewModalOpen(true)
   }, [recordInteraction])
 
@@ -342,9 +342,9 @@ export default function UserDashboardPage() {
       <SidebarProvider>
         <UserDashboardSidebar onChatOpen={handleChatOpen} />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center gap-2">
+          <header className="flex h-14 shrink-0 items-center gap-1 border-b">
+            <SidebarTrigger className="!size-8 hover:bg-lime-100 [&_svg]:!w-6 [&_svg]:!h-6" />
+            <div className="flex items-center gap-3">
               <h1 className="text-lg font-semibold">Dashboard</h1>
               <Badge variant="secondary" className="text-xs">
                 Welcome back, {user?.first_name}!

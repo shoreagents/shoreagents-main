@@ -185,13 +185,44 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     await fetchExchangeRates()
   }, [fetchExchangeRates])
 
-  // Disabled IP detection to prevent fetch errors
+  // Detect user location and set appropriate currency
   const detectUserLocation = useCallback(async () => {
-    console.log('🔄 Skipping location detection to prevent fetch errors...')
-    setIsDetectingLocation(false)
-    hasInitializedCurrency.current = true // Mark as initialized
-    // Keep default currency (USD) without attempting IP detection
-  }, [])
+    if (hasUserSelectedCurrency) {
+      console.log('🔄 User has manually selected currency, skipping auto-detection')
+      return
+    }
+    
+    setIsDetectingLocation(true)
+    try {
+      console.log('🌍 Detecting user location for currency...')
+      const { detectUserLocation: detectLocation, detectUserCurrency } = await import('./ipDetection')
+      
+      const location = await detectLocation()
+      const detectedCurrency = await detectUserCurrency()
+      
+      if (location && detectedCurrency) {
+        setUserLocation(location)
+        
+        // Find the detected currency in our currencies list
+        const currency = currenciesState.find(c => c.code === detectedCurrency)
+        if (currency) {
+          setSelectedCurrency(currency)
+          setIsAutoDetected(true)
+          console.log(`💰 Auto-detected currency: ${detectedCurrency} for ${location.country}`)
+        } else {
+          console.log(`💰 Detected currency ${detectedCurrency} not available, keeping default`)
+        }
+      } else {
+        console.log('💰 Could not detect location/currency, keeping default')
+      }
+    } catch (error) {
+      console.error('❌ Failed to detect location/currency:', error)
+      console.log('💰 Using default currency (USD)')
+    } finally {
+      setIsDetectingLocation(false)
+      hasInitializedCurrency.current = true
+    }
+  }, [hasUserSelectedCurrency, currenciesState])
 
   // Fetch rates on mount and every 5 minutes
   useEffect(() => {
@@ -222,9 +253,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     
     const detectLocation = async () => {
       if (!isMounted) return;
-      // Skip auto-detection to prevent fetch errors
-      console.log('🔄 Skipping auto-detection to prevent fetch errors...');
-      hasInitializedCurrency.current = true;
+      await detectUserLocation();
     };
     
     // Only run detection on client side, not during build
@@ -235,7 +264,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [detectUserLocation]);
 
   // Clear price cache when currency changes
   useEffect(() => {

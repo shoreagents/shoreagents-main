@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { X, Users, Building, Briefcase, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Loader2, Calculator, Brain, Sparkles, Zap } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { X, Users, Building, Briefcase, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Loader2, Calculator, Brain, Sparkles, Zap, Send } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
 import { useCurrency } from '@/lib/currencyContext';
 import { Button } from './button';
 import { Input } from './input';
@@ -25,6 +26,7 @@ import { generateUserId, savePageVisit } from '@/lib/userEngagementService';
 import { useFavorites } from '@/lib/favorites-context';
 import { LoginModal } from './login-modal';
 import { InterviewRequestModal, InterviewRequestData } from './interview-request-modal';
+
 import { useToast } from '@/lib/toast-context';
 import { useEngagementTracking } from '@/lib/useEngagementTracking';
 
@@ -90,10 +92,27 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   
   // Interview request modal state
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactFormData, setContactFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
+  const [contactFormErrors, setContactFormErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
+  const [showViewQuoteAlert, setShowViewQuoteAlert] = useState(false);
+  const [showCancelAlert, setShowCancelAlert] = useState(false);
+  const [formKey, setFormKey] = useState(0);
+  const [isContactFormSubmitting, setIsContactFormSubmitting] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<EmployeeCardData | null>(null);
+  const isFirstRender = useRef(true);
   
-  // Step 1: Member count
+  // Step 1: Member count and company
   const [memberCount, setMemberCount] = useState<number | null>(null);
+  const [company, setCompany] = useState('');
   
   // Step 2: Industry and roles
   const [industry, setIndustry] = useState('');
@@ -197,6 +216,77 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const getWorkspaceCostPerPerson = useCallback((workspace: 'wfh' | 'hybrid' | 'office') => {
     return getFixedWorkspaceCost(workspace, selectedCurrency.code);
   }, [selectedCurrency.code]);
+
+  // Contact form validation
+  const validateContactForm = () => {
+    const errors = {
+      firstName: '',
+      lastName: '',
+      email: ''
+    };
+
+    if (!contactFormData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    }
+
+    if (!contactFormData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    }
+
+    if (!contactFormData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactFormData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    setContactFormErrors(errors);
+    return !errors.firstName && !errors.lastName && !errors.email;
+  };
+
+  const handleContactFormChange = (field: string, value: string) => {
+    setContactFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (contactFormErrors[field as keyof typeof contactFormErrors]) {
+      setContactFormErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+  };
+
+  const handleViewQuoteClick = () => {
+    if (!isAuthenticated) {
+      setShowViewQuoteAlert(true);
+    }
+  };
+
+  const handleCancelClick = () => {
+    setShowCancelAlert(true);
+  };
+
+  const handleCancelConfirm = () => {
+    console.log('Clearing form data and closing pricing modal...');
+    
+    // Clear form data
+    setContactFormData({ firstName: '', lastName: '', email: '' });
+    setContactFormErrors({ firstName: '', lastName: '', email: '' });
+    
+    // Close the alert modal
+    setShowCancelAlert(false);
+    
+    // Close the entire pricing calculator modal
+    onClose();
+    
+    console.log('Form data cleared, pricing modal closed');
+  };
+
+  const handleCancelCancel = () => {
+    setShowCancelAlert(false);
+  };
 
   // Handle interview request submission
   const handleInterviewSubmit = async (data: InterviewRequestData) => {
@@ -360,7 +450,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
           // Use internet salary lookup service for realistic salaries
           const expectedSalary = getFallbackSalary(role.title, role.level);
           console.log(`📊 Using realistic internet salary for ${role.title} (${role.level}): ₱${expectedSalary.toLocaleString()}`);
-          console.log(`💰 Currency context: ${selectedCurrency.code}, rate: ${selectedCurrency.rate}`);
+          console.log(`💰 Currency context: ${selectedCurrency.code}, rate: ${selectedCurrency.exchangeRate}`);
           const levelMultiplier = getMultiplier(role.level);
         
         // Formula: Salary = expected_salary × level multiplier + setup cost
@@ -521,6 +611,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   const resetForm = useCallback(() => {
     setCurrentStep(1);
     setMemberCount(null);
+    setCompany('');
     setIndustry('');
     setSameRoles(false);
     setRoles([{ id: '1', title: '', description: '', level: 'entry', count: 1, workspace: 'wfh', isCompleted: false }]);
@@ -536,11 +627,22 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   // Only reset form when modal is first opened (not when reopening)
   useEffect(() => {
-    if (isOpen && currentStep === 1 && !memberCount && !industry) {
-      // Only reset if form is completely empty (first time opening)
-      resetForm();
+    if (isOpen && isFirstRender.current) {
+      isFirstRender.current = false;
+      setCurrentStep(1);
+      setMemberCount(null);
+      // For authenticated users, use their company from profile; for anonymous users, clear it
+      setCompany(isAuthenticated ? (user?.company || '') : '');
+      setIndustry('');
+      setSameRoles(false);
+      setRoles([{ id: '1', title: '', description: '', level: 'entry', count: 1, workspace: 'wfh', isCompleted: false }]);
+      setQuoteData(null);
+      setActiveRoleId(null);
+      setSaveError(null);
+      setSaveSuccess(false);
+      setIsSaving(false);
     }
-  }, [isOpen, currentStep, memberCount, industry, resetForm]);
+  }, [isOpen, isAuthenticated, user]);
 
   // This useEffect is now handled by the main role creation logic below
   // Keeping this for reference but it's no longer needed
@@ -751,7 +853,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   const canProceed = useMemo(() => {
     switch (currentStep) {
-      case 1: return memberCount !== null;
+      case 1: return memberCount !== null && (isAuthenticated ? true : company.trim() !== '');
       case 2: 
         return industry.trim() !== '' && 
                roles.every(role => role.title.trim() !== '' && role.description && role.description.trim() !== '') &&
@@ -869,11 +971,34 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
             <div className="max-w-3xl mx-auto transition-all duration-500 ease-in-out">
               <div className="text-center mb-6">
                 <Users className="w-12 h-12 text-lime-600 mx-auto mb-3" />
-                <p className="text-gray-600 text-sm">How many team members do you need?</p>
               </div>
               
-              {/* Custom Input at Top */}
+              {/* Company Field - Only show for anonymous users */}
+              {!isAuthenticated && (
+                <div className="mb-6 flex justify-center">
+                  <div className="w-64">
+                    <Label htmlFor="company" className="text-sm font-medium text-gray-700 block mb-2 text-center">
+                      What is your company?
+                    </Label>
+                    <Input
+                      id="company"
+                      type="text"
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                      placeholder="Enter your company name"
+                      className="w-full h-16 text-center text-2xl font-medium placeholder-gray-400 !text-2xl placeholder:text-sm"
+                      style={{ fontSize: '24px' }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Team Size Question and Input */}
               <div className="mb-6 flex justify-center">
+                <div className="w-64">
+                  <Label htmlFor="memberCount" className="text-sm font-medium text-gray-700 block mb-2 text-center">
+                    How many team members does your company need?
+                  </Label>
                   <Input
                     id="memberCount"
                     type="number"
@@ -881,11 +1006,12 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                     max="100"
                     value={memberCount || ''}
                     onChange={(e) => setMemberCount(parseInt(e.target.value) || null)}
-                  placeholder="Enter number of members"
-                  className="w-64 h-16 text-center text-2xl font-medium placeholder-gray-400 !text-2xl placeholder:text-sm"
-                  style={{ fontSize: '24px' }}
+                    placeholder="Enter number of members"
+                    className="w-full h-16 text-center text-2xl font-medium placeholder-gray-400 !text-2xl placeholder:text-sm"
+                    style={{ fontSize: '24px' }}
                   />
                 </div>
+              </div>
                 
                 {/* Quick Response Buttons */}
               <div className="flex justify-center space-x-3">
@@ -1300,32 +1426,36 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               
               {!isProcessing && (
                 <>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Quote Summary */}
-                <Card className="p-4">
-                  <CardHeader className="pb-3">
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Total Members:</span>
-                      <span className="font-semibold">{quoteData?.totalMembers}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Industry:</span>
-                      <span className="font-semibold">{quoteData?.industry}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Setup:</span>
-                      <span className="font-semibold text-sm">{quoteData?.workplaceBreakdown}</span>
-                    </div>
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Total Monthly Cost:</span>
-                        <span className="text-lime-600">{formatPriceDisplay(quoteData?.totalMonthlyCost || 0)}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <div 
+                    className={`${!isAuthenticated ? 'blur-sm pointer-events-none' : ''}`}
+                    onClick={handleViewQuoteClick}
+                  >
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Quote Summary */}
+                      <Card className="p-4">
+                        <CardHeader className="pb-3">
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Total Members:</span>
+                            <span className="font-semibold">{quoteData?.totalMembers}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Industry:</span>
+                            <span className="font-semibold">{quoteData?.industry}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Setup:</span>
+                            <span className="font-semibold text-sm">{quoteData?.workplaceBreakdown}</span>
+                          </div>
+                          <div className="border-t pt-3">
+                            <div className="flex justify-between text-lg font-bold">
+                              <span>Total Monthly Cost:</span>
+                              <span className="text-lime-600">{formatPriceDisplay(quoteData?.totalMonthlyCost || 0)}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
 
                 {/* Breakdown */}
                 <Card className="p-4">
@@ -1341,18 +1471,155 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                     ))}
                   </CardContent>
                 </Card>
-              </div>
+                    </div>
 
-                  <div className="mt-6 flex justify-end">
-                <Button
-                  onClick={() => setCurrentStep(5)}
-                  className="bg-lime-600 hover:bg-lime-700 text-white px-8 flex items-center space-x-2"
-                >
-                  <span>View Quote</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
+                    <div className="mt-6 flex justify-end">
+                      <Button
+                        onClick={() => setCurrentStep(5)}
+                        className="bg-lime-600 hover:bg-lime-700 text-white px-8 flex items-center space-x-2"
+                      >
+                        <span>View Quote</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </>
+              )}
+
+              {/* Contact Form for Anonymous Users */}
+              {!isAuthenticated && !isProcessing && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <div className="p-6 bg-white rounded-lg shadow-lg border max-w-md w-full mx-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">To see quote, sign in with your details below</h3>
+                    <p className="text-gray-600 text-sm mb-6 text-center">Please provide your information to view your personalized quote</p>
+                    
+                    <form 
+                      key={formKey}
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (validateContactForm()) {
+                          setIsContactFormSubmitting(true);
+                          try {
+                            // Get user_id using the consistent generateUserId function
+                            const userId = generateUserId();
+
+                            // Save contact form data to database
+                            const response = await fetch('/api/contact-form', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                firstName: contactFormData.firstName,
+                                lastName: contactFormData.lastName,
+                                email: contactFormData.email,
+                                user_id: userId
+                              }),
+                            });
+
+                            if (!response.ok) {
+                              const errorData = await response.json();
+                              throw new Error(errorData.error || 'Failed to save contact information');
+                            }
+
+                            const result = await response.json();
+                            console.log('Contact form submitted successfully:', result);
+                            
+                            // Clear form and close modal
+                            setContactFormData({ firstName: '', lastName: '', email: '' });
+                            setContactFormErrors({ firstName: '', lastName: '', email: '' });
+                            setIsContactModalOpen(false);
+                            
+                          } catch (error) {
+                            console.error('Error submitting contact form:', error);
+                            alert(error instanceof Error ? error.message : 'Failed to save contact information. Please try again.');
+                          } finally {
+                            setIsContactFormSubmitting(false);
+                          }
+                        }
+                      }} 
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="contact-firstName">First name <span className="text-red-500">*</span></Label>
+                          <Input
+                            id="contact-firstName"
+                            name="firstName"
+                            type="text"
+                            value={contactFormData.firstName}
+                            onChange={(e) => handleContactFormChange('firstName', e.target.value)}
+                            disabled={isContactFormSubmitting}
+                            className={`mt-1 ${contactFormErrors.firstName ? 'border-red-500 focus:border-red-500' : ''}`}
+                            placeholder="First name"
+                          />
+                          {contactFormErrors.firstName && (
+                            <p className="text-red-500 text-sm mt-1">{contactFormErrors.firstName}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label htmlFor="contact-lastName">Last name <span className="text-red-500">*</span></Label>
+                          <Input
+                            id="contact-lastName"
+                            name="lastName"
+                            type="text"
+                            value={contactFormData.lastName}
+                            onChange={(e) => handleContactFormChange('lastName', e.target.value)}
+                            disabled={isContactFormSubmitting}
+                            className={`mt-1 ${contactFormErrors.lastName ? 'border-red-500 focus:border-red-500' : ''}`}
+                            placeholder="Last name"
+                          />
+                          {contactFormErrors.lastName && (
+                            <p className="text-red-500 text-sm mt-1">{contactFormErrors.lastName}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="contact-email">Enter email <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="contact-email"
+                          name="email"
+                          type="email"
+                          value={contactFormData.email}
+                          onChange={(e) => handleContactFormChange('email', e.target.value)}
+                          disabled={isContactFormSubmitting}
+                          className={`mt-1 ${contactFormErrors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+                          placeholder="your.email@example.com"
+                        />
+                        {contactFormErrors.email && (
+                          <p className="text-red-500 text-sm mt-1">{contactFormErrors.email}</p>
+                        )}
+                      </div>
+
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleCancelClick}
+                          disabled={isContactFormSubmitting}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={isContactFormSubmitting}
+                          className="flex-1 bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
+                        >
+                          {isContactFormSubmitting ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Saving...
+                            </div>
+                          ) : (
+                            'Proceed'
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -1695,6 +1962,75 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
           onSubmit={handleInterviewSubmit}
         />
       )}
+
+      {/* Contact Modal for Anonymous Users */}
+      
+
+      {/* View Quote Alert for Anonymous Users */}
+      <Dialog open={showViewQuoteAlert} onOpenChange={setShowViewQuoteAlert}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              Sign In Required
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Please provide your details below to view your personalized quote.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowViewQuoteAlert(false)}
+              className="flex-1"
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setShowViewQuoteAlert(false);
+                // Focus on the form or scroll to it
+                const formElement = document.querySelector('#contact-name');
+                if (formElement) {
+                  (formElement as HTMLInputElement).focus();
+                }
+              }}
+              className="flex-1 bg-lime-600 hover:bg-lime-700 text-white"
+            >
+              Fill Details
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Confirmation Alert */}
+      <Dialog open={showCancelAlert} onOpenChange={setShowCancelAlert}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              Are you sure?
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              This action will close the quick pricing quote, but you can continue it later. Your progress will be saved.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleCancelCancel}
+              className="flex-1"
+            >
+              Keep Editing
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelConfirm}
+              className="flex-1"
+            >
+              Yes, Clear All
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

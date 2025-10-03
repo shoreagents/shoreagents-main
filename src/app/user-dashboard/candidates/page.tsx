@@ -2,7 +2,7 @@
 
 import { UserGuard } from '@/components/auth/UserGuard'
 import { UserDashboardSidebar } from '@/components/layout/UserDashboardSidebar'
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { useUserAuth } from '@/lib/user-auth-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -76,7 +76,6 @@ export default function CandidatesPage() {
         <UserDashboardSidebar />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-semibold">Candidates</h1>
               <Badge variant="secondary" className="text-xs">
@@ -141,38 +140,42 @@ export default function CandidatesPage() {
               </div>
             )}
 
-            {/* Candidates Grid */}
+            {/* Candidates Grid - 4 Column Portrait Layout */}
             {!loading && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredCandidates.map((candidate) => (
-                  <Card key={candidate.user.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center">
-                            {candidate.user.avatar ? (
-                              <img 
-                                src={candidate.user.avatar} 
-                                alt={candidate.user.name}
-                                className="w-12 h-12 rounded-full object-cover"
-                              />
-                            ) : (
-                              <Users className="w-6 h-6 text-lime-600" />
-                            )}
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">{candidate.user.name}</CardTitle>
-                            <p className="text-sm text-muted-foreground">{candidate.user.position}</p>
-                          </div>
+                  <Card key={candidate.user.id} className="hover:shadow-lg transition-all duration-300 flex flex-col h-full overflow-hidden">
+                    {/* Portrait Header with Avatar */}
+                    <CardHeader className="pb-3 text-center relative">
+                      <div className="flex flex-col items-center space-y-2">
+                        {/* Large Avatar */}
+                        <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center shadow-sm">
+                          {candidate.user.avatar ? (
+                            <img 
+                              src={candidate.user.avatar} 
+                              alt={candidate.user.name}
+                              className="w-16 h-16 rounded-full object-cover"
+                            />
+                          ) : (
+                            <Users className="w-8 h-8 text-lime-600" />
+                          )}
                         </div>
+                        
+                        {/* Name and Position */}
+                        <div className="text-center min-h-0">
+                          <CardTitle className="text-base font-semibold leading-tight truncate">{candidate.user.name}</CardTitle>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{candidate.user.position}</p>
+                        </div>
+                        
+                        {/* Favorite Button */}
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleFavorite(candidate.user.id)}
-                          className="p-1"
+                          className="absolute top-2 right-2 p-1 h-6 w-6"
                         >
                           <Heart 
-                            className={`w-4 h-4 ${
+                            className={`w-3 h-3 ${
                               favorites.includes(candidate.user.id) 
                                 ? 'text-red-500 fill-current' 
                                 : 'text-gray-400'
@@ -181,44 +184,46 @@ export default function CandidatesPage() {
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    
+                    {/* Content */}
+                    <CardContent className="flex-1 flex flex-col space-y-2 px-3 pb-3 min-h-0">
                       {/* AI Analysis Score */}
                       {candidate.aiAnalysis && (
-                        <div className="flex items-center gap-2">
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          <span className="text-sm font-medium">{candidate.aiAnalysis.overall_score.toFixed(1)}</span>
-                          <span className="text-sm text-muted-foreground">(AI Score)</span>
+                        <div className="flex items-center justify-center gap-1">
+                          <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                          <span className="text-xs font-medium">{candidate.aiAnalysis.overall_score.toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground">AI</span>
                         </div>
                       )}
 
                       {/* Location */}
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-muted-foreground">{candidate.user.location}</span>
+                      <div className="flex items-center justify-center gap-1">
+                        <MapPin className="w-3 h-3 text-gray-500" />
+                        <span className="text-xs text-muted-foreground text-center truncate">{candidate.user.location}</span>
                       </div>
 
                       {/* Work Status */}
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${
+                      <div className="flex items-center justify-center gap-1">
+                        <div className={`w-1.5 h-1.5 rounded-full ${
                           candidate.user.work_status === 'Available' ? 'bg-green-500' : 
                           candidate.user.work_status === 'Busy' ? 'bg-yellow-500' : 'bg-gray-500'
                         }`} />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs text-muted-foreground truncate">
                           {candidate.user.work_status || 'Unknown'}
                         </span>
                       </div>
 
                       {/* Skills from AI Analysis */}
                       {candidate.aiAnalysis?.key_strengths && candidate.aiAnalysis.key_strengths.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.aiAnalysis.key_strengths.slice(0, 2).map((skill, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {skill}
+                        <div className="flex flex-wrap justify-center gap-1">
+                          {candidate.aiAnalysis.key_strengths.slice(0, 1).map((skill, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs px-1 py-0">
+                              {skill.length > 15 ? skill.substring(0, 15) + '...' : skill}
                             </Badge>
                           ))}
-                          {candidate.aiAnalysis.key_strengths.length > 2 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{candidate.aiAnalysis.key_strengths.length - 2} more
+                          {candidate.aiAnalysis.key_strengths.length > 1 && (
+                            <Badge variant="secondary" className="text-xs px-1 py-0">
+                              +{candidate.aiAnalysis.key_strengths.length - 1}
                             </Badge>
                           )}
                         </div>
@@ -226,23 +231,28 @@ export default function CandidatesPage() {
 
                       {/* Bio Preview */}
                       {candidate.user.bio && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
+                        <p className="text-xs text-muted-foreground text-center line-clamp-2 flex-1 min-h-0">
                           {candidate.user.bio}
                         </p>
                       )}
 
-                      {/* Actions */}
-                      <div className="flex gap-2 pt-2">
+                      {/* Actions - Fixed at bottom */}
+                      <div className="flex flex-col gap-1.5 pt-2 mt-auto">
                         <Button 
                           size="sm" 
-                          className="flex-1 bg-lime-600 hover:bg-lime-700"
+                          className="w-full bg-lime-600 hover:bg-lime-700 text-white text-xs h-8"
                           onClick={() => window.open(`/employee/${candidate.user.id}`, '_blank')}
                         >
-                          <Eye className="w-4 h-4 mr-2" />
+                          <Eye className="w-3 h-3 mr-1" />
                           View Profile
                         </Button>
-                        <Button size="sm" variant="outline">
-                          <MessageCircle className="w-4 h-4" />
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full text-xs h-8"
+                        >
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          Contact
                         </Button>
                       </div>
                     </CardContent>

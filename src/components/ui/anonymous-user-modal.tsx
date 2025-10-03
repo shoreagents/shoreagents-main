@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { AIIndustryAutocomplete } from '@/components/ui/ai-industry-autocomplete';
-import { X, Send } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Send } from 'lucide-react';
+import { generateUserId } from '@/lib/userEngagementService';
 
 interface AnonymousUserModalProps {
   isOpen: boolean;
@@ -21,6 +30,39 @@ export function AnonymousUserModal({ isOpen, onClose }: AnonymousUserModalProps)
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasRequiredInfo, setHasRequiredInfo] = useState(false);
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
+
+  // Check if user already has required information
+  useEffect(() => {
+    if (isOpen) {
+      checkUserInfo();
+    }
+  }, [isOpen]);
+
+  const checkUserInfo = async () => {
+    setIsCheckingUser(true);
+    try {
+      const userId = generateUserId();
+      
+      // Check if user already has industry and company information
+      const response = await fetch(`/api/user-info?user_id=${userId}`);
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.user && userData.user.industry_name && userData.user.company) {
+          setHasRequiredInfo(true);
+          // Close modal if user already has required info
+          setTimeout(() => {
+            onClose();
+          }, 100);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user info:', error);
+    } finally {
+      setIsCheckingUser(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -42,12 +84,8 @@ export function AnonymousUserModal({ isOpen, onClose }: AnonymousUserModalProps)
     setIsSubmitting(true);
     
     try {
-      // Get user_id from localStorage (device fingerprint)
-      const userId = localStorage.getItem('device_id') || localStorage.getItem('user_id');
-      
-      if (!userId) {
-        throw new Error('User ID not found. Please refresh the page and try again.');
-      }
+      // Get user_id using the consistent generateUserId function
+      const userId = generateUserId();
 
       // Send data to API
       const response = await fetch('/api/anonymous-user-inquiry', {
@@ -81,112 +119,113 @@ export function AnonymousUserModal({ isOpen, onClose }: AnonymousUserModalProps)
     }
   };
 
-  if (!isOpen) return null;
+  // Don't render modal if user already has required info
+  if (hasRequiredInfo) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Tell us about your business</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          <p className="text-gray-600 mb-6 text-sm">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            Tell us about your business
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
             We'd love to learn about your business and how we can help you scale with our offshore talent solutions.
-          </p>
+          </DialogDescription>
+        </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <AIIndustryAutocomplete
-                value={formData.industry}
-                onChange={handleIndustryChange}
-                label="Industry *"
-                placeholder="Select your industry..."
-                id="industry"
-              />
+        {isCheckingUser ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-lime-600 border-t-transparent rounded-full animate-spin" />
+              <span className="text-gray-600">Checking your information...</span>
             </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <AIIndustryAutocomplete
+              value={formData.industry}
+              onChange={handleIndustryChange}
+              label="Industry *"
+              placeholder="Select your industry..."
+              id="industry"
+            />
+          </div>
 
-            <div>
-              <Label htmlFor="employeeCount">How many employees do you need? *</Label>
-              <Input
-                id="employeeCount"
-                name="employeeCount"
-                type="number"
-                min="1"
-                max="100"
-                value={formData.employeeCount}
-                onChange={handleInputChange}
-                required
-                className="mt-1"
-                placeholder="Enter number of employees"
-              />
-            </div>
+          <div>
+            <Label htmlFor="employeeCount">How many employees do you need? *</Label>
+            <Input
+              id="employeeCount"
+              name="employeeCount"
+              type="number"
+              min="1"
+              max="100"
+              value={formData.employeeCount}
+              onChange={handleInputChange}
+              required
+              className="mt-1"
+              placeholder="Enter number of employees"
+            />
+          </div>
 
-            <div>
-              <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                name="company"
-                value={formData.company}
-                onChange={handleInputChange}
-                className="mt-1"
-                placeholder="Your company name"
-              />
-            </div>
+          <div>
+            <Label htmlFor="company">Company</Label>
+            <Input
+              id="company"
+              name="company"
+              value={formData.company}
+              onChange={handleInputChange}
+              className="mt-1"
+              placeholder="Your company name"
+            />
+          </div>
 
-            <div>
-              <Label htmlFor="message">Tell us about your business needs *</Label>
-              <Textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleInputChange}
-                required
-                className="mt-1 min-h-[100px]"
-                placeholder="What challenges are you facing? What type of support do you need?"
-              />
-            </div>
+          <div>
+            <Label htmlFor="message">Tell us about your business needs *</Label>
+            <Textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleInputChange}
+              required
+              className="mt-1 min-h-[100px]"
+              placeholder="What challenges are you facing? What type of support do you need?"
+            />
+          </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 bg-lime-600 hover:bg-lime-700 text-white"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Sending...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Send className="w-4 h-4" />
-                    Send Inquiry
-                  </div>
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto bg-lime-600 hover:bg-lime-700 text-white"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Sending...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Send className="w-4 h-4" />
+                  Send Inquiry
+                </div>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

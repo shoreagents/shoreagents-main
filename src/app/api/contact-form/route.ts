@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { user_id, industry, company, employeeCount, message } = body;
+    const { firstName, lastName, email, user_id } = body;
 
     if (!user_id) {
       return NextResponse.json(
@@ -13,9 +13,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!industry) {
+    if (!firstName || !lastName || !email) {
       return NextResponse.json(
-        { error: 'Industry is required' },
+        { error: 'First name, last name, and email are required' },
         { status: 400 }
       );
     }
@@ -34,12 +34,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update the user record with the provided information
+    // Update the user record with the contact information
     const { data, error } = await supabase
       .from('users')
       .update({
-        industry_name: industry,
-        company: company || null,
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', user_id)
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'User information updated successfully',
+      message: 'Contact information saved successfully',
       user: data[0]
     });
 

@@ -3,6 +3,8 @@
 import { useUserAuth } from '@/lib/user-auth-context'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { useSidebar } from '@/components/ui/sidebar'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +25,8 @@ import {
   LogOut,
   Quote,
   MessageCircle,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -67,6 +71,7 @@ interface UserDashboardSidebarProps {
 export function UserDashboardSidebar({ onChatOpen }: UserDashboardSidebarProps) {
   const { user, signOut } = useUserAuth()
   const pathname = usePathname()
+  const { toggleSidebar, state } = useSidebar()
 
   const handleSignOut = async () => {
     try {
@@ -91,36 +96,36 @@ export function UserDashboardSidebar({ onChatOpen }: UserDashboardSidebarProps) 
   }
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-lime-600 text-white">
-            <span className="text-sm font-bold">SA</span>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className='pb-0'>
+        <div className="flex items-center gap-3 px-3 py-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-lime-600 text-white">
+            <span className="text-lg font-bold">SA</span>
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">ShoreAgents</span>
-            <span className="truncate text-xs text-muted-foreground">
+          <div className="grid flex-1 text-left text-base leading-tight [&_p]:hidden [&_p]:data-[collapsible=icon]:block">
+            <span className="truncate font-semibold text-lg">ShoreAgents</span>
+            <span className="truncate text-sm text-muted-foreground">
               User Dashboard
             </span>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
+      <SidebarContent className="pt-0">
+        <SidebarGroup className='pt-0'>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0">
               {userNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
                     isActive={pathname === item.url}
                     tooltip={item.title}
-                    className={pathname === item.url ? '!bg-lime-600 !text-white hover:!bg-lime-700 data-[active=true]:!bg-lime-600 data-[active=true]:!text-white' : 'hover:!bg-lime-100 hover:!text-lime-800'}
+                    className={`${pathname === item.url ? '!bg-lime-600 !text-white hover:!bg-lime-700 h-10 data-[active=true]:!bg-lime-600 data-[active=true]:!text-white' : 'hover:!bg-lime-100 hover:!text-lime-800'} text-base h-10 w-full data-[collapsible=icon]:!w-10 data-[collapsible=icon]:!h-10 data-[collapsible=icon]:!p-2`}
                   >
                     <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
+                      <item.icon className="w-5 h-5 data-[collapsible=icon]:!w-6 data-[collapsible=icon]:!h-6" />
+                      <span className="text-base font-medium data-[collapsible=icon]:!hidden">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -132,42 +137,44 @@ export function UserDashboardSidebar({ onChatOpen }: UserDashboardSidebarProps) 
 
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="px-2 py-2">
-            <Button
-              onClick={handleChatWithMaya}
-              className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors"
-              size="sm"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Chat with Maya
-            </Button>
-          </div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={handleChatWithMaya}
+                className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors text-base"
+                tooltip="Chat with Maya"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span className="text-base font-medium">Chat with Maya</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
 
       <SidebarFooter>
-        <div className="flex items-center gap-2 px-2 py-2">
-          <Avatar className="h-8 w-8">
+        <div className="flex items-center gap-3 px-3 py-3">
+          <Avatar className="h-10 w-10">
             <AvatarImage src="" alt={user?.first_name} />
-            <AvatarFallback className="bg-lime-600 text-white text-xs">
+            <AvatarFallback className="bg-lime-600 text-white text-sm font-semibold">
               {getInitials(`${user?.first_name || ''} ${user?.last_name || ''}`)}
             </AvatarFallback>
           </Avatar>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">
+          <div className="grid flex-1 text-left text-base leading-tight [&_p]:hidden [&_p]:data-[collapsible=icon]:block">
+            <span className="truncate font-semibold text-base">
               {user?.first_name} {user?.last_name}
             </span>
-            <span className="truncate text-xs text-muted-foreground">
+            <span className="truncate text-sm text-muted-foreground">
               {user?.email}
             </span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-10 w-10 text-muted-foreground hover:text-foreground"
             onClick={handleSignOut}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-5 w-5" />
           </Button>
         </div>
       </SidebarFooter>

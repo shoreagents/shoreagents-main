@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 
 export async function POST(request: NextRequest) {
-  console.log('=== INTERVIEW REQUEST API CALLED ===');
   try {
     const body = await request.json();
-    console.log('Received data:', body);
-    
     const { 
       candidateId, 
       candidateName, 
@@ -35,37 +32,26 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceClient();
-    console.log('Supabase service client created');
-
-    const insertData = {
-      user_id,
-      candidate_id: candidateId,
-      candidate_name: candidateName,
-      candidate_position: candidatePosition || null,
-      requester_first_name: requesterFirstName,
-      requester_last_name: requesterLastName,
-      requester_email: requesterEmail
-    };
-    
-    console.log('Inserting data:', insertData);
 
     // Insert the interview request
     const { data: interviewRequest, error: insertError } = await supabase
       .from('interview_request')
-      .insert(insertData)
+      .insert({
+        user_id,
+        candidate_id: candidateId,
+        candidate_name: candidateName,
+        candidate_position: candidatePosition || null,
+        requester_first_name: requesterFirstName,
+        requester_last_name: requesterLastName,
+        requester_email: requesterEmail
+      })
       .select()
       .single();
 
     if (insertError) {
       console.error('Error creating interview request:', insertError);
-      console.error('Error details:', {
-        code: insertError.code,
-        message: insertError.message,
-        details: insertError.details,
-        hint: insertError.hint
-      });
       return NextResponse.json(
-        { error: `Failed to create interview request: ${insertError.message}` },
+        { error: 'Failed to create interview request' },
         { status: 500 }
       );
     }

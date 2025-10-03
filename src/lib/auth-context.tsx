@@ -40,11 +40,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [appUser, setAppUser] = useState<AppUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [lastFetchedUserId, setLastFetchedUserId] = useState<string | null>(null)
 
   // Fetch app user data from our custom users table
   const fetchAppUser = async (authUser: User | null) => {
     if (!authUser || !supabase) {
       setAppUser(null)
+      setLastFetchedUserId(null)
+      return
+    }
+
+    // Skip fetch if we already have data for this user
+    if (lastFetchedUserId === authUser.id && appUser) {
       return
     }
 
@@ -58,12 +65,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Error fetching app user:', error)
         setAppUser(null)
+        setLastFetchedUserId(null)
       } else {
         setAppUser(userData)
+        setLastFetchedUserId(authUser.id)
       }
     } catch (error) {
       console.error('Error in fetchAppUser:', error)
       setAppUser(null)
+      setLastFetchedUserId(null)
+    }
+  }
+
+  // Memoize the refresh function to prevent unnecessary re-renders
+  const refreshUser = async () => {
+    if (user) {
+      await fetchAppUser(user)
     }
   }
 
@@ -99,21 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const refreshUser = async () => {
-    if (supabase) {
-      // Try getting session first, then user
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session?.user) {
-        setUser(session.user)
-        await fetchAppUser(session.user)
-      } else {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-        await fetchAppUser(user)
-      }
-    }
-  }
 
   // Computed values
   const userType = appUser?.user_type || (user ? 'Regular' : 'Anonymous')
