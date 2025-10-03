@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { User, LogOut, Settings, Building } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
@@ -19,7 +19,9 @@ export function UserMenu() {
   const { user, signOut } = useAuth()
   const [loading, setLoading] = useState(false)
 
-  const handleSignOut = async () => {
+
+  // Memoize the sign out handler to prevent unnecessary re-renders
+  const handleSignOut = useCallback(async () => {
     setLoading(true)
     try {
       await signOut()
@@ -30,20 +32,29 @@ export function UserMenu() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [signOut])
 
-  if (!user) {
-    return null
-  }
-
-  // Get user initials from email
-  const getInitials = (email: string) => {
-    return email
+  // Memoize user initials calculation
+  const userInitials = useMemo(() => {
+    if (!user?.email) return 'U'
+    return user.email
       .split('@')[0]
       .split('.')
       .map(part => part.charAt(0).toUpperCase())
       .join('')
       .slice(0, 2)
+  }, [user?.email])
+
+  // Memoize user display name
+  const userDisplayName = useMemo(() => {
+    if (!user) return 'User'
+    const firstName = user.user_metadata?.first_name || ''
+    const lastName = user.user_metadata?.last_name || ''
+    return `${firstName} ${lastName}`.trim() || 'User'
+  }, [user])
+
+  if (!user) {
+    return null
   }
 
   return (
@@ -51,9 +62,9 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-lime-600 text-white text-sm font-medium">
-              {getInitials(user.email || '')}
-            </div>
+            <AvatarFallback className="bg-lime-600 text-white text-sm font-medium">
+              {userInitials || 'U'}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -61,7 +72,7 @@ export function UserMenu() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {user.user_metadata?.first_name || 'User'} {user.user_metadata?.last_name || ''}
+              {userDisplayName}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}

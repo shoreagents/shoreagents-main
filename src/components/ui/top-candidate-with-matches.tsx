@@ -18,7 +18,7 @@ interface TopCandidateSectionProps {
   topCandidate: Record<string, unknown> | null;
   isLoading: boolean;
   onViewProfile: () => void;
-  onAskForInterview?: (candidateId: string, candidateName: string) => void;
+  onAskForInterview?: (candidateId: string, candidateName: string, candidatePosition?: string) => void;
 }
 
 const TopCandidateSection = ({ 
@@ -129,7 +129,7 @@ const TopCandidateSection = ({
                     onClick={(e) => {
                       e.stopPropagation()
                       if (onAskForInterview && employeeProfile) {
-                        onAskForInterview(employeeProfile.user.id, employeeProfile.user.name)
+                        onAskForInterview(employeeProfile.user.id, employeeProfile.user.name, employeeProfile.user.position)
                       }
                     }}
                   >

@@ -83,7 +83,7 @@ export function Navbar() {
                 alt="ShoreAgents Logo"
                 width={180}
                 height={40}
-                  className={`h-10 w-auto lg:hidden ${isEmployeePage || isUserDashboard ? 'brightness-0 invert' : ''}`}
+                className={`h-10 w-auto lg:hidden ${isEmployeePage || isUserDashboard ? 'brightness-0 invert' : ''}`}
               />
               {/* Desktop Logo */}
               <Image
@@ -91,7 +91,7 @@ export function Navbar() {
                 alt="ShoreAgents Logo"
                 width={180}
                 height={40}
-                  className={`h-10 w-auto hidden lg:block ${isEmployeePage || isUserDashboard ? 'brightness-0 invert' : ''}`}
+                className={`h-10 w-auto hidden lg:block ${isEmployeePage || isUserDashboard ? 'brightness-0 invert' : ''}`}
               />
             </Link>
           </div>
@@ -497,76 +497,72 @@ export function Navbar() {
 
         
 
-          {/* Right Side Elements - Currency and Auth */}
-          <div className="flex items-center space-x-4 pr-4 ml-auto">
-            {/* Currency Selector - Desktop */}
-            <div className="hidden md:flex items-center">
-              <div className="relative group">
-                <div 
-                  className={`flex items-center space-x-2 ${isEmployeePage || isUserDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-600 hover:bg-gray-50'} rounded-lg px-3 py-1.5 cursor-pointer transition-all duration-200 w-24`}
-                  title={isDetectingLocation ? "Detecting your location..." : `Current currency: ${selectedCurrency.code}${isAutoDetected ? ' (Auto-detected)' : hasUserSelectedCurrency ? ' (Manually selected)' : ''}`}
-                >
-                  {isAutoDetected && (
-                    <div className="w-2 h-2 bg-lime-500 rounded-full animate-pulse"></div>
-                  )}
-                  {hasUserSelectedCurrency && !isAutoDetected && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  )}
-                  {isDetectingLocation ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
-                      <span className="text-sm font-medium text-gray-600">...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className={`text-sm font-medium ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-700'}`}>{selectedCurrency.code}</span>
-                    </>
-                  )}
-                  <ChevronDown className={`h-3 w-3 ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-500'} transition-transform duration-200 group-hover:rotate-180`} />
-                </div>
-                
-                {/* Currency Dropdown */}
-                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg transition-all duration-300 ease-in-out z-50 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
-                  <div className="py-2">
-                    {/* Auto-detect option */}
-                    <div 
-                      className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100"
-                      onClick={handleDetectLocation}
-                    >
-                      <div className="w-8 h-4 flex items-center justify-center">
-                        <div className="w-3 h-3 bg-lime-500 rounded-full animate-pulse"></div>
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">Auto-detect</span>
+          {/* Currency Selector and Auth Buttons - Right Edge */}
+          <div className="hidden md:flex items-center space-x-4 absolute right-4 top-0 h-16">
+            {/* Currency Selector */}
+            <div className="relative group">
+              <div 
+                className={`flex items-center space-x-2 ${isEmployeePage || isUserDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-600 hover:bg-gray-50'} rounded-lg px-3 py-1.5 cursor-pointer transition-all duration-200 w-24`}
+                title={isDetectingLocation ? "Detecting your location..." : `Current currency: ${selectedCurrency.code}${isAutoDetected ? ' (Auto-detected)' : hasUserSelectedCurrency ? ' (Manually selected)' : ''}`}
+              >
+                {isAutoDetected && (
+                  <div className="w-2 h-2 bg-lime-500 rounded-full animate-pulse"></div>
+                )}
+                {hasUserSelectedCurrency && !isAutoDetected && (
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                )}
+                {isDetectingLocation ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                    <span className="text-sm font-medium text-gray-600">...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className={`text-sm font-medium ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-700'}`}>{selectedCurrency.code}</span>
+                  </>
+                )}
+                <ChevronDown className={`h-3 w-3 ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-500'} transition-transform duration-200 group-hover:rotate-180`} />
+              </div>
+              
+              {/* Currency Dropdown */}
+              <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg transition-all duration-300 ease-in-out z-50 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
+                <div className="py-2">
+                  {/* Auto-detect option */}
+                  <div 
+                    className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100"
+                    onClick={handleDetectLocation}
+                  >
+                    <div className="w-8 h-4 flex items-center justify-center">
+                      <div className="w-3 h-3 bg-lime-500 rounded-full animate-pulse"></div>
                     </div>
-                    
-                    {/* Currency options */}
-                    {currencies.map((currency) => (
-                      <div 
-                        key={currency.code}
-                        className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
-                        onClick={() => handleCurrencySelect(currency)}
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-gray-900">{currency.code}</span>
-                          <span className="text-xs text-gray-500">{currencyCountryNames[currency.code]}</span>
-                        </div>
-                        {selectedCurrency.code === currency.code && isAutoDetected && (
-                          <span className="ml-auto text-xs text-lime-600">Auto</span>
-                        )}
-                        {selectedCurrency.code === currency.code && hasUserSelectedCurrency && !isAutoDetected && (
-                          <span className="ml-auto text-xs text-blue-600">Manual</span>
-                        )}
-                      </div>
-                    ))}
+                    <span className="text-sm text-gray-700 font-medium">Auto-detect</span>
                   </div>
+                  
+                  {/* Currency options */}
+                  {currencies.map((currency) => (
+                    <div 
+                      key={currency.code}
+                      className="flex items-center px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => handleCurrencySelect(currency)}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-900">{currency.code}</span>
+                        <span className="text-xs text-gray-500">{currencyCountryNames[currency.code]}</span>
+                      </div>
+                      {selectedCurrency.code === currency.code && isAutoDetected && (
+                        <span className="ml-auto text-xs text-lime-600">Auto</span>
+                      )}
+                      {selectedCurrency.code === currency.code && hasUserSelectedCurrency && !isAutoDetected && (
+                        <span className="ml-auto text-xs text-blue-600">Manual</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Auth Buttons - Desktop */}
-            <div className="hidden md:flex items-center">
-              <AuthButtons />
-            </div>
+            {/* Auth Buttons */}
+            <AuthButtons />
           </div>
 
           
@@ -664,9 +660,7 @@ export function Navbar() {
             <div className="max-h-[80vh] overflow-y-auto bg-white border-t border-gray-200">
               <div className="px-2 pt-2 pb-3 space-y-1">
                 
-                {/* Main Navigation Items - Hide on user dashboard */}
-                {!isUserDashboard && (
-                <>
+                {/* Main Navigation Items */}
                 <Link href="/how-it-works" className={`block px-3 py-3 font-semibold relative group border-b border-gray-100 ${isActive('/how-it-works') ? 'text-lime-600 bg-lime-50' : 'text-gray-700 hover:text-lime-600 hover:bg-gray-50'}`}>
               <span className="relative inline-block">
               How it works
@@ -907,8 +901,6 @@ export function Navbar() {
                     <ArrowRight className="w-4 h-4 text-lime-600 flex-shrink-0" />
                   </button>
                 </div>
-                </>
-                )}
 
                 {/* Auth Buttons - Mobile */}
                 <div className="px-2 py-3 border-t border-gray-200">

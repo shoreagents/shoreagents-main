@@ -507,7 +507,7 @@ export function BottomNav() {
                                   />
                                 ) : null;
                               })()}
-                              <AvatarFallback className="bg-lime-100 text-lime-700 text-sm font-medium">
+                              <AvatarFallback className="bg-lime-100v text-lime-700 text-sm font-medium">
                                 {String((topCandidate as Record<string, unknown>).user?.name || 'U').charAt(0)}
                               </AvatarFallback>
                             </Avatar>
