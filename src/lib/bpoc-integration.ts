@@ -15,17 +15,17 @@ export interface BPOCEmployee {
   avatar_url?: string
   bio?: string
   overall_score?: number
-  skills_snapshot?: any[]
-  experience_snapshot?: any
+  skills_snapshot?: unknown[]
+  experience_snapshot?: unknown
   expected_salary?: number
   work_status?: string
   work_status_completed?: boolean
   user_created_at?: string
-  key_strengths?: any[]
-  improvements?: any[]
-  recommendations?: any[]
+  key_strengths?: unknown[]
+  improvements?: unknown[]
+  recommendations?: unknown[]
   improved_summary?: string
-  strengths_analysis?: any
+  strengths_analysis?: unknown
 }
 
 export interface BPOCAnalysis {
@@ -37,19 +37,19 @@ export interface BPOCAnalysis {
   content_quality_score?: number
   professional_presentation_score?: number
   skills_alignment_score?: number
-  key_strengths?: any[]
-  improvements?: any[]
-  recommendations?: any[]
+  key_strengths?: unknown[]
+  improvements?: unknown[]
+  recommendations?: unknown[]
   improved_summary?: string
-  strengths_analysis?: any
-  salary_analysis?: any
-  career_path?: any
-  section_analysis?: any
-  candidate_profile?: any
-  skills_snapshot?: any[]
-  experience_snapshot?: any
-  education_snapshot?: any
-  portfolio_links?: any[]
+  strengths_analysis?: unknown
+  salary_analysis?: unknown
+  career_path?: unknown
+  section_analysis?: unknown
+  candidate_profile?: unknown
+  skills_snapshot?: unknown[]
+  experience_snapshot?: unknown
+  education_snapshot?: unknown
+  portfolio_links?: unknown[]
   analysis_created_at?: string
   analysis_updated_at?: string
 }
@@ -136,11 +136,14 @@ export class BPOCIntegration {
 
       // Extract analysis data from employees
       const analysisData = employees
-        .filter(emp => emp.analysis_id) // Only employees with analysis data
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter(emp => (emp as any).analysis_id) // Only employees with analysis data
         .map(emp => ({
           user_id: emp.user_id,
-          analysis_id: emp.analysis_id,
-          session_id: emp.session_id,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          analysis_id: (emp as any).analysis_id,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          session_id: (emp as any).session_id,
           overall_score: emp.overall_score,
           // ... map other analysis fields
         }))
