@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { X, Users, Building, Briefcase, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Loader2, Calculator, Brain, Sparkles, Zap, Send } from 'lucide-react';
+import { X, Users, Building, Briefcase, DollarSign, CheckCircle, ArrowRight, ArrowLeft, Loader2, Calculator, Brain, Sparkles, Zap } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
 import { useCurrency } from '@/lib/currencyContext';
@@ -23,7 +23,6 @@ import { getFallbackSalary } from '@/lib/salaryLookupService';
 import { PricingQuoteServiceClient, PricingQuoteData } from '@/lib/pricingQuoteServiceClient';
 import { useUserAuth } from '@/lib/user-auth-context'
 import { generateUserId, savePageVisit } from '@/lib/userEngagementService';
-import { useFavorites } from '@/lib/favorites-context';
 import { LoginModal } from './login-modal';
 import { InterviewRequestModal, InterviewRequestData } from './interview-request-modal';
 
@@ -92,7 +91,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   
   // Interview request modal state
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactFormData, setContactFormData] = useState({
     firstName: '',
     lastName: '',
@@ -103,10 +101,12 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     lastName: '',
     email: ''
   });
-  const [showViewQuoteAlert, setShowViewQuoteAlert] = useState(false);
   const [showCancelAlert, setShowCancelAlert] = useState(false);
-  const [formKey, setFormKey] = useState(0);
+  const [showStartOverAlert, setShowStartOverAlert] = useState(false);
   const [isContactFormSubmitting, setIsContactFormSubmitting] = useState(false);
+  const [hasCompanyData, setHasCompanyData] = useState(false);
+  const [isCheckingCompanyData, setIsCheckingCompanyData] = useState(true);
+  const [isContactFormSubmitted, setIsContactFormSubmitted] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<EmployeeCardData | null>(null);
   const isFirstRender = useRef(true);
   
@@ -150,7 +150,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     matchScore: number;
     skills: string[];
     expectedSalary?: number;
-  }, rank: number): EmployeeCardData => {
+  }, _rank: number): EmployeeCardData => {
     return {
       user: {
         id: candidate.id,
@@ -212,10 +212,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   // Get base salary range for level based on industry
   // Removed getBaseSalary - using internet salary data directly
 
-  // Get workspace cost per person using fixed pricing structure - memoized
-  const getWorkspaceCostPerPerson = useCallback((workspace: 'wfh' | 'hybrid' | 'office') => {
-    return getFixedWorkspaceCost(workspace, selectedCurrency.code);
-  }, [selectedCurrency.code]);
 
   // Contact form validation
   const validateContactForm = () => {
@@ -258,11 +254,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     }
   };
 
-  const handleViewQuoteClick = () => {
-    if (!isAuthenticated) {
-      setShowViewQuoteAlert(true);
-    }
-  };
 
   const handleCancelClick = () => {
     setShowCancelAlert(true);
@@ -625,6 +616,31 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     // setShowLoginModal(false); // Unused variable
   }, []);
 
+  // Check if user has company data when modal opens
+  useEffect(() => {
+    if (isOpen && !isAuthenticated) {
+      const checkCompanyData = async () => {
+        try {
+          const userId = generateUserId();
+          const response = await fetch(`/api/check-user-form-status?user_id=${userId}`);
+          const data = await response.json();
+          
+          console.log('🏢 Pricing modal - Company data check:', data);
+          setHasCompanyData(!!data.company);
+          setIsCheckingCompanyData(false);
+        } catch (error) {
+          console.error('Error checking company data:', error);
+          setHasCompanyData(false);
+          setIsCheckingCompanyData(false);
+        }
+      };
+      
+      checkCompanyData();
+    } else if (isOpen && isAuthenticated) {
+      setIsCheckingCompanyData(false);
+    }
+  }, [isOpen, isAuthenticated]);
+
   // Only reset form when modal is first opened (not when reopening)
   useEffect(() => {
     if (isOpen && isFirstRender.current) {
@@ -716,11 +732,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
     }]);
   };
 
-  const removeRole = useCallback((id: string) => {
-    if (roles.length > 1) {
-      setRoles(roles.filter(role => role.id !== id));
-    }
-  }, [roles.length]);
 
   const updateRole = useCallback((id: string, field: keyof RoleDetail, value: string | number | boolean) => {
     setRoles(prevRoles => prevRoles.map(role => 
@@ -853,7 +864,15 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
 
   const canProceed = useMemo(() => {
     switch (currentStep) {
-      case 1: return memberCount !== null && (isAuthenticated ? true : company.trim() !== '');
+      case 1: 
+        // For authenticated users, only need memberCount
+        if (isAuthenticated) return memberCount !== null;
+        // For anonymous users, check if company field is shown and filled
+        if (!isAuthenticated && !hasCompanyData && !isCheckingCompanyData) {
+          return memberCount !== null && company.trim() !== '';
+        }
+        // If company field is hidden (user already has company data), only need memberCount
+        return memberCount !== null;
       case 2: 
         return industry.trim() !== '' && 
                roles.every(role => role.title.trim() !== '' && role.description && role.description.trim() !== '') &&
@@ -861,7 +880,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       case 3: return roles.every(role => role.workspace !== undefined);
       default: return false;
     }
-  }, [currentStep, memberCount, industry, roles, sameRoles]);
+  }, [currentStep, memberCount, company, industry, roles, sameRoles, isAuthenticated, hasCompanyData, isCheckingCompanyData]);
 
   const nextStep = useCallback(() => {
     if (currentStep === 1) {
@@ -973,8 +992,8 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                 <Users className="w-12 h-12 text-lime-600 mx-auto mb-3" />
               </div>
               
-              {/* Company Field - Only show for anonymous users */}
-              {!isAuthenticated && (
+              {/* Company Field - Only show for anonymous users who haven't filled it out */}
+              {!isAuthenticated && !hasCompanyData && !isCheckingCompanyData && (
                 <div className="mb-6 flex justify-center">
                   <div className="w-64">
                     <Label htmlFor="company" className="text-sm font-medium text-gray-700 block mb-2 text-center">
@@ -989,6 +1008,20 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                       className="w-full h-16 text-center text-2xl font-medium placeholder-gray-400 !text-2xl placeholder:text-sm"
                       style={{ fontSize: '24px' }}
                     />
+                  </div>
+                </div>
+              )}
+
+              {/* Show loading state while checking company data */}
+              {!isAuthenticated && isCheckingCompanyData && (
+                <div className="mb-6 flex justify-center">
+                  <div className="w-64">
+                    <div className="w-full h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                        Checking company data...
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1427,8 +1460,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               {!isProcessing && (
                 <>
                   <div 
-                    className={`${!isAuthenticated ? 'blur-sm pointer-events-none' : ''}`}
-                    onClick={handleViewQuoteClick}
+                    className={`${!isAuthenticated && !isContactFormSubmitted ? 'blur-sm pointer-events-none' : ''}`}
                   >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Quote Summary */}
@@ -1487,14 +1519,13 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               )}
 
               {/* Contact Form for Anonymous Users */}
-              {!isAuthenticated && !isProcessing && (
+              {!isAuthenticated && !isProcessing && !isContactFormSubmitted && (
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                   <div className="p-6 bg-white rounded-lg shadow-lg border max-w-md w-full mx-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">To see quote, sign in with your details below</h3>
                     <p className="text-gray-600 text-sm mb-6 text-center">Please provide your information to view your personalized quote</p>
                     
-                    <form 
-                      key={formKey}
+                    <form
                       onSubmit={async (e) => {
                         e.preventDefault();
                         if (validateContactForm()) {
@@ -1525,10 +1556,10 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                             const result = await response.json();
                             console.log('Contact form submitted successfully:', result);
                             
-                            // Clear form and close modal
+                            // Clear form and hide contact form overlay
                             setContactFormData({ firstName: '', lastName: '', email: '' });
                             setContactFormErrors({ firstName: '', lastName: '', email: '' });
-                            setIsContactModalOpen(false);
+                            setIsContactFormSubmitted(true);
                             
                           } catch (error) {
                             console.error('Error submitting contact form:', error);
@@ -1876,7 +1907,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
                   <Button 
                     variant="outline" 
                     size="lg"
-                    onClick={resetForm}
+                    onClick={() => setShowStartOverAlert(true)}
                     className="border-lime-300 text-lime-700 hover:bg-lime-50 px-8 py-3"
                     disabled={isSaving}
                   >
@@ -1966,41 +1997,6 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       {/* Contact Modal for Anonymous Users */}
       
 
-      {/* View Quote Alert for Anonymous Users */}
-      <Dialog open={showViewQuoteAlert} onOpenChange={setShowViewQuoteAlert}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Sign In Required
-            </DialogTitle>
-            <DialogDescription className="text-gray-600">
-              Please provide your details below to view your personalized quote.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowViewQuoteAlert(false)}
-              className="flex-1"
-            >
-              Close
-            </Button>
-            <Button
-              onClick={() => {
-                setShowViewQuoteAlert(false);
-                // Focus on the form or scroll to it
-                const formElement = document.querySelector('#contact-name');
-                if (formElement) {
-                  (formElement as HTMLInputElement).focus();
-                }
-              }}
-              className="flex-1 bg-lime-600 hover:bg-lime-700 text-white"
-            >
-              Fill Details
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Cancel Confirmation Alert */}
       <Dialog open={showCancelAlert} onOpenChange={setShowCancelAlert}>
@@ -2027,6 +2023,39 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               className="flex-1"
             >
               Yes, Clear All
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Start Over Confirmation Alert */}
+      <Dialog open={showStartOverAlert} onOpenChange={setShowStartOverAlert}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              Are you sure?
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              This will reset all your progress and start the pricing quote from the beginning. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowStartOverAlert(false)}
+              className="flex-1"
+            >
+              Keep Current Progress
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setShowStartOverAlert(false);
+                resetForm();
+              }}
+              className="flex-1"
+            >
+              Yes, Start Over
             </Button>
           </div>
         </DialogContent>

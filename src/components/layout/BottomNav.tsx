@@ -166,7 +166,6 @@ export function BottomNav() {
       }
 
       console.log('✅ Setting top candidate:', employeeWithScore.user.name)
-      console.log('🔍 Top candidate avatar URL:', employeeWithScore.user.avatar_url)
       setTopCandidate(employeeWithScore)
     } catch (error) {
       console.error('Error fetching top candidate:', error)
@@ -375,7 +374,7 @@ export function BottomNav() {
     setShowPricingModal(false)
   }, [])
 
-  const handleInterviewSubmit = (data: InterviewRequestData) => {
+  const handleInterviewSubmit = async (data: InterviewRequestData) => {
     console.log('Interview request submitted:', data)
     setIsInterviewModalOpen(false)
     // Here you would typically send the data to your backend
@@ -497,26 +496,31 @@ export function BottomNav() {
                           <div className="flex items-center space-x-3">
                             <Avatar className="w-12 h-12">
                               {(() => {
-                                const avatarUrl = String((topCandidate as Record<string, unknown>).user?.avatar || '');
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                const avatarUrl = String((topCandidate as any)?.user?.avatar_url || '');
                                 return avatarUrl && avatarUrl !== 'undefined' && avatarUrl !== 'null' && avatarUrl.trim() !== '' ? (
                                   <AvatarImage 
                                     src={avatarUrl} 
-                                    alt={String((topCandidate as Record<string, unknown>).user?.name || 'Candidate')}
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    alt={String((topCandidate as any)?.user?.name || 'Candidate')}
                                     onError={() => console.log('❌ Top candidate avatar failed to load')}
                                     onLoad={() => console.log('✅ Top candidate avatar loaded successfully')}
                                   />
                                 ) : null;
                               })()}
                               <AvatarFallback className="bg-lime-100v text-lime-700 text-sm font-medium">
-                                {String((topCandidate as Record<string, unknown>).user?.name || 'U').charAt(0)}
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {String((topCandidate as any)?.user?.name || 'U').charAt(0)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-medium text-gray-900 truncate">
-                                {String((topCandidate as Record<string, unknown>).user?.name || 'Unknown')}
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {String((topCandidate as any)?.user?.name || 'Unknown')}
                               </p>
                               <p className="text-xs text-gray-500 truncate">
-                                {String((topCandidate as Record<string, unknown>).user?.position || 'Position')}
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {String((topCandidate as any)?.user?.position || 'Position')}
                               </p>
                             </div>
                           </div>
@@ -525,7 +529,10 @@ export function BottomNav() {
                               size="sm"
                               variant="outline"
                               className="flex-1 text-xs h-6"
-                              onClick={() => handleAskForInterview(String((topCandidate as Record<string, unknown>).user?.id), String((topCandidate as Record<string, unknown>).user?.name))}
+                              onClick={() => {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                handleAskForInterview(String((topCandidate as any)?.user?.id), String((topCandidate as any)?.user?.name));
+                              }}
                             >
                               Interview
                             </Button>

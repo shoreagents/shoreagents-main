@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Send } from 'lucide-react';
+import { Send, X } from 'lucide-react';
 import { generateUserId } from '@/lib/userEngagementService';
 
 interface AnonymousUserModalProps {
@@ -30,39 +30,6 @@ export function AnonymousUserModal({ isOpen, onClose }: AnonymousUserModalProps)
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasRequiredInfo, setHasRequiredInfo] = useState(false);
-  const [isCheckingUser, setIsCheckingUser] = useState(false);
-
-  // Check if user already has required information
-  useEffect(() => {
-    if (isOpen) {
-      checkUserInfo();
-    }
-  }, [isOpen]);
-
-  const checkUserInfo = async () => {
-    setIsCheckingUser(true);
-    try {
-      const userId = generateUserId();
-      
-      // Check if user already has industry and company information
-      const response = await fetch(`/api/user-info?user_id=${userId}`);
-      if (response.ok) {
-        const userData = await response.json();
-        if (userData.user && userData.user.industry_name && userData.user.company) {
-          setHasRequiredInfo(true);
-          // Close modal if user already has required info
-          setTimeout(() => {
-            onClose();
-          }, 100);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking user info:', error);
-    } finally {
-      setIsCheckingUser(false);
-    }
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -119,14 +86,17 @@ export function AnonymousUserModal({ isOpen, onClose }: AnonymousUserModalProps)
     }
   };
 
-  // Don't render modal if user already has required info
-  if (hasRequiredInfo) {
-    return null;
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-[500px]">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">
             Tell us about your business
@@ -136,15 +106,7 @@ export function AnonymousUserModal({ isOpen, onClose }: AnonymousUserModalProps)
           </DialogDescription>
         </DialogHeader>
 
-        {isCheckingUser ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-lime-600 border-t-transparent rounded-full animate-spin" />
-              <span className="text-gray-600">Checking your information...</span>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <AIIndustryAutocomplete
               value={formData.industry}
@@ -224,7 +186,6 @@ export function AnonymousUserModal({ isOpen, onClose }: AnonymousUserModalProps)
             </Button>
           </DialogFooter>
         </form>
-        )}
       </DialogContent>
     </Dialog>
   );

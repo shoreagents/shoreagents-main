@@ -201,23 +201,8 @@ export function AIIndustryAutocomplete({
   // Handle input focus
   const handleFocus = () => {
     setIsOpen(true);
-    if (searchQuery.trim()) {
-      // Show instant suggestions first
-      const filteredCommon = commonIndustries.filter(industry =>
-        industry.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        industry.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      
-      if (filteredCommon.length > 0) {
-        setSuggestions(filteredCommon);
-        setIsLoading(false);
-      } else {
-        searchWithAI(searchQuery);
-      }
-    } else {
-      // Show all common industries when focused with empty input
-      setSuggestions(commonIndustries);
-    }
+    // Show all common industries when focused (cursor is active)
+    setSuggestions(commonIndustries);
   };
 
   // Handle input blur
@@ -288,10 +273,17 @@ export function AIIndustryAutocomplete({
             placeholder={placeholder}
             className="pl-10 pr-10"
             autoComplete="off"
+            autoFocus={false}
           />
           <button
             type="button"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => {
+              if (!isOpen) {
+                // Show all common industries when chevron is clicked
+                setSuggestions(commonIndustries);
+              }
+              setIsOpen(!isOpen);
+            }}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             {isLoading ? (
