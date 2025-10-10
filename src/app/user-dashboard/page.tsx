@@ -6,7 +6,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { useUserAuth } from '@/lib/user-auth-context'
 import { Badge } from '@/components/ui/badge'
 import { useRouter } from 'next/navigation'
-import { useEngagementTracking } from '@/lib/useEngagementTracking'
+// import { useEngagementTracking } from '@/lib/useEngagementTracking'
 import ChatConsole from '@/components/ui/ai-chat-console'
 import { PricingCalculatorModal } from '@/components/ui/pricing-calculator-modal'
 import { useState, useEffect, useCallback } from 'react'
@@ -28,6 +28,14 @@ export default function UserDashboardPage() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false)
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false)
+
+  // Add dashboard-page class to body to prevent scrolling
+  useEffect(() => {
+    document.body.classList.add('dashboard-page')
+    return () => {
+      document.body.classList.remove('dashboard-page')
+    }
+  }, [])
   const [selectedCandidate, setSelectedCandidate] = useState<{ name: string; id: string; position?: string } | null>(null)
   const [topCandidate, setTopCandidate] = useState<Record<string, unknown> | null>(null)
   const [isLoadingCandidate, setIsLoadingCandidate] = useState(false)
@@ -40,45 +48,47 @@ export default function UserDashboardPage() {
     avatar?: string;
     score: number;
     isFavorite?: boolean;
+    bio?: string;
+    expectedSalary?: number;
   }>>([])
   const [isLoadingRecommended, setIsLoadingRecommended] = useState(false)
-  const { recordInteraction } = useEngagementTracking()
+  // const { // recordInteraction } = useEngagementTracking()
 
   const handleChatWithClaude = useCallback(() => {
-    recordInteraction('chat')
+    // // recordInteraction('chat')
     console.log('Chat button clicked - interaction recorded')
     setIsChatOpen(true)
-  }, [recordInteraction]);
+  }, []);
 
   const handleChatOpen = useCallback(() => {
-    recordInteraction('chat')
+    // // recordInteraction('chat')
     console.log('Chat with Maya button clicked from sidebar - interaction recorded')
     setIsChatOpen(true)
-  }, [recordInteraction]);
+  }, []);
 
   const handleBrowseTalent = useCallback(() => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('Browse Talent button clicked - interaction recorded')
     router.push('/we-got-talent')
-  }, [recordInteraction, router]);
+  }, [router]);
 
   const handleViewCandidateProfile = useCallback(() => {
     if (topCandidate) {
-      recordInteraction('navigation')
+      // recordInteraction('navigation')
       console.log('Viewing candidate profile:', (topCandidate as Record<string, unknown>).user)
       const userId = ((topCandidate as Record<string, unknown>).user as Record<string, unknown>)?.id
       router.push(`/employee/${userId}`)
     } else {
       handleBrowseTalent()
     }
-  }, [topCandidate, recordInteraction, router, handleBrowseTalent]);
+  }, [topCandidate, router, handleBrowseTalent]);
 
   const handleAskForInterview = useCallback((candidateId: string, candidateName: string, candidatePosition?: string) => {
-    recordInteraction('interview-request')
+    // recordInteraction('interview-request')
     console.log('Ask for interview clicked for candidate:', candidateName, candidateId, candidatePosition)
     setSelectedCandidate({ name: candidateName, id: candidateId, position: candidatePosition })
     setIsInterviewModalOpen(true)
-  }, [recordInteraction])
+  }, [])
 
   const handleInterviewSubmit = async (data: InterviewRequestData) => {
     try {
@@ -99,28 +109,28 @@ export default function UserDashboardPage() {
   };
 
   const handleViewMatchedProfile = useCallback((candidateId: string, candidateName: string) => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('View profile clicked for candidate:', candidateName, candidateId)
     router.push(`/employee/${candidateId}`)
-  }, [recordInteraction, router]);
+  }, [router]);
 
   const handleSeePricing = useCallback(() => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('See Pricing button clicked - interaction recorded')
     router.push('/pricing')
-  }, [recordInteraction, router]);
+  }, [router]);
 
   const handleViewQuote = useCallback(() => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('View Quote button clicked - interaction recorded')
     router.push('/user-dashboard/quotation')
-  }, [recordInteraction, router]);
+  }, [router]);
 
   const handleCreateQuote = useCallback(() => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('Create Quote button clicked - interaction recorded')
     setIsPricingModalOpen(true)
-  }, [recordInteraction]);
+  }, []);
 
   const fetchTopCandidate = useCallback(async () => {
     try {
@@ -300,9 +310,36 @@ export default function UserDashboardPage() {
         isFavorite?: boolean;
       }> = []
 
-      quotesResult.data.forEach(quote => {
+      quotesResult.data.forEach((quote, index) => {
+        console.log(`🔍 Quote ${index + 1}:`, {
+          id: quote.id,
+          candidate_recommendations: quote.candidate_recommendations,
+          recommendations_length: quote.candidate_recommendations?.length || 0
+        })
+        
         if (quote.candidate_recommendations && quote.candidate_recommendations.length > 0) {
-          allRecommendedCandidates.push(...quote.candidate_recommendations)
+          // Handle nested structure: extract recommendedCandidates from each role
+          quote.candidate_recommendations.forEach((roleData, roleIndex) => {
+            if (roleData.recommendedCandidates && roleData.recommendedCandidates.length > 0) {
+              console.log(`✅ Role ${roleIndex + 1} (${roleData.roleTitle}): ${roleData.recommendedCandidates.length} candidates`)
+              
+              // Map the nested structure to the expected format
+              const mappedCandidates = roleData.recommendedCandidates.map(candidate => ({
+                id: candidate.id,
+                name: candidate.name,
+                position: candidate.position,
+                avatar: candidate.avatar,
+                score: candidate.matchScore || candidate.overallScore || 0,
+                isFavorite: candidate.isFavorite || false,
+                bio: candidate.bio,
+                expectedSalary: candidate.expectedSalary || 0
+              }))
+              
+              allRecommendedCandidates.push(...mappedCandidates)
+            }
+          })
+        } else {
+          console.log(`❌ No candidate recommendations in quote ${index + 1}`)
         }
       })
 
@@ -320,6 +357,9 @@ export default function UserDashboardPage() {
         .sort((a, b) => b.score - a.score)
         .slice(0, 5)
 
+      console.log('📋 All collected candidates:', allRecommendedCandidates.length)
+      console.log('🔄 Unique candidates after deduplication:', uniqueCandidates.length)
+      console.log('🏆 Top 5 candidates:', topCandidates)
       console.log('✅ Setting recommended candidates:', topCandidates.length)
       setRecommendedCandidates(topCandidates)
     } catch (error) {

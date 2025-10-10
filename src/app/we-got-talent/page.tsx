@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { TalentCard } from '@/components/ui/talent-card';
 import { ResumeModal } from '@/components/ui/resume-modal';
 import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/interview-request-modal';
 import { SideNav } from '@/components/layout/SideNav';
 import { EmployeeCardData, ResumeGenerated } from '@/types/api';
-import { getEmployeeCardData } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/lib/toast-context';
-import { useEngagementTracking } from '@/lib/useEngagementTracking';
+// import { useEngagementTracking } from '@/lib/useEngagementTracking';
 import { useFavorites } from '@/lib/favorites-context';
+import { useEmployeeCardData } from '@/hooks/use-api';
 // import { ButtonLoader } from '@/components/ui/loader'; // Removed - will be recreated later
 import {
   Search,
@@ -21,10 +21,6 @@ import {
 } from 'lucide-react';
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<EmployeeCardData[]>([]);
-  const [filteredEmployees, setFilteredEmployees] = useState<EmployeeCardData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
@@ -33,7 +29,10 @@ export default function EmployeesPage() {
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<EmployeeCardData | null>(null);
   const { showToast } = useToast();
-  const { recordInteraction } = useEngagementTracking();
+  // const { recordInteraction } = useEngagementTracking();
+  
+  // Use TanStack Query to fetch employee data
+  const { data: employees = [], isLoading, error, refetch } = useEmployeeCardData();
 
   const handleInterviewSubmit = async (data: InterviewRequestData) => {
     try {
@@ -53,40 +52,32 @@ export default function EmployeesPage() {
     }
   };
 
-  const fetchEmployees = useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const data = await getEmployeeCardData();
-      setEmployees(data);
-      
-      // Check if we have work status data
-      const employeesWithWorkStatus = data.filter(emp => emp.workStatus);
-      if (employeesWithWorkStatus.length === 0) {
-        showToast(`Loaded ${data.length} employees (work status data unavailable)`, 'info');
-      } else {
-        showToast(`Loaded ${data.length} employees successfully`, 'success');
-      }
+      await refetch();
+      showToast(`Refreshed ${employees.length} employees successfully`, 'success');
     } catch (err) {
-      const errorMessage = 'Failed to fetch employee data. Please try again.';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-      console.error('Error fetching employees:', err);
-    } finally {
-      setLoading(false);
+      showToast('Failed to refresh employee data. Please try again.', 'error');
+      console.error('Error refreshing employees:', err);
     }
-  }, [showToast]);
+  }, [refetch, employees.length, showToast]);
 
-  const filterEmployees = useCallback(() => {
+  // Use useMemo to compute filtered employees instead of useEffect + setState
+  const filteredEmployees = useMemo(() => {
+    // Safety check: ensure employees is an array
+    if (!Array.isArray(employees)) {
+      return [];
+    }
+    
     let filtered = employees;
 
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(employee =>
-        employee.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.user.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.user.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.user?.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.user?.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (employee.workStatus?.currentEmployer?.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (employee.workStatus?.currentPosition?.toLowerCase().includes(searchTerm.toLowerCase()))
       );
@@ -94,11 +85,11 @@ export default function EmployeesPage() {
 
     // Apply favorites filter
     if (showFavoritesOnly) {
-      filtered = filtered.filter(employee => favorites.has(employee.user.id));
+      filtered = filtered.filter(employee => employee.user?.id && favorites.has(employee.user.id));
     }
 
     // Sort employees by score (highest to lowest)
-    const sortedEmployees = filtered.sort((a, b) => {
+    return filtered.sort((a, b) => {
       // Calculate scores for comparison
       const getScore = (employee: EmployeeCardData) => {
         // Use AI analysis score if available
@@ -111,10 +102,10 @@ export default function EmployeesPage() {
         if (employee.resume) score += 20;
         if (employee.aiAnalysis) score += 15;
         if (employee.workStatus) score += 25;
-        if (employee.applications.length > 0) score += 10;
-        if (employee.user.position) score += 10;
-        if (employee.user.location) score += 10;
-        if (employee.user.avatar) score += 10;
+        if (employee.applications && Array.isArray(employee.applications) && employee.applications.length > 0) score += 10;
+        if (employee.user?.position) score += 10;
+        if (employee.user?.location) score += 10;
+        if (employee.user?.avatar) score += 10;
         
         return Math.min(score, 100);
       };
@@ -125,28 +116,18 @@ export default function EmployeesPage() {
       // Sort from highest to lowest
       return scoreB - scoreA;
     });
-
-    setFilteredEmployees(sortedEmployees);
   }, [employees, searchTerm, favorites, showFavoritesOnly]);
-
-  useEffect(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
-
-  useEffect(() => {
-    filterEmployees();
-  }, [filterEmployees]);
 
 
   const handleViewResume = (resume: ResumeGenerated) => {
-    recordInteraction('view-resume');
+    // recordInteraction('view-resume');
     setSelectedResume(resume);
     setIsResumeModalOpen(true);
   };
 
   const toggleFavoritesView = () => {
     setShowFavoritesOnly(!showFavoritesOnly);
-    recordInteraction('toggle-favorites');
+    // recordInteraction('toggle-favorites');
   };
 
 
@@ -157,10 +138,10 @@ export default function EmployeesPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">Failed to load employee data. Please try again.</p>
           <Button onClick={() => {
-            recordInteraction('refresh-employees');
-            fetchEmployees();
+            // recordInteraction('refresh-employees');
+            handleRefresh();
           }} variant="outline" className="flex items-center space-x-2">
             <RefreshCw className="w-4 h-4" />
             <span>Try Again</span>
@@ -187,8 +168,8 @@ export default function EmployeesPage() {
 
             </div>
             <Button onClick={() => {
-              recordInteraction('refresh-employees');
-              fetchEmployees();
+              // recordInteraction('refresh-employees');
+              handleRefresh();
             }} variant="outline" className="flex items-center space-x-2">
               <RefreshCw className="w-4 h-4" />
               <span>Refresh</span>
@@ -205,7 +186,7 @@ export default function EmployeesPage() {
                 placeholder="Search by name, email, position, or location..."
                 value={searchTerm}
                 onChange={(e) => {
-                  recordInteraction('search-employees');
+                  // recordInteraction('search-employees');
                   setSearchTerm(e.target.value);
                 }}
                 className="pl-10 focus:ring-2 focus:ring-lime-500 focus:border-lime-500"
@@ -247,7 +228,7 @@ export default function EmployeesPage() {
                 data={employee}
                 onAskForInterview={() => {
                   // Handle interview request for this candidate
-                  recordInteraction('interview-request')
+                  // recordInteraction('interview-request')
                   console.log('Interview requested for:', employee.user.name);
                   setSelectedCandidate(employee);
                   setIsInterviewModalOpen(true);

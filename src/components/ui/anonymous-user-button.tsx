@@ -1,20 +1,43 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AnonymousUserModal } from './anonymous-user-modal';
 import { useAuth } from '@/lib/auth-context';
 import { generateUserId } from '@/lib/userEngagementService';
+import { useUserFormStatus } from '@/hooks/use-api';
 
 export function AnonymousUserButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated } = useAuth();
+  
+  // Only generate userId once, not on every render
+  const userId = useMemo(() => generateUserId(), []);
+  const { data: userFormStatus, isLoading, error } = useUserFormStatus(userId);
+
+  console.log('🎯 AnonymousUserButton component rendered:', {
+    isAuthenticated,
+    userId,
+    isLoading,
+    userFormStatus,
+    error
+  });
 
   // Auto-open modal after 45 seconds
   useEffect(() => {
+    console.log('🔍 AnonymousUserButton useEffect triggered:', {
+      isAuthenticated,
+      isLoading,
+      userFormStatus,
+      error
+    });
+
     // Only start timer for anonymous users
     if (isAuthenticated) {
+      console.log('🔐 User is authenticated, skipping anonymous user modal');
       return;
     }
+
+    // Database check is the primary source of truth - no localStorage needed
 
     let timer: NodeJS.Timeout;
     let countdownInterval: NodeJS.Timeout;
@@ -39,40 +62,32 @@ export function AnonymousUserButton() {
       }, 45000); // 45 seconds
     };
 
-    const checkUserFormStatus = async () => {
-      try {
-        console.log('🔍 Checking user form status in database...');
-        const userId = generateUserId();
-        console.log('👤 Generated user ID:', userId);
-        
-        const response = await fetch(`/api/check-user-form-status?user_id=${userId}`);
-        const data = await response.json();
+    // Check if user form status is loaded and handle accordingly
+    if (!isLoading && userFormStatus) {
+      console.log('📊 Database check result:', userFormStatus);
 
-        console.log('📊 Database check result:', data);
-
-        if (data.hasFilledForm) {
-          console.log('🚫 User has already filled out the form (database check):', {
-            company: data.company,
-            industry: data.industry,
-            hasFilledForm: data.hasFilledForm
-          });
-          return;
-        }
-
-        console.log('✅ User has not filled out the form, starting countdown in 2 seconds...');
-        // Add a small delay to make sure the database check is complete
-        setTimeout(() => {
-          startCountdown();
-        }, 2000);
-      } catch (error) {
-        console.error('Error checking user form status:', error);
-        console.log('⚠️ Database check failed, starting countdown anyway');
-        startCountdown();
+      if (userFormStatus.hasFilledForm) {
+        console.log('🚫 User has already filled out the form (database check):', {
+          company: userFormStatus.company,
+          industry: userFormStatus.industry,
+          hasFilledForm: userFormStatus.hasFilledForm
+        });
+        console.log('✅ Modal will NOT be shown - user already filled out the form');
+        return;
       }
-    };
 
-    // Start the database check
-    checkUserFormStatus();
+      console.log('✅ User has not filled out the form, starting countdown in 2 seconds...');
+      // Add a small delay to make sure the database check is complete
+      setTimeout(() => {
+        startCountdown();
+      }, 2000);
+    } else if (error) {
+      console.error('❌ Error checking user form status:', error);
+      console.log('⚠️ Database check failed, starting countdown anyway');
+      startCountdown();
+    } else if (isLoading) {
+      console.log('⏳ Still loading user form status...');
+    }
 
     // Cleanup function
     return () => {
@@ -80,7 +95,7 @@ export function AnonymousUserButton() {
       if (countdownInterval) clearInterval(countdownInterval);
       console.log('🧹 Anonymous user modal timer cleaned up');
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading, userFormStatus, error]);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -88,8 +103,11 @@ export function AnonymousUserButton() {
 
   // Only show for anonymous users
   if (isAuthenticated) {
+    console.log('🔐 User is authenticated, AnonymousUserButton returning null');
     return null;
   }
+
+  console.log('👤 AnonymousUserButton rendering for anonymous user');
 
   return (
     <>

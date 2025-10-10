@@ -16,7 +16,7 @@ import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 
 export function UserMenu() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, isAdmin } = useAuth()
   const [loading, setLoading] = useState(false)
 
 
@@ -24,10 +24,12 @@ export function UserMenu() {
   const handleSignOut = useCallback(async () => {
     setLoading(true)
     try {
+      console.log('🔍 UserMenu - Starting sign out...')
       await signOut()
+      console.log('✅ UserMenu - Sign out completed')
       toast.success("Signed out successfully")
     } catch (error) {
-      console.error("Sign out error:", error)
+      console.error("❌ UserMenu - Sign out error:", error)
       toast.error("Failed to sign out")
     } finally {
       setLoading(false)
@@ -88,7 +90,7 @@ export function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <User className="mr-2 h-4 w-4" />
-          <span><a href="/user-dashboard">Dashboard</a></span>
+          <span><a href={isAdmin ? "/admin-dashboard" : "/user-dashboard"}>Dashboard</a></span>
         </DropdownMenuItem>
         <DropdownMenuItem>
           <Settings className="mr-2 h-4 w-4" />

@@ -188,8 +188,19 @@ export async function getCandidateRecommendations(
   try {
     console.log(`🔍 BPOC Service: Searching for ${role} (${level} level) in industry: ${industry || 'any'}`);
     
-    const bpocEmployees = await fetchBPOCEmployeeData()
-    console.log(`📋 BPOC Service: Fetched ${bpocEmployees.length} total employees from BPOC`);
+    let bpocEmployees: BPOCUser[] = []
+    try {
+      bpocEmployees = await fetchBPOCEmployeeData()
+      console.log(`📋 BPOC Service: Fetched ${bpocEmployees.length} total employees from BPOC`);
+      
+      if (bpocEmployees.length === 0) {
+        console.warn('⚠️ BPOC API returned empty data, this might be a network issue');
+        throw new Error('No BPOC data available');
+      }
+    } catch (bpocError) {
+      console.warn('⚠️ BPOC API unavailable, using empty candidate list:', bpocError)
+      bpocEmployees = []
+    }
     
     // Filter active employees with expected salary and exclude mock/test data
     const activeCandidates = bpocEmployees.filter(emp => {

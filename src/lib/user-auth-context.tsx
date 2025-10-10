@@ -240,10 +240,35 @@ export function UserAuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
-      await supabase.auth.signOut()
+      console.log('🔍 UserAuth - Starting sign out...')
+      
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('❌ UserAuth - Supabase signOut error:', error)
+        throw error
+      }
+      
+      console.log('✅ UserAuth - Supabase signOut successful')
+      
+      // Clear user state
       setUser(null)
+      
+      console.log('✅ UserAuth - User state cleared')
+      
+      // Force redirect to home page
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 100)
+      
     } catch (error) {
-      console.error('Error in signOut:', error)
+      console.error('❌ UserAuth - Sign out error:', error)
+      
+      // Even if there's an error, clear user state
+      setUser(null)
+      
+      // Still redirect to home page
+      window.location.href = '/'
     }
   }, [])
 

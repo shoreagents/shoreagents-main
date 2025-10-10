@@ -3,6 +3,12 @@
 
 /* Removed loader animation delays */
 
+/* Prevent body scrolling on dashboard pages */
+body.dashboard-page {
+  overflow: hidden;
+  height: 100vh;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

@@ -195,7 +195,7 @@ update
 ALTER TABLE public.content_views OWNER TO postgres;
 GRANT ALL ON TABLE public.content_views TO postgres;
 GRANT ALL ON TABLE public.content_views TO anon;
-GRANT INSERT, UPDATE, DELETE, SELECT ON TABLE public.content_views TO authenticated;
+GRANT DELETE, SELECT, INSERT, UPDATE ON TABLE public.content_views TO authenticated;
 
 
 -- public.user_page_visits definition
@@ -252,13 +252,19 @@ CREATE TABLE public.users (
 	auth_user_id uuid NULL,
 	user_type public."user_type_enum" DEFAULT 'Anonymous'::user_type_enum NOT NULL,
 	industry_name varchar(200) NULL,
+	first_lead_capture bool DEFAULT false NULL,
+	second_lead_capture bool DEFAULT false NULL,
+	third_lead_capture bool DEFAULT false NULL,
 	CONSTRAINT users_pkey PRIMARY KEY (id),
 	CONSTRAINT users_user_id_key UNIQUE (user_id)
 );
 CREATE INDEX idx_users_company ON public.users USING btree (company);
 CREATE INDEX idx_users_country ON public.users USING btree (country);
 CREATE INDEX idx_users_email ON public.users USING btree (email);
+CREATE INDEX idx_users_first_lead_capture ON public.users USING btree (first_lead_capture);
 CREATE INDEX idx_users_industry_name ON public.users USING btree (industry_name);
+CREATE INDEX idx_users_second_lead_capture ON public.users USING btree (second_lead_capture);
+CREATE INDEX idx_users_third_lead_capture ON public.users USING btree (third_lead_capture);
 CREATE INDEX idx_users_user_id ON public.users USING btree (user_id);
 
 -- Table Triggers
@@ -2796,6 +2802,6 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO public;
 GRANT USAGE ON SCHEMA public TO anon;
 GRANT USAGE ON SCHEMA public TO authenticated;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT TRUNCATE, INSERT, UPDATE, DELETE, SELECT, TRIGGER, MAINTAIN, REFERENCES ON TABLES TO anon;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE, UPDATE, SELECT ON SEQUENCES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT DELETE, MAINTAIN, SELECT, INSERT, REFERENCES, UPDATE, TRIGGER, TRUNCATE ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO anon;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon;

@@ -12,6 +12,8 @@ export function GlobalEngagementTracker() {
     if (pathname) {
       console.log('🌍 Global tracker: Starting tracking for:', pathname)
       console.log('🌍 Global tracker: userEngagementTracker exists:', !!userEngagementTracker)
+      
+      // Ensure anonymous user is created immediately when tracking starts
       userEngagementTracker.resetForNewPage(pathname)
     }
 

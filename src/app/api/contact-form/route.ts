@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createClient();
 
     // First, ensure the user exists using the database function
-    const { data: ensureResult, error: ensureError } = await supabase
+    const { error: ensureError } = await supabase
       .rpc('ensure_user_exists', { p_user_id: user_id });
 
     if (ensureError) {

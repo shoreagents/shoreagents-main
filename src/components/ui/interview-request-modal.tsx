@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Calendar, User, CheckCircle } from 'lucide-react';
 import { LoginModal } from '@/components/ui/login-modal';
 import { useAuth } from '@/lib/auth-context';
+import { useInterviewRequestMutation } from '@/hooks/use-api';
 
 interface InterviewRequestModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export function InterviewRequestModal({
   onSubmit
 }: InterviewRequestModalProps) {
   const { appUser, isAuthenticated } = useAuth();
+  const interviewRequestMutation = useInterviewRequestMutation();
   const [formData, setFormData] = useState<InterviewRequestData>({
     firstName: '',
     lastName: '',
@@ -104,7 +106,6 @@ export function InterviewRequestModal({
 
     if (isAuthenticated) {
       // User is logged in, submit the interview request directly
-      setLoading(true);
       try {
         // Get user_id from auth context
         const userId = appUser?.user_id;
@@ -112,27 +113,14 @@ export function InterviewRequestModal({
           throw new Error('User ID not found');
         }
 
-        // Send interview request to API
-        const response = await fetch('/api/interview-request', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            candidateId: candidateId || candidateName,
-            candidateName: candidateName,
-            candidatePosition: candidatePosition,
-            requesterFirstName: formData.firstName,
-            requesterLastName: formData.lastName,
-            requesterEmail: formData.email,
-            user_id: userId
-          }),
+        // Send interview request to API using TanStack Query
+        await interviewRequestMutation.mutateAsync({
+          candidate_id: candidateId || candidateName,
+          candidate_name: candidateName,
+          candidate_position: candidatePosition,
+          candidate_avatar_url: '', // Add avatar URL if available
+          message: formData.message || '',
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to submit interview request');
-        }
 
         // Show success state
         setIsSuccess(true);
@@ -145,8 +133,6 @@ export function InterviewRequestModal({
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Failed to submit interview request. Please try again.');
         console.error('Interview request error:', error);
-      } finally {
-        setLoading(false);
       }
     } else {
       // User is not logged in, close the interview modal and open the login modal with pre-filled data
@@ -240,7 +226,7 @@ export function InterviewRequestModal({
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   required
-                  disabled={loading || isSuccess}
+                  disabled={loading || isSuccess || interviewRequestMutation.isPending}
                   className={isAuthenticated ? 'bg-gray-50' : ''}
                 />
               </div>
@@ -254,7 +240,7 @@ export function InterviewRequestModal({
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   required
-                  disabled={loading || isSuccess}
+                  disabled={loading || isSuccess || interviewRequestMutation.isPending}
                   className={isAuthenticated ? 'bg-gray-50' : ''}
                 />
               </div>
@@ -269,7 +255,7 @@ export function InterviewRequestModal({
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 required
-                disabled={loading || isSuccess}
+                disabled={loading || isSuccess || interviewRequestMutation.isPending}
                 className={isAuthenticated ? 'bg-gray-50' : ''}
               />
             </div>
@@ -281,17 +267,17 @@ export function InterviewRequestModal({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={loading || isSuccess}
+              disabled={loading || isSuccess || interviewRequestMutation.isPending}
               className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={loading || isSuccess}
+              disabled={loading || isSuccess || interviewRequestMutation.isPending}
               className="w-full sm:w-auto bg-lime-600 hover:bg-lime-700 text-white"
             >
-              {loading ? (
+              {loading || interviewRequestMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Submitting Request...
@@ -321,6 +307,7 @@ export function InterviewRequestModal({
             lastName: formData.lastName,
             email: formData.email
           }}
+          context="default"
         >
           <div style={{ display: 'none' }} />
         </LoginModal>

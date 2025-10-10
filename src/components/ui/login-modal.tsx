@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,11 +13,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { LogIn, UserPlus, ChevronLeft, ChevronRight, User, Mail, Phone, Building, MapPin, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
+import { LogIn, UserPlus, ChevronLeft, ChevronRight, User, Mail, Building, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
 import { useAdminAuth } from "@/lib/admin-auth-context"
 import { createClient } from "@/lib/supabase/client"
+import { generateUserId } from "@/lib/userEngagementService"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -28,6 +29,7 @@ import { getAuthErrorMessage } from "@/lib/authErrorUtils"
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(1, "Password is required"),
+  rememberPassword: z.boolean().optional(),
 })
 
 // Signup form schema
@@ -35,9 +37,7 @@ const signupSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
   company: z.string().optional(),
-  country: z.string().optional(),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -55,6 +55,7 @@ interface LoginModalProps {
     firstName?: string
     lastName?: string
     email?: string
+    company?: string
   }
 }
 
@@ -68,6 +69,7 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right')
   const [emailChecking, setEmailChecking] = useState(false)
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { refreshUser } = useAuth()
   const { refreshAdmin } = useAdminAuth()
 
@@ -80,9 +82,29 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
     }
   }, [prefillData])
 
-  // Check email availability
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Check email availability with better validation
   const checkEmailAvailability = async (email: string) => {
-    if (!email || !email.includes('@')) {
+    // Reset state first
+    setEmailAvailable(null)
+    
+    // Only check if email is complete and valid
+    if (!email || !email.includes('@') || email.length < 5) {
+      setEmailAvailable(null)
+      return
+    }
+    
+    // Check if email looks complete (has @ and domain)
+    const emailParts = email.split('@')
+    if (emailParts.length !== 2 || emailParts[1].length < 3 || !emailParts[1].includes('.')) {
       setEmailAvailable(null)
       return
     }
@@ -107,6 +129,60 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
     }
   }
 
+  // Debounced email check function
+  const debouncedCheckEmail = useCallback((email: string) => {
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current)
+    }
+    
+    // Set new timeout
+    debounceTimeoutRef.current = setTimeout(() => {
+      checkEmailAvailability(email)
+    }, 1000) // Increased debounce time to 1 second
+  }, [])
+
+  // Load saved credentials from localStorage
+  const loadSavedCredentials = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedCredentials = localStorage.getItem('shoreagents_saved_credentials')
+        if (savedCredentials) {
+          const { email, password } = JSON.parse(savedCredentials)
+          return { email, password }
+        }
+      } catch (error) {
+        console.error('Error loading saved credentials:', error)
+      }
+    }
+    return { email: "", password: "" }
+  }
+
+  // Save credentials to localStorage
+  const saveCredentials = (email: string, password: string) => {
+    if (typeof window !== 'undefined') {
+      try {
+        const credentials = { email, password }
+        localStorage.setItem('shoreagents_saved_credentials', JSON.stringify(credentials))
+        console.log('🔍 Credentials saved to localStorage')
+      } catch (error) {
+        console.error('Error saving credentials:', error)
+      }
+    }
+  }
+
+  // Clear saved credentials from localStorage
+  const clearSavedCredentials = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('shoreagents_saved_credentials')
+        console.log('🔍 Saved credentials cleared from localStorage')
+      } catch (error) {
+        console.error('Error clearing saved credentials:', error)
+      }
+    }
+  }
+
   // Login form
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -114,8 +190,19 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
     defaultValues: {
       email: "",
       password: "",
+      rememberPassword: false,
     },
   })
+
+  // Load saved credentials on component mount
+  React.useEffect(() => {
+    const savedCredentials = loadSavedCredentials()
+    if (savedCredentials.email && savedCredentials.password) {
+      loginForm.setValue('email', savedCredentials.email)
+      loginForm.setValue('password', savedCredentials.password)
+      loginForm.setValue('rememberPassword', true)
+    }
+  }, [])
 
   // Signup form
   const signupForm = useForm<SignupFormData>({
@@ -125,9 +212,7 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
       firstName: prefillData?.firstName || "",
       lastName: prefillData?.lastName || "",
       email: prefillData?.email || "",
-      phoneNumber: "",
-      company: "",
-      country: "",
+      company: prefillData?.company || "",
       password: "",
       confirmPassword: "",
     },
@@ -145,6 +230,13 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
         password: data.password,
       })
 
+      // Handle remember password functionality
+      if (data.rememberPassword) {
+        saveCredentials(data.email, data.password)
+      } else {
+        clearSavedCredentials()
+      }
+
       if (authError) {
         throw new Error(authError.message)
       }
@@ -156,12 +248,34 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
       // Refresh both user and admin contexts
       await Promise.all([refreshUser(), refreshAdmin()])
       
-      // Check if this is an admin user
-      const { data: userData, error: userError } = await supabase
+      // Check if this is an admin user - prioritize email lookup for admin detection
+      console.log('🔍 Login debug - Auth user ID:', authData.user.id);
+      console.log('🔍 Login debug - Email:', data.email);
+      
+      // First try email lookup (more reliable for admin detection)
+      let { data: userData, error: userError } = await supabase
         .from('users')
-        .select('is_admin, user_type')
-        .eq('auth_user_id', authData.user.id)
+        .select('user_type, auth_user_id, email')
+        .eq('email', data.email)
         .single()
+      
+      console.log('🔍 Email lookup result:', { userData, userError });
+      
+      // If email lookup fails, try auth_user_id lookup as fallback
+      if (userError) {
+        console.log('🔄 Email lookup failed, trying auth_user_id lookup...');
+        const { data: authUserData, error: authUserError } = await supabase
+          .from('users')
+          .select('user_type, auth_user_id, email')
+          .eq('auth_user_id', authData.user.id)
+          .single();
+        
+        if (!authUserError && authUserData) {
+          userData = authUserData;
+          userError = null;
+          console.log('✅ Found user by auth_user_id:', authUserData);
+        }
+      }
       
       console.log('LoginModal - User data:', userData)
       console.log('LoginModal - User error:', userError)
@@ -175,7 +289,7 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
         loginForm.reset()
         
         // Redirect to admin dashboard
-        window.location.href = '/admin'
+        window.location.href = '/admin-dashboard'
       } else {
         // This is a regular user
         toast.success("Welcome back!")
@@ -215,9 +329,30 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
           password: data.password,
           firstName: data.firstName,
           lastName: data.lastName,
-          phoneNumber: data.phoneNumber,
           company: data.company,
-          country: data.country,
+          // Pass the current anonymous user ID to preserve their data
+          // Use the existing device ID from localStorage (this should already exist)
+          anonymous_user_id: (() => {
+            // This should always run on the client side
+            if (typeof window !== 'undefined') {
+              const existingId = localStorage.getItem('shoreagents_device_id');
+              if (existingId) {
+                console.log('🔍 Using existing device ID for signup:', existingId);
+                console.log('🔍 Device ID format check - is fingerprint based:', !existingId.includes('_') || existingId.startsWith('device_'));
+                return existingId;
+              } else {
+                console.log('⚠️ No existing device ID found in localStorage - this should not happen for anonymous users');
+                console.log('⚠️ Available localStorage keys:', Object.keys(localStorage));
+                console.log('⚠️ This means the AnonymousUserInitializer did not run or failed');
+                // For anonymous users, this should always exist
+                // If it doesn't exist, something went wrong with the anonymous tracking
+                return null; // Let the API handle this case
+              }
+            } else {
+              console.log('⚠️ Window is undefined - this should not happen in client-side code');
+              return null;
+            }
+          })(),
         }),
       })
 
@@ -228,10 +363,59 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
       }
 
       toast.success("Account created successfully! Your browsing history has been preserved and linked to your account.")
-      setOpen(false)
-      signupForm.reset()
-      setIsSignup(false)
-      setCurrentStep(1)
+      
+      // Automatically sign in the user after successful account creation
+      try {
+        const supabase = createClient()
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        })
+
+        if (signInError) {
+          console.error('Auto sign-in error:', signInError)
+          toast.error('Account created but failed to sign in automatically. Please sign in manually.')
+        } else {
+          console.log('✅ Auto sign-in successful')
+          
+          // Refresh auth contexts to update user state
+          await Promise.all([refreshUser(), refreshAdmin()])
+          
+          // Check if this is an admin user for proper redirect
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('user_type, auth_user_id, email')
+            .eq('email', data.email)
+            .single()
+          
+          if (!userError && userData && userData.user_type === 'Admin') {
+            // Admin user - redirect to admin dashboard
+            console.log('✅ New Admin user created - redirecting to admin-dashboard')
+            toast.success("Welcome, Admin!")
+            setOpen(false)
+            signupForm.reset()
+            setIsSignup(false)
+            setCurrentStep(1)
+            window.location.href = '/admin-dashboard'
+          } else {
+            // Regular user - redirect to user dashboard
+            console.log('✅ New Regular user created - redirecting to user-dashboard')
+            toast.success("Welcome to ShoreAgents!")
+            setOpen(false)
+            signupForm.reset()
+            setIsSignup(false)
+            setCurrentStep(1)
+            window.location.href = '/user-dashboard'
+          }
+        }
+      } catch (autoSignInError) {
+        console.error('Auto sign-in failed:', autoSignInError)
+        toast.error('Account created but failed to sign in automatically. Please sign in manually.')
+        setOpen(false)
+        signupForm.reset()
+        setIsSignup(false)
+        setCurrentStep(1)
+      }
 
       if (onSuccess) {
         onSuccess()
@@ -291,26 +475,22 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
 
   // Signup form navigation
   const nextStep = async () => {
-    const fieldsToValidate = currentStep === 1 
-      ? ['firstName', 'lastName', 'email', 'phoneNumber'] 
-      : ['password', 'confirmPassword']
+    const fieldsToValidate = ['firstName', 'lastName', 'email', 'password', 'confirmPassword', 'company']
     
     const isValid = await signupForm.trigger(fieldsToValidate as (keyof SignupFormData)[])
     
     // Also check if email is available before proceeding
-    if (currentStep === 1 && emailAvailable === false) {
+    if (emailAvailable === false) {
       toast.error('Please use a different email address or sign in with your existing account.')
       return
     }
     
-    if (isValid && (currentStep === 2 || emailAvailable !== false)) {
-      setCurrentStep(2)
+    if (isValid && (emailAvailable === true || emailAvailable === null)) {
+      // Submit the form directly since we only have one step now
+      await onSignupSubmit(signupForm.getValues())
     }
   }
 
-  const prevStep = () => {
-    setCurrentStep(1)
-  }
 
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
@@ -334,7 +514,7 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[700px] overflow-hidden flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="py-0">
           <DialogTitle className="text-2xl font-bold text-center text-gray-900">
             {isSignup ? "Create Your Account" : "Welcome to ShoreAgents"}
           </DialogTitle>
@@ -347,7 +527,7 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
         </DialogHeader>
 
 
-        <div className="px-6 py-4 flex-1 flex flex-col overflow-hidden">
+        <div className="px-6 py-2 flex-1 flex flex-col overflow-hidden">
           {/* Login Form */}
           {!isSignup && (
             <div className={`animate-in fade-in-0 duration-300 flex-1 flex flex-col ${
@@ -357,7 +537,7 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
             }`}>
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="flex-1 flex flex-col">
-                  <div className="space-y-4 flex-1">
+                  <div className="space-y-2 flex-1">
                     <FormField
                       control={loginForm.control}
                       name="email"
@@ -413,6 +593,31 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
                               </button>
                             </div>
                           </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={loginForm.control}
+                      name="rememberPassword"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              className="h-4 w-4 text-lime-600 focus:ring-lime-500 border-gray-300 rounded"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-medium text-gray-700 cursor-pointer">
+                              Remember password
+                            </FormLabel>
+                            <p className="text-xs text-gray-500">
+                              Save your login credentials for faster access
+                            </p>
+                          </div>
                         </FormItem>
                       )}
                     />
@@ -572,11 +777,10 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
                                       if (fieldState.error) {
                                         signupForm.clearErrors('email')
                                       }
-                                      // Check email availability with debounce
-                                      const timeoutId = setTimeout(() => {
-                                        checkEmailAvailability(e.target.value)
-                                      }, 500)
-                                      return () => clearTimeout(timeoutId)
+                                      // Reset email availability state when user starts typing
+                                      setEmailAvailable(null)
+                                      // Check email availability with proper debounce
+                                      debouncedCheckEmail(e.target.value)
                                     }}
                                   />
                                   {emailChecking && (
@@ -604,54 +808,18 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
                           )}
                         />
 
-                        <FormField
-                          control={signupForm.control}
-                          name="phoneNumber"
-                          render={({ field, fieldState }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-700">Phone Number</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                  <Input
-                                    type="tel"
-                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Phone Number"}
-                                    className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
-                                    {...field}
-                                    onChange={(e) => {
-                                      field.onChange(e)
-                                      // Clear error when user starts typing
-                                      if (fieldState.error) {
-                                        signupForm.clearErrors('phoneNumber')
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                  />
-                </div>
-                    )}
-
-                    {/* Step 2: Company & Security */}
-                    {currentStep === 2 && (
-                      <div className="space-y-4">
-                        <div className="text-center mb-6">
-                          <h3 className="text-lg font-semibold text-gray-900">Account Security</h3>
-                          <p className="text-sm text-gray-600">Set up your password</p>
-              </div>
-
+                        {/* Company Field */}
                         <FormField
                           control={signupForm.control}
                           name="company"
                           render={({ field, fieldState }) => (
                             <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-700">Company Name</FormLabel>
+                              <FormLabel className="text-sm font-medium text-gray-700">Company</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                   <Input
+                                    type="text"
                                     placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Company Name"}
                                     className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
                                     {...field}
@@ -665,161 +833,126 @@ export function LoginModal({ children, onSuccess, prefillData }: LoginModalProps
                                   />
                                 </div>
                               </FormControl>
+                              <FormMessage />
                             </FormItem>
                           )}
                         />
 
-                        <FormField
-                          control={signupForm.control}
-                          name="country"
-                          render={({ field, fieldState }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-700">Country</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                  <Input
-                                    placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Country"}
-                                    className={`pl-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
-                                    {...field}
-                                    onChange={(e) => {
-                                      field.onChange(e)
-                                      // Clear error when user starts typing
-                                      if (fieldState.error) {
-                                        signupForm.clearErrors('country')
-                                      }
-                                    }}
-                                  />
+                        {/* Password Fields */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={signupForm.control}
+                            name="password"
+                            render={({ field, fieldState }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <Input
+                                      type={showPassword ? "text" : "password"}
+                                      placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Password"}
+                                      className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                      {...field}
+                                      onChange={(e) => {
+                                        field.onChange(e)
+                                        // Clear error when user starts typing
+                                        if (fieldState.error) {
+                                          signupForm.clearErrors('password')
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+                                      onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                  </div>
+                                </FormControl>
+                                <div className="min-h-[20px]">
+                                  <FormMessage className="text-xs" />
                                 </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                              </FormItem>
+                            )}
+                          />
 
-                        <FormField
-                          control={signupForm.control}
-                          name="password"
-                          render={({ field, fieldState }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
-                              <FormControl>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                                    placeholder="Password"
-                                    className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
-                                    {...field}
-                                    onChange={(e) => {
-                                      field.onChange(e)
-                                      // Clear error when user starts typing
-                                      if (fieldState.error) {
-                                        signupForm.clearErrors('password')
-                                      }
-                                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                          <FormField
+                            control={signupForm.control}
+                            name="confirmPassword"
+                            render={({ field, fieldState }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel className="text-sm font-medium text-gray-700">Confirm Password</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <Input
+                                      type={showConfirmPassword ? "text" : "password"}
+                                      placeholder={fieldState.error && fieldState.isTouched ? fieldState.error.message : "Confirm Password"}
+                                      className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
+                                      {...field}
+                                      onChange={(e) => {
+                                        field.onChange(e)
+                                        // Clear error when user starts typing
+                                        if (fieldState.error) {
+                                          signupForm.clearErrors('confirmPassword')
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+                                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                  </div>
+                                </FormControl>
+                                <div className="min-h-[20px]">
+                                  <FormMessage className="text-xs" />
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
                 </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={signupForm.control}
-                          name="confirmPassword"
-                          render={({ field, fieldState }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-700">Confirm Password</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                  <Input
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    placeholder="Confirm your password"
-                                    className={`pl-10 pr-10 ${fieldState.error && fieldState.isTouched ? 'border-red-500 focus:border-red-500 focus:ring-red-500 placeholder:text-red-500' : 'border-gray-300 focus:border-lime-500 focus:ring-lime-500'}`}
-                                    {...field}
-                                    onChange={(e) => {
-                                      field.onChange(e)
-                                      // Clear error when user starts typing
-                                      if (fieldState.error) {
-                                        signupForm.clearErrors('confirmPassword')
-                                      }
-                                    }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
-                                  >
-                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                  </button>
-                                </div>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
                     )}
+
               </div>
 
                   {/* Navigation Buttons - Fixed at bottom */}
                   <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-auto">
                     <div>
-                      {currentStep === 2 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={prevStep}
-                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                        >
-                          <ChevronLeft className="w-4 h-4 mr-2" />
-                          Back
-                        </Button>
-                      )}
+                      {/* No back button needed for single step */}
                     </div>
 
                     <div className="flex space-x-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setOpen(false)}
                         className="border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </Button>
+                      >
+                        Cancel
+                      </Button>
 
-                      {currentStep === 1 ? (
-                        <Button
-                          type="button"
-                          onClick={nextStep}
-                          className="bg-lime-600 hover:bg-lime-700 text-white"
-                        >
-                          Next
-                          <ChevronRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      ) : (
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Creating Account...
-                </>
-              ) : (
-                "Create Account"
-              )}
-            </Button>
-                      )}
+                      <Button
+                        type="button"
+                        onClick={nextStep}
+                        disabled={loading}
+                        className="bg-lime-600 hover:bg-lime-700 text-white disabled:opacity-50"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Creating Account...
+                          </>
+                        ) : (
+                          "Create Account"
+                        )}
+                      </Button>
                     </div>
                   </div>
         </form>

@@ -8,7 +8,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 // Rate limiting to prevent excessive API calls
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per IP
+const RATE_LIMIT_MAX_REQUESTS = 20; // Max 20 requests per minute per IP (increased from 10)
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate query length to prevent unnecessary API calls
-    if (query.trim().length < 1) {
+    if (query.trim().length < 2) {
       return NextResponse.json(
-        { error: 'Query cannot be empty' },
+        { error: 'Query must be at least 2 characters long' },
         { status: 400 }
       );
     }
@@ -80,24 +80,37 @@ export async function POST(request: NextRequest) {
 
     if (type === 'industry') {
       systemPrompt = `Suggest industries based on user input. Return ONLY JSON array:
-      [{"name": "Industry", "category": "Category", "description": "Brief description"}]
+      [{"title": "Industry Name", "description": "Brief description", "level": "Industry"}]
       
-      Include 4-6 suggestions. Keep descriptions under 8 words.`;
+      IMPORTANT:
+      - Return actual INDUSTRY NAMES (like "Web Development", "E-commerce", "Healthcare")
+      - NOT job descriptions or tasks
+      - Include 4-6 suggestions
+      - Keep descriptions under 8 words
+      - Use "Industry" as the level for all suggestions`;
 
       userPrompt = `Query: "${query}"
       
-      Suggest 4-6 matching industries. Focus on exact/partial matches.
-      Return only JSON array.`;
+      Suggest 4-6 matching industry names. Focus on exact/partial matches.
+      Return only JSON array with industry names, not job descriptions.`;
     } else if (type === 'role') {
-      systemPrompt = `Suggest job roles based on user input and industry. Return ONLY JSON array:
-      [{"title": "Role", "description": "Brief description", "level": "entry|mid|senior"}]
+      systemPrompt = `You are a job title suggestion assistant. Return ONLY a JSON array of job titles with descriptions.
+      Format: [{"title": "Job Title", "description": "Brief job description", "level": "entry|mid|senior"}]
       
-      Include 3-5 suggestions. Keep descriptions under 10 words. Be specific about level.`;
+      IMPORTANT: 
+      - Return actual JOB TITLES (like "Software Developer", "Marketing Manager")
+      - NOT task descriptions or responsibilities
+      - Include 3-5 suggestions
+      - Keep descriptions under 10 words
+      - Be specific about experience level`;
 
       userPrompt = `Query: "${query}" | Industry: ${industry || 'General'}
       
-      Suggest 3-5 matching roles. Focus on exact/partial matches and industry relevance.
-      Return only JSON array.`;
+      Suggest 3-5 JOB TITLES that match this query. Focus on actual job positions, not tasks.
+      Examples of good job titles: "Junior Web Developer", "Senior Software Engineer", "Marketing Coordinator"
+      Examples of BAD responses: "Build websites", "Write code", "Manage projects"
+      
+      Return only JSON array with job titles.`;
     } else if (type === 'description') {
       systemPrompt = `You are an AI assistant that generates detailed job role descriptions.
       Based on the role title and industry context, create a comprehensive job description.
@@ -164,6 +177,15 @@ export async function POST(request: NextRequest) {
       throw new Error('Unexpected response type');
     }
 
+    // Debug logging for industry type
+    if (type === 'industry') {
+      console.log('🔍 Industry API Debug:', {
+        query,
+        aiResponse: aiResponse.text,
+        type
+      });
+    }
+
     // Parse the response
     let suggestions;
     try {
@@ -202,6 +224,14 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
+    }
+
+    // Debug logging for parsed suggestions
+    if (type === 'industry') {
+      console.log('🔍 Parsed Industry Suggestions:', {
+        suggestions,
+        count: Array.isArray(suggestions) ? suggestions.length : 'not array'
+      });
     }
 
     // Cache the results

@@ -199,6 +199,13 @@ const BestMatchedCandidates = ({
   const [employeeProfiles, setEmployeeProfiles] = useState<EmployeeCardData[]>([]);
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   
+  // Debug logging
+  console.log('🎯 BestMatchedCandidates received:', {
+    recommendedCandidates,
+    count: recommendedCandidates.length,
+    isLoading
+  })
+  
   // Fetch employee profiles from BPOC API
   useEffect(() => {
     const fetchEmployeeProfiles = async () => {
@@ -255,6 +262,14 @@ const BestMatchedCandidates = ({
   // Get the current candidate to display
   const currentCandidate = recommendedCandidates.length > 0 ? recommendedCandidates[currentIndex] : null;
   const currentEmployeeProfile = employeeProfiles.length > 0 ? employeeProfiles[currentIndex] : null;
+  
+  // Debug current candidate
+  console.log('🎯 Current candidate:', {
+    currentIndex,
+    currentCandidate,
+    currentEmployeeProfile,
+    totalCandidates: recommendedCandidates.length
+  })
   
   if (isLoading || isLoadingProfiles) {
     return (

@@ -4,8 +4,10 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { ConditionalFooter } from "@/components/layout/ConditionalFooter";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { GlobalEngagementTracker } from "@/components/layout/GlobalEngagementTracker";
+import { AnonymousUserInitializer } from "@/components/layout/AnonymousUserInitializer";
 import { GlobalPricingModal } from "@/components/GlobalPricingModal";
 import { AnonymousUserButton } from "@/components/ui/anonymous-user-button";
 import { CurrencyProvider } from "@/lib/currencyContext";
@@ -14,6 +16,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { UserAuthProvider } from "@/lib/user-auth-context";
 import { AdminAuthProvider } from "@/lib/admin-auth-context";
 import { FavoritesProvider } from "@/lib/favorites-context";
+import { QueryProvider } from "@/lib/query-client-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 const poppins = Poppins({
@@ -48,29 +51,32 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${roboto.variable} font-sans antialiased`}
       >
-        <CurrencyProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <UserAuthProvider>
-                <AdminAuthProvider>
-                  <FavoritesProvider>
-                    <GlobalEngagementTracker />
-                    <ScrollToTop />
-                    <Navbar />
-                    
-                    <main>
-                      {children}
-                    </main>
-                    <Footer />
-                    <BottomNav />
-                    <GlobalPricingModal />
-                    <AnonymousUserButton />
-                  </FavoritesProvider>
-                </AdminAuthProvider>
-              </UserAuthProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </CurrencyProvider>
+        <QueryProvider>
+          <CurrencyProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <UserAuthProvider>
+                  <AdminAuthProvider>
+                    <FavoritesProvider>
+                      {/* <AnonymousUserInitializer /> */}
+                      <GlobalEngagementTracker />
+                      <ScrollToTop />
+                      <Navbar />
+                      
+                      <main>
+                        {children}
+                      </main>
+                      <ConditionalFooter />
+                      <BottomNav />
+                      {/* <GlobalPricingModal /> */}
+                      <AnonymousUserButton />
+                    </FavoritesProvider>
+                  </AdminAuthProvider>
+                </UserAuthProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </CurrencyProvider>
+        </QueryProvider>
         <Toaster />
       </body>
     </html>
