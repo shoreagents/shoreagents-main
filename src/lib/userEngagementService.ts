@@ -21,13 +21,20 @@ export async function getUserIPAddress(): Promise<string | undefined> {
 // Generate a device-based unique ID (fingerprint only)
 export function generateUserId(): string {
   // Try to get existing device ID from localStorage, or create a new one
-  if (typeof window === 'undefined') return `device_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+  if (typeof window === 'undefined') {
+    console.log('⚠️ generateUserId called on server side - this should not happen');
+    return `device_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+  }
   
   let deviceId = localStorage.getItem('shoreagents_device_id')
   if (!deviceId) {
+    console.log('🔍 No existing device ID found, generating new fingerprint-based ID');
     // Use fingerprint-based device ID only
     deviceId = generateDeviceFingerprint()
     localStorage.setItem('shoreagents_device_id', deviceId)
+    console.log('🔍 Generated and stored new device ID:', deviceId);
+  } else {
+    console.log('🔍 Using existing device ID:', deviceId);
   }
   return deviceId
 }

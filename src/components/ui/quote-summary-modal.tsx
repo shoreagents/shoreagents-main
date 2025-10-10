@@ -241,19 +241,40 @@ export function QuoteSummaryModal({ isOpen, onClose, quote }: QuoteSummaryModalP
             </CardHeader>
             <CardContent>
               {(() => {
-                // Check if candidates match the role requirements
-                const hasMatchingCandidates = quote.candidate_recommendations && quote.candidate_recommendations.length > 0 && 
-                  quote.roles_preview && quote.roles_preview.length > 0 &&
-                  quote.candidate_recommendations.some(candidate => 
-                    quote.roles_preview.some(role => 
-                      candidate.position.toLowerCase().includes(role.role_title.toLowerCase()) ||
-                      role.role_title.toLowerCase().includes(candidate.position.toLowerCase())
-                    )
-                  );
+                // Extract all recommended candidates from the nested structure
+                const allCandidates: Array<{
+                  id: string;
+                  name: string;
+                  position: string;
+                  avatar?: string;
+                  score: number;
+                  bio?: string;
+                  expectedSalary?: number;
+                }> = [];
+
+                if (quote.candidate_recommendations && quote.candidate_recommendations.length > 0) {
+                  quote.candidate_recommendations.forEach((roleData: any) => {
+                    if (roleData.recommendedCandidates && roleData.recommendedCandidates.length > 0) {
+                      const mappedCandidates = roleData.recommendedCandidates.map((candidate: any) => ({
+                        id: candidate.id,
+                        name: candidate.name,
+                        position: candidate.position,
+                        avatar: candidate.avatar,
+                        score: candidate.matchScore || candidate.overallScore || 0,
+                        bio: candidate.bio,
+                        expectedSalary: candidate.expectedSalary || 0
+                      }));
+                      allCandidates.push(...mappedCandidates);
+                    }
+                  });
+                }
+
+                // Check if we have any candidates
+                const hasCandidates = allCandidates.length > 0;
                 
-                return hasMatchingCandidates ? (
+                return hasCandidates ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {quote.candidate_recommendations?.map((candidate, index) => (
+                  {allCandidates.map((candidate, index) => (
                     <div key={candidate.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -274,10 +295,19 @@ export function QuoteSummaryModal({ isOpen, onClose, quote }: QuoteSummaryModalP
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-lime-600">{candidate.score}</div>
-                          <div className="text-xs text-gray-500">Score</div>
+                          <div className="text-lg font-bold text-lime-600">{candidate.score}%</div>
+                          <div className="text-xs text-gray-500">Match Score</div>
                         </div>
                       </div>
+                      {/* Additional candidate info */}
+                      {candidate.expectedSalary && candidate.expectedSalary > 0 && (
+                        <div className="mb-3 p-2 bg-lime-50 rounded-lg">
+                          <div className="text-sm font-medium text-lime-800">
+                            Expected: {formatPrice(convertPrice(candidate.expectedSalary))}/month
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 

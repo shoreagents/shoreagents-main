@@ -16,9 +16,10 @@ export function Navbar() {
   const { selectedCurrency, setSelectedCurrency, isDetectingLocation, detectUserLocation, isAutoDetected, setIsAutoDetected, hasUserSelectedCurrency, setHasUserSelectedCurrency } = useCurrency()
   const pathname = usePathname()
   
-  // Check if we're on an employee profile page or user dashboard
+  // Check if we're on an employee profile page, user dashboard, or admin dashboard
   const isEmployeePage = pathname?.startsWith('/employee/')
   const isUserDashboard = pathname?.startsWith('/user-dashboard')
+  const isAdminDashboard = pathname?.startsWith('/admin-dashboard')
 
   // Country name mapping for currencies
   const currencyCountryNames: Record<string, string> = {
@@ -71,7 +72,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className={`${isEmployeePage || isUserDashboard ? 'bg-lime-600' : 'bg-white'} sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-sm' : 'shadow-none'}`}>
+    <nav className={`${isEmployeePage || isUserDashboard || isAdminDashboard ? 'bg-lime-600' : 'bg-white'} sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-sm' : 'shadow-none'}`}>
       <div className="w-full relative">
         <div className="flex items-center h-16">
           {/* Logo - Absolute left edge */}
@@ -83,7 +84,7 @@ export function Navbar() {
                 alt="ShoreAgents Logo"
                 width={180}
                 height={40}
-                className={`h-10 w-auto lg:hidden ${isEmployeePage || isUserDashboard ? 'brightness-0 invert' : ''}`}
+                className={`h-10 w-auto lg:hidden ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'brightness-0 invert' : ''}`}
               />
               {/* Desktop Logo */}
               <Image
@@ -91,20 +92,20 @@ export function Navbar() {
                 alt="ShoreAgents Logo"
                 width={180}
                 height={40}
-                className={`h-10 w-auto hidden lg:block ${isEmployeePage || isUserDashboard ? 'brightness-0 invert' : ''}`}
+                className={`h-10 w-auto hidden lg:block ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'brightness-0 invert' : ''}`}
               />
             </Link>
           </div>
 
           {/* Desktop Navigation - Centered with left margin to account for logo */}
-          {!isUserDashboard && (
+          {!isUserDashboard && !isAdminDashboard && (
           <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center ml-[180px]">
             {/* Our Services Dropdown */}
             <div className="relative group">
-              <div className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative cursor-pointer ${isEmployeePage ? (isActive('/services') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/services') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
+              <div className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative cursor-pointer ${isEmployeePage || isAdminDashboard ? (isActive('/services') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/services') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
                 <span className="relative inline-block">
                   Our Services
-                  <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/services') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                  <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage || isAdminDashboard ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/services') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </span>
                 <ChevronDown className="h-4 w-4 -rotate-90 transition-transform duration-200 group-hover:rotate-0" />
               </div>
@@ -354,36 +355,36 @@ export function Navbar() {
             </div>
 
             {/* Other Navigation Items */}
-            <Link href="/how-it-works" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage ? (isActive('/how-it-works') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/how-it-works') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
+            <Link href="/how-it-works" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage || isAdminDashboard ? (isActive('/how-it-works') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/how-it-works') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
               <span className="relative inline-block">
               How it works
-                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/how-it-works') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage || isAdminDashboard ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/how-it-works') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
-            <Link href="/pricing" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage ? (isActive('/pricing') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/pricing') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
+            <Link href="/pricing" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage || isAdminDashboard ? (isActive('/pricing') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/pricing') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
               <span className="relative inline-block">
               Pricing
-                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/pricing') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage || isAdminDashboard ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/pricing') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
-            <Link href="/case-studies" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage ? (isActive('/case-studies') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/case-studies') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
+            <Link href="/case-studies" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage || isAdminDashboard ? (isActive('/case-studies') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/case-studies') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
               <span className="relative inline-block">
               Case Studies
-                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/case-studies') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage || isAdminDashboard ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/case-studies') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
-            <Link href="/blogs" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage ? (isActive('/blogs') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/blogs') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
+            <Link href="/blogs" className={`px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative group ${isEmployeePage || isAdminDashboard ? (isActive('/blogs') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/blogs') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
               <span className="relative inline-block">
               Blogs
-                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/blogs') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage || isAdminDashboard ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/blogs') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </span>
             </Link>
             {/* About Dropdown */}
             <div className="relative group">
-              <div className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative cursor-pointer ${isEmployeePage ? (isActive('/about') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/about') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
+              <div className={`flex items-center space-x-1 px-3 py-2 whitespace-nowrap font-semibold transition-colors duration-200 relative cursor-pointer ${isEmployeePage || isAdminDashboard ? (isActive('/about') ? 'text-white' : 'text-white hover:text-gray-200') : (isActive('/about') ? 'text-lime-600' : 'text-gray-700 hover:text-lime-600')}`}>
                 <span className="relative inline-block">
                   About Shore
-                  <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/about') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                  <span className={`absolute -bottom-1 left-1/2 h-0.5 ${isEmployeePage || isAdminDashboard ? 'bg-white' : 'bg-lime-600'} transition-all duration-300 ease-out transform -translate-x-1/2 ${isActive('/about') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </span>
                 <ChevronDown className="h-4 w-4 -rotate-90 transition-transform duration-200 group-hover:rotate-0" />
               </div>
@@ -502,7 +503,7 @@ export function Navbar() {
             {/* Currency Selector */}
             <div className="relative group">
               <div 
-                className={`flex items-center space-x-2 ${isEmployeePage || isUserDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-600 hover:bg-gray-50'} rounded-lg px-3 py-1.5 cursor-pointer transition-all duration-200 w-24`}
+                className={`flex items-center space-x-2 ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-600 hover:bg-gray-50'} rounded-lg px-3 py-1.5 cursor-pointer transition-all duration-200 w-24`}
                 title={isDetectingLocation ? "Detecting your location..." : `Current currency: ${selectedCurrency.code}${isAutoDetected ? ' (Auto-detected)' : hasUserSelectedCurrency ? ' (Manually selected)' : ''}`}
               >
                 {isAutoDetected && (
@@ -518,10 +519,10 @@ export function Navbar() {
                   </>
                 ) : (
                   <>
-                    <span className={`text-sm font-medium ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-700'}`}>{selectedCurrency.code}</span>
+                    <span className={`text-sm font-medium ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white' : 'text-gray-700'}`}>{selectedCurrency.code}</span>
                   </>
                 )}
-                <ChevronDown className={`h-3 w-3 ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-500'} transition-transform duration-200 group-hover:rotate-180`} />
+                <ChevronDown className={`h-3 w-3 ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white' : 'text-gray-500'} transition-transform duration-200 group-hover:rotate-180`} />
               </div>
               
               {/* Currency Dropdown */}
@@ -571,7 +572,7 @@ export function Navbar() {
             {/* Mobile Currency Selector */}
             <div className="relative group">
               <button 
-                className={`flex items-center space-x-2 ${isEmployeePage || isUserDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-600 hover:bg-gray-50'} rounded-lg px-3 py-2 transition-all duration-200 focus:outline-none`}
+                className={`flex items-center space-x-2 ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-600 hover:bg-gray-50'} rounded-lg px-3 py-2 transition-all duration-200 focus:outline-none`}
                 title={isDetectingLocation ? "Detecting your location..." : `Current currency: ${selectedCurrency.code}${isAutoDetected ? ' (Auto-detected)' : hasUserSelectedCurrency ? ' (Manually selected)' : ''}`}
                 onClick={() => {
                   // Toggle dropdown visibility
@@ -595,13 +596,13 @@ export function Navbar() {
                   </>
                 ) : (
                   <>
-                    <svg className={`w-4 h-4 ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-4 h-4 ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                     </svg>
-                    <span className={`text-sm font-medium ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-700'}`}>{selectedCurrency.code}</span>
+                    <span className={`text-sm font-medium ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white' : 'text-gray-700'}`}>{selectedCurrency.code}</span>
                   </>
                 )}
-                <ChevronDown className={`h-3 w-3 ${isEmployeePage || isUserDashboard ? 'text-white' : 'text-gray-500'} transition-transform duration-200 group-hover:rotate-180`} />
+                <ChevronDown className={`h-3 w-3 ${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white' : 'text-gray-500'} transition-transform duration-200 group-hover:rotate-180`} />
               </button>
               
               {/* Currency Dropdown */}
@@ -647,7 +648,7 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               onClick={toggleMobileMenu}
-              className={`${isEmployeePage || isUserDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-700 hover:bg-lime-50'} transition-colors duration-200`}
+              className={`${isEmployeePage || isUserDashboard || isAdminDashboard ? 'text-white hover:bg-lime-700' : 'text-gray-700 hover:bg-lime-50'} transition-colors duration-200`}
             >
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>

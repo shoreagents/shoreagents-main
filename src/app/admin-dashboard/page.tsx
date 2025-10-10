@@ -6,7 +6,6 @@ import { useAdminAuth } from '@/lib/admin-auth-context'
 import { AdminGuard } from '@/components/auth/AdminGuard'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { UserManagement } from '@/components/admin/UserManagement'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -456,10 +455,9 @@ export default function AdminDashboard() {
          </div>
 
          {/* Detailed Analytics */}
-         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">User Visits</TabsTrigger>
-            <TabsTrigger value="management">User Management</TabsTrigger>
             <TabsTrigger value="overview" disabled>Overview</TabsTrigger>
             <TabsTrigger value="performance" disabled>Performance</TabsTrigger>
             <TabsTrigger value="devices" disabled>Devices</TabsTrigger>
@@ -861,9 +859,6 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="management" className="space-y-6">
-            <UserManagement />
-          </TabsContent>
         </Tabs>
             </div>
           </div>

@@ -4,13 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, Search, Building2, Sparkles } from 'lucide-react';
 import { Input } from './input';
 import { Label } from './label';
+import { useAutocompleteSuggestions, AISuggestion } from '@/hooks/use-api';
+import { generateUserId } from '@/lib/userEngagementService';
 // import { ButtonLoader } from './loader'; // Removed - will be recreated later
-
-interface AISuggestion {
-  name: string;
-  category: string;
-  description: string;
-}
 
 interface AIIndustryAutocompleteProps {
   value: string;
@@ -31,114 +27,72 @@ export function AIIndustryAutocomplete({
 }: AIIndustryAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  
   // Common industries for instant suggestions
   const commonIndustries: AISuggestion[] = [
-    { name: 'Technology', category: 'IT & Software', description: 'Software development, IT services, and technology solutions' },
-    { name: 'Real Estate', category: 'Property', description: 'Property management, real estate services, and construction' },
-    { name: 'Healthcare', category: 'Medical', description: 'Healthcare services, medical practices, and wellness' },
-    { name: 'Finance', category: 'Financial Services', description: 'Banking, accounting, and financial advisory services' },
-    { name: 'Marketing', category: 'Digital Marketing', description: 'Digital marketing, advertising, and brand management' },
-    { name: 'E-commerce', category: 'Online Retail', description: 'Online stores, marketplaces, and digital commerce' },
-    { name: 'Education', category: 'Learning', description: 'Educational institutions, training, and e-learning' },
-    { name: 'Legal', category: 'Legal Services', description: 'Law firms, legal consulting, and compliance services' }
+    { title: 'Technology', description: 'Software development, IT services, and technology solutions', level: 'Industry' },
+    { title: 'Real Estate', description: 'Property management, real estate services, and construction', level: 'Industry' },
+    { title: 'Healthcare', description: 'Healthcare services, medical practices, and wellness', level: 'Industry' },
+    { title: 'Finance', description: 'Banking, accounting, and financial advisory services', level: 'Industry' },
+    { title: 'Marketing', description: 'Digital marketing, advertising, and brand management', level: 'Industry' },
+    { title: 'E-commerce', description: 'Online stores, marketplaces, and digital commerce', level: 'Industry' },
+    { title: 'Education', description: 'Educational institutions, training, and e-learning', level: 'Industry' },
+    { title: 'Legal', description: 'Law firms, legal consulting, and compliance services', level: 'Industry' }
   ];
+
+  const userId = generateUserId();
+  
+  // Debounce the search query - only update after 1 second of no typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 1000); // 1 second delay
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+  
+  const { data: aiSuggestions, isLoading, error: queryError } = useAutocompleteSuggestions(
+    debouncedQuery, // Use debounced query instead of immediate searchQuery
+    userId, 
+    isOpen && debouncedQuery.length >= 2, // Only fetch when debounced query is ready (changed from > 2 to >= 2)
+    'industry'
+  );
+
+  // Combine common industries and AI suggestions
+  const suggestions = searchQuery.length >= 2 && aiSuggestions && Array.isArray(aiSuggestions) && debouncedQuery === searchQuery
+    ? aiSuggestions 
+    : searchQuery.length >= 2 
+      ? commonIndustries.filter(industry =>
+          industry.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : commonIndustries;
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Debounced AI search function with proper request cancellation
-  const searchWithAI = useCallback(async (query: string) => {
-    if (!query.trim() || query.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    // Cancel previous request if it exists
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller for this request
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Add timeout to fetch request (6 seconds)
-      const fetchPromise = fetch('/api/autocomplete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: query.trim(),
-          type: 'industry'
-        }),
-        signal: controller.signal
-      });
-      
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 8000)
-      );
-      
-      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-
-      // Check if request was aborted
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
-      }
-
-      const data = await response.json();
-      setSuggestions(data.suggestions || []);
-    } catch (err) {
-      // Only handle errors if request wasn't aborted
-      if (!controller.signal.aborted) {
-        console.error('AI search error:', err);
-        setError('Unable to load suggestions');
-        setSuggestions([]);
-      }
-    } finally {
-      // Only update loading state if this is still the current request
-      if (abortControllerRef.current === controller) {
-        setIsLoading(false);
-        abortControllerRef.current = null;
-      }
-    }
-  }, []); // Remove suggestions dependency to prevent loop
-
-  // Debounced search effect
+  // Handle query errors and debug TanStack Query
   useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
+    console.log('🔍 AI Industry Autocomplete TanStack Query Status:', {
+      searchQuery,
+      debouncedQuery,
+      isOpen,
+      isLoading,
+      queryError,
+      aiSuggestions: aiSuggestions ? (Array.isArray(aiSuggestions) ? aiSuggestions.length : 'string') : 'null',
+      willFetch: isOpen && debouncedQuery.length > 2
+    });
+    
+    if (queryError) {
+      console.error('❌ TanStack Query Error:', queryError);
+      setError('Unable to load suggestions');
+    } else {
+      setError(null); // Clear error when query succeeds
     }
-
-    // Only search if there's a query and it's not just whitespace
-    if (searchQuery.trim() && searchQuery.length >= 2) {
-      debounceTimeoutRef.current = setTimeout(() => {
-        searchWithAI(searchQuery);
-      }, 300); // 300ms debounce - more reasonable to prevent excessive calls
-    }
-
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [searchQuery]); // Removed searchWithAI from dependencies to prevent loop
+  }, [queryError, searchQuery, debouncedQuery, isOpen, isLoading, aiSuggestions]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,25 +101,12 @@ export function AIIndustryAutocomplete({
     onChange(newValue);
     setIsOpen(true);
     setSelectedIndex(-1);
-
-    // Show instant suggestions for common queries
-    if (newValue.length >= 2) {
-      const filteredCommon = commonIndustries.filter(industry =>
-        industry.name.toLowerCase().includes(newValue.toLowerCase()) ||
-        industry.category.toLowerCase().includes(newValue.toLowerCase())
-      );
-      
-      if (filteredCommon.length > 0) {
-        setSuggestions(filteredCommon);
-        setIsLoading(false);
-      }
-    }
   };
 
   // Handle suggestion selection
   const handleSuggestionSelect = (suggestion: AISuggestion) => {
-    onChange(suggestion.name);
-    setSearchQuery(suggestion.name);
+    onChange(suggestion.title);
+    setSearchQuery(suggestion.title);
     setIsOpen(false);
     inputRef.current?.blur();
   };
@@ -201,8 +142,6 @@ export function AIIndustryAutocomplete({
   // Handle input focus
   const handleFocus = () => {
     setIsOpen(true);
-    // Show all common industries when focused (cursor is active)
-    setSuggestions(commonIndustries);
   };
 
   // Handle input blur
@@ -240,11 +179,10 @@ export function AIIndustryAutocomplete({
   }, []);
 
   // Cleanup abort controller on unmount
+  // Cleanup effect (no longer needed with TanStack Query)
   useEffect(() => {
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      // TanStack Query handles cleanup automatically
     };
   }, []);
 
@@ -278,10 +216,6 @@ export function AIIndustryAutocomplete({
           <button
             type="button"
             onClick={() => {
-              if (!isOpen) {
-                // Show all common industries when chevron is clicked
-                setSuggestions(commonIndustries);
-              }
               setIsOpen(!isOpen);
             }}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -311,6 +245,15 @@ export function AIIndustryAutocomplete({
                   <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-5 h-5" />
                   <span className="ml-2">AI is finding the best suggestions...</span>
                 </div>
+              ) : debouncedQuery !== searchQuery && searchQuery.length > 2 ? (
+                <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-pulse w-2 h-2 bg-gray-400 rounded-full mr-2" />
+                    <div className="animate-pulse w-2 h-2 bg-gray-400 rounded-full mr-2" />
+                    <div className="animate-pulse w-2 h-2 bg-gray-400 rounded-full" />
+                  </div>
+                  <span className="mt-2 block">Waiting for you to finish typing...</span>
+                </div>
               ) : error ? (
                 <div className="px-4 py-3 text-sm text-red-500 text-center">
                   {error}
@@ -318,7 +261,7 @@ export function AIIndustryAutocomplete({
               ) : suggestions.length > 0 ? (
                 <ul className="py-1">
                   {suggestions.map((suggestion, index) => (
-                    <li key={`${suggestion.name}-${index}`}>
+                    <li key={`${suggestion.title}-${index}`}>
                       <button
                         type="button"
                         onClick={() => handleSuggestionSelect(suggestion)}
@@ -332,10 +275,10 @@ export function AIIndustryAutocomplete({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-gray-900">
-                              {suggestion.name}
+                              {suggestion.title}
                             </div>
                             <div className="text-xs text-gray-500 mt-0.5">
-                              {suggestion.category}
+                              {suggestion.level}
                             </div>
                             <div className="text-xs text-gray-400 mt-1 line-clamp-2">
                               {suggestion.description}

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-// import { ButtonLoader } from '@/components/ui/loader' // Removed - will be recreated later
+import { ButtonLoader } from '@/components/ui/loader'
 import { AlertCircle } from 'lucide-react'
 import { getAuthErrorMessage, isEmailExistsError, isPasswordStrengthError } from '@/lib/authErrorUtils'
 
@@ -187,7 +187,7 @@ export default function UserSignupPage() {
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full border-2 border-current border-t-transparent w-4 h-4 mr-2" />
+                  <ButtonLoader className="mr-2" />
                   Creating account...
                 </>
               ) : (

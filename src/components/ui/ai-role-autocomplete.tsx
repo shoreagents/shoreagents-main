@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, Search, User, Sparkles, Star } from 'lucide-react';
 import { Input } from './input';
 import { Label } from './label';
+import { useAutocompleteSuggestions } from '@/hooks/use-api';
+import { generateUserId } from '@/lib/userEngagementService';
 // import { ButtonLoader } from './loader'; // Removed - will be recreated later
 
 interface AIRoleSuggestion {
@@ -33,11 +35,10 @@ export function AIRoleAutocomplete({
 }: AIRoleAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<AIRoleSuggestion[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+  const [shouldFetchAI, setShouldFetchAI] = useState(false);
+  
   // Industry-specific roles for instant suggestions
   const getIndustrySpecificRoles = (industry: string): AIRoleSuggestion[] => {
     const industryLower = industry.toLowerCase();
@@ -144,126 +145,55 @@ export function AIRoleAutocomplete({
       ];
     }
   };
+
+  const userId = generateUserId();
+  
+  // Only update debounced query when user wants AI suggestions
+  useEffect(() => {
+    if (shouldFetchAI) {
+      setDebouncedQuery(searchQuery);
+    }
+  }, [shouldFetchAI, searchQuery]);
+  
+  const { data: aiSuggestions, isLoading, error: queryError } = useAutocompleteSuggestions(
+    debouncedQuery, // Use debounced query instead of immediate searchQuery
+    userId, 
+    shouldFetchAI && isOpen && debouncedQuery.length >= 2, // Only fetch when user wants AI suggestions (changed from > 2 to >= 2)
+    'role',
+    industry
+  );
+
+  // Combine industry-specific roles and AI suggestions
+  const industryRoles = getIndustrySpecificRoles(industry);
+  const suggestions = searchQuery.length >= 2 && aiSuggestions && Array.isArray(aiSuggestions) && debouncedQuery === searchQuery
+    ? aiSuggestions.map(suggestion => ({
+        title: suggestion.title,
+        description: suggestion.description,
+        level: suggestion.level as 'entry' | 'mid' | 'senior'
+      }))
+    : searchQuery.length >= 2 
+      ? industryRoles.filter(role =>
+          role.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : industryRoles;
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Debounced AI search function with proper request cancellation
-  const searchWithAI = useCallback(async (query: string) => {
-    if (!query.trim() || query.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    // Check if current query matches existing suggestions to avoid unnecessary API calls
-    const queryLower = query.toLowerCase().trim();
-    const hasMatchingSuggestion = suggestions.some(suggestion => 
-      suggestion.title.toLowerCase().includes(queryLower) ||
-      suggestion.description.toLowerCase().includes(queryLower)
-    );
-
-    if (hasMatchingSuggestion) {
-      // Filter existing suggestions instead of making API call
-      const filteredSuggestions = suggestions.filter(suggestion =>
-        suggestion.title.toLowerCase().includes(queryLower) ||
-        suggestion.description.toLowerCase().includes(queryLower)
-      );
-      setSuggestions(filteredSuggestions);
-      setIsLoading(false);
-      return;
-    }
-
-    // Cancel previous request if it exists
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller for this request
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Add timeout to fetch request (3 seconds - faster timeout)
-      const fetchPromise = fetch('/api/autocomplete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: query.trim(),
-          type: 'role',
-          industry: industry || undefined
-        }),
-        signal: controller.signal
-      });
-      
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 8000)
-      );
-      
-      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-
-      // Check if request was aborted
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
-      }
-
-      const data = await response.json();
-      setSuggestions(data.suggestions || []);
-    } catch (err) {
-      // Only handle errors if request wasn't aborted
-      if (!controller.signal.aborted) {
-        console.error('AI search error:', err);
-        setError('Unable to load suggestions');
-        setSuggestions([]);
-      }
-    } finally {
-      // Only update loading state if this is still the current request
-      if (abortControllerRef.current === controller) {
-        setIsLoading(false);
-        abortControllerRef.current = null;
-      }
-    }
-  }, [industry, suggestions]);
-
-  // Debounced search effect
+  // Debug TanStack Query
   useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    // Only search if there's a query and it's not just whitespace
-    if (searchQuery.trim() && searchQuery.length >= 2) {
-      debounceTimeoutRef.current = setTimeout(() => {
-        searchWithAI(searchQuery);
-      }, 300); // 300ms debounce - more reasonable to prevent excessive calls
-    }
-
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [searchQuery]); // Removed searchWithAI from dependencies to prevent loop
-
-  // Cleanup abort controller on unmount
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+    console.log('🔍 AI Role Autocomplete TanStack Query Status:', {
+      searchQuery,
+      debouncedQuery,
+      isOpen,
+      shouldFetchAI,
+      isLoading,
+      queryError,
+      aiSuggestions: aiSuggestions ? (Array.isArray(aiSuggestions) ? aiSuggestions.length : 'string') : 'null',
+      willFetch: shouldFetchAI && isOpen && debouncedQuery.length >= 2
+    });
+  }, [queryError, searchQuery, debouncedQuery, isOpen, isLoading, aiSuggestions]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,19 +202,12 @@ export function AIRoleAutocomplete({
     onChange(newValue);
     setIsOpen(true);
     setSelectedIndex(-1);
-
-    // Show instant suggestions for industry-specific queries
+    
+    // Trigger AI suggestions after user has typed 2+ characters
     if (newValue.length >= 2) {
-      const industryRoles = getIndustrySpecificRoles(industry);
-      const filteredIndustry = industryRoles.filter(role =>
-        role.title.toLowerCase().includes(newValue.toLowerCase()) ||
-        role.description.toLowerCase().includes(newValue.toLowerCase())
-      );
-      
-      if (filteredIndustry.length > 0) {
-        setSuggestions(filteredIndustry);
-        setIsLoading(false);
-      }
+      setShouldFetchAI(true);
+    } else {
+      setShouldFetchAI(false);
     }
   };
 
@@ -293,6 +216,7 @@ export function AIRoleAutocomplete({
     onChange(suggestion.title);
     setSearchQuery(suggestion.title);
     setIsOpen(false);
+    setShouldFetchAI(false); // Reset AI fetch flag
     inputRef.current?.blur();
   };
 
@@ -327,14 +251,6 @@ export function AIRoleAutocomplete({
   // Handle input focus
   const handleFocus = () => {
     setIsOpen(true);
-    if (searchQuery.trim()) {
-      searchWithAI(searchQuery);
-    } else {
-      // Show industry-specific role suggestions immediately when clicked
-      const industryRoles = getIndustrySpecificRoles(industry);
-      setSuggestions(industryRoles);
-      setIsLoading(false);
-    }
   };
 
   // Handle input blur
@@ -342,6 +258,7 @@ export function AIRoleAutocomplete({
     setTimeout(() => {
       if (!dropdownRef.current?.contains(document.activeElement)) {
         setIsOpen(false);
+        setShouldFetchAI(false); // Reset AI fetch flag when closing
       }
     }, 150);
   };
@@ -371,7 +288,7 @@ export function AIRoleAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const shouldShowDropdown = isOpen && (suggestions.length > 0 || isLoading || error);
+  const shouldShowDropdown = isOpen && (suggestions.length > 0 || isLoading || queryError);
 
 
   return (
@@ -435,9 +352,18 @@ export function AIRoleAutocomplete({
                      <span className="text-sm text-gray-600">AI is finding the best suggestions...</span>
                    </div>
                  </div>
-              ) : error ? (
+              ) : debouncedQuery !== searchQuery && searchQuery.length > 2 ? (
+                <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-pulse w-2 h-2 bg-gray-400 rounded-full mr-2" />
+                    <div className="animate-pulse w-2 h-2 bg-gray-400 rounded-full mr-2" />
+                    <div className="animate-pulse w-2 h-2 bg-gray-400 rounded-full" />
+                  </div>
+                  <span className="mt-2 block">Waiting for you to finish typing...</span>
+                </div>
+              ) : queryError ? (
                 <div className="px-4 py-3 text-sm text-red-500 text-center">
-                  {error}
+                  Unable to load suggestions
                 </div>
               ) : suggestions.length > 0 ? (
                 <>

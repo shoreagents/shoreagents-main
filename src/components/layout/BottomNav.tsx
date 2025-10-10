@@ -19,7 +19,7 @@ import {
   BookOpen
 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEngagementTracking } from '@/lib/useEngagementTracking'
+// import { useEngagementTracking } from '@/lib/useEngagementTracking'
 import ChatConsole from '@/components/ui/ai-chat-console'
 import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/interview-request-modal'
 import { candidateTracker } from '@/lib/candidateTrackingService'
@@ -49,13 +49,15 @@ export function BottomNav() {
     avatar?: string;
     score: number;
     isFavorite?: boolean;
+    bio?: string;
+    expectedSalary?: number;
   }>>([])
   const [isLoadingRecommended, setIsLoadingRecommended] = useState(false)
   const [currentCandidateIndex, setCurrentCandidateIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   
   // Use the engagement tracking hook only on client side
-  const { recordInteraction } = useEngagementTracking()
+  // const { // recordInteraction } = useEngagementTracking()
   const { appUser } = useAuth()
   
   // Show/hide bottom nav based on scroll position
@@ -204,11 +206,40 @@ export function BottomNav() {
         avatar?: string;
         score: number;
         isFavorite?: boolean;
+        bio?: string;
+        expectedSalary?: number;
       }> = []
 
-      quotesResult.data.forEach(quote => {
+      quotesResult.data.forEach((quote, index) => {
+        console.log(`🔍 BottomNav Quote ${index + 1}:`, {
+          id: quote.id,
+          candidate_recommendations: quote.candidate_recommendations,
+          recommendations_length: quote.candidate_recommendations?.length || 0
+        })
+        
         if (quote.candidate_recommendations && quote.candidate_recommendations.length > 0) {
-          allRecommendedCandidates.push(...quote.candidate_recommendations)
+          // Handle nested structure: extract recommendedCandidates from each role
+          quote.candidate_recommendations.forEach((roleData: any) => {
+            if (roleData.recommendedCandidates && roleData.recommendedCandidates.length > 0) {
+              console.log(`✅ BottomNav Role (${roleData.roleTitle}): ${roleData.recommendedCandidates.length} candidates`)
+              
+              // Map the nested structure to the expected format
+              const mappedCandidates = roleData.recommendedCandidates.map((candidate: any) => ({
+                id: candidate.id,
+                name: candidate.name,
+                position: candidate.position,
+                avatar: candidate.avatar,
+                score: candidate.matchScore || candidate.overallScore || 0,
+                isFavorite: candidate.isFavorite || false,
+                bio: candidate.bio,
+                expectedSalary: candidate.expectedSalary || 0
+              }))
+              
+              allRecommendedCandidates.push(...mappedCandidates)
+            }
+          })
+        } else {
+          console.log(`❌ BottomNav No candidate recommendations in quote ${index + 1}`)
         }
       })
 
@@ -225,6 +256,10 @@ export function BottomNav() {
       const topCandidates = uniqueCandidates
         .sort((a, b) => b.score - a.score)
         .slice(0, 5)
+
+      console.log('📋 BottomNav All collected candidates:', allRecommendedCandidates.length)
+      console.log('🔄 BottomNav Unique candidates after deduplication:', uniqueCandidates.length)
+      console.log('🏆 BottomNav Top 5 candidates:', topCandidates)
 
       // Fetch all employee data and find matching profiles
       const allEmployeeData = await getEmployeeCardData()
@@ -318,7 +353,7 @@ export function BottomNav() {
   }, [isDrawerOpen, recommendedCandidates.length])
 
   const handleChatWithClaude = () => {
-    recordInteraction('chat')
+    // recordInteraction('chat')
     console.log('Chat button clicked - interaction recorded')
     setIsDrawerOpen(false) // Close drawer before opening chat
     setIsChatOpen(true)
@@ -327,48 +362,48 @@ export function BottomNav() {
 
   // Handler functions
   const handleViewProfile = useCallback(() => {
-    recordInteraction('view-profile')
+    // recordInteraction('view-profile')
     console.log('View profile clicked')
     setIsDrawerOpen(false)
     router.push('/we-got-talent')
-  }, [recordInteraction, router])
+  }, [router])
 
   const handleAskForInterview = useCallback((candidateId?: string, candidateName?: string) => {
-    recordInteraction('interview-request')
+    // recordInteraction('interview-request')
     console.log('Ask for interview clicked for candidate:', candidateName, candidateId)
     setIsDrawerOpen(false)
     setIsInterviewModalOpen(true)
-  }, [recordInteraction])
+  }, [])
 
   const handleViewMatchedProfile = useCallback((candidateId?: string, candidateName?: string) => {
-    recordInteraction('view-profile')
+    // recordInteraction('view-profile')
     console.log('View matched profile clicked for candidate:', candidateName, candidateId)
       setIsDrawerOpen(false)
     if (candidateId) {
       router.push(`/employee/${candidateId}`)
     }
-  }, [recordInteraction, router])
+  }, [router])
 
   const handleSeePricing = useCallback(() => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('See Pricing button clicked - interaction recorded')
     setIsDrawerOpen(false)
     router.push('/pricing')
-  }, [recordInteraction, router])
+  }, [router])
 
   const handleViewQuote = useCallback(() => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('View Quote button clicked - interaction recorded')
     setIsDrawerOpen(false)
     router.push('/user-dashboard/quotation')
-  }, [recordInteraction, router])
+  }, [router])
 
   const handleCreateQuote = useCallback(() => {
-    recordInteraction('navigation')
+    // recordInteraction('navigation')
     console.log('Create Quote button clicked - interaction recorded')
     setIsDrawerOpen(false) // Close the drawer first
     setShowPricingModal(true) // Then open the pricing modal
-  }, [recordInteraction])
+  }, [])
 
   const handleClosePricingModal = useCallback(() => {
     setShowPricingModal(false)
@@ -387,7 +422,11 @@ export function BottomNav() {
 
   // Don't show on certain pages
   const hiddenPaths = ['/auth/signup', '/auth/login', '/auth/forgot-password']
-  if (hiddenPaths.includes(pathname)) {
+  const isDashboardPage = pathname?.startsWith('/user-dashboard') || 
+                         pathname?.startsWith('/admin-dashboard') ||
+                         pathname?.startsWith('/employee/')
+  
+  if (hiddenPaths.includes(pathname) || isDashboardPage) {
     return null
   }
 
@@ -508,7 +547,7 @@ export function BottomNav() {
                                   />
                                 ) : null;
                               })()}
-                              <AvatarFallback className="bg-lime-100v text-lime-700 text-sm font-medium">
+                              <AvatarFallback className="bg-gradient-to-br from-lime-200 to-lime-300 text-lime-800 text-lg font-bold border-2 border-lime-400 shadow-sm">
                                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {String((topCandidate as any)?.user?.name || 'U').charAt(0)}
                               </AvatarFallback>
@@ -583,7 +622,7 @@ export function BottomNav() {
                                   />
                                 ) : null;
                               })()}
-                              <AvatarFallback className="bg-lime-100 text-lime-700 text-sm font-medium">
+                              <AvatarFallback className="bg-gradient-to-br from-lime-200 to-lime-300 text-lime-800 text-lg font-bold border-2 border-lime-400 shadow-sm">
                                 {recommendedCandidates[currentCandidateIndex]?.name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>

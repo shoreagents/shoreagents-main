@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Sparkles, Loader2, RefreshCw, Edit3 } from 'lucide-react';
 import { Label } from './label';
+import { useAutocompleteSuggestions } from '@/hooks/use-api';
+import { generateUserId } from '@/lib/userEngagementService';
 
 interface AIDescriptionGeneratorProps {
   value: string;
@@ -29,10 +31,24 @@ export function AIDescriptionGenerator({
   onSave,
   onEditingChange
 }: AIDescriptionGeneratorProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [shouldGenerate, setShouldGenerate] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  
+  const userId = generateUserId();
+  
+  // Debounced query is only updated when user clicks generate button
+  
+  const { data: aiSuggestions, isLoading: isGenerating, error: queryError } = useAutocompleteSuggestions(
+    debouncedQuery, // Use debounced query instead of immediate values
+    userId, 
+    shouldGenerate,
+    'description',
+    industry,
+    roleTitle
+  );
   const [isSaved, setIsSaved] = useState(false);
   const [generationCount, setGenerationCount] = useState(0);
   
@@ -47,60 +63,48 @@ export function AIDescriptionGenerator({
       return;
     }
 
-    setIsGenerating(true);
     setError(null);
     if (!isAnother) {
       lastGeneratedRef.current = roleTitle;
     }
 
-    try {
-      const response = await fetch('/api/autocomplete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: 'generate',
-          type: 'description',
-          industry: industry || undefined,
-          roleTitle: roleTitle.trim(),
-          generateAnother: isAnother,
-          generationCount: isAnother ? generationCount + 1 : 0
-        }),
-      });
+    // Update the debounced query and trigger the TanStack Query
+    setDebouncedQuery(`${roleTitle} ${industry} description`);
+    setShouldGenerate(true);
+  };
 
-      if (!response.ok) {
-        throw new Error('Failed to generate description');
-      }
+  // Debug TanStack Query
+  useEffect(() => {
+    console.log('🔍 AI Description Generator TanStack Query Status:', {
+      roleTitle,
+      industry,
+      debouncedQuery,
+      shouldGenerate,
+      isGenerating,
+      queryError,
+      aiSuggestions: typeof aiSuggestions
+    });
+  }, [roleTitle, industry, debouncedQuery, shouldGenerate, isGenerating, queryError, aiSuggestions]);
 
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      const description = data.suggestions;
-      
-      if (description && typeof description === 'string' && description.trim()) {
+  // Handle the response from TanStack Query
+  useEffect(() => {
+    if (shouldGenerate && aiSuggestions) {
+      // For descriptions, aiSuggestions is a string, not an array
+      const description = typeof aiSuggestions === 'string' ? aiSuggestions : aiSuggestions[0]?.description;
+      if (description) {
         onChange(description);
         setHasGenerated(true);
         setIsEditing(false);
-        if (isAnother) {
-          setGenerationCount(prev => prev + 1);
-        } else {
-          setGenerationCount(1);
-        }
-      } else {
-        throw new Error('Invalid or empty description received');
+        setIsSaved(false);
+        setGenerationCount(prev => prev + 1);
+        onEditingChange?.(false);
+        setShouldGenerate(false); // Reset the trigger
       }
-    } catch (err) {
-      console.error('Description generation error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(`Unable to generate description: ${errorMessage}`);
-    } finally {
-      setIsGenerating(false);
+    } else if (shouldGenerate && queryError) {
+      setError(`Unable to generate description: ${queryError.message || 'Unknown error'}`);
+      setShouldGenerate(false); // Reset the trigger
     }
-  };
+  }, [shouldGenerate, aiSuggestions, queryError, onChange, onEditingChange]);
 
   const handleManualEdit = () => {
     setIsEditing(true);

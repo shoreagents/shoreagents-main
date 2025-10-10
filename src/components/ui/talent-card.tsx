@@ -35,7 +35,7 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
   
   // Function to calculate gradual popularity score (0-100)
   const calculateGradualPopularity = (rawScore: number): number => {
-    if (rawScore <= 0) return 0;
+    if (!rawScore || rawScore <= 0) return 0;
     
     // Use logarithmic scaling to make it harder to reach 100%
     // This creates a more gradual progression
@@ -55,10 +55,10 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
     if (hasResume) score += 20;
     if (data.aiAnalysis) score += 15;
     if (hasWorkStatus) score += 25;
-    if (data.applications.length > 0) score += 10;
-    if (data.user.position) score += 10;
-    if (data.user.location) score += 10;
-    if (data.user.avatar) score += 10;
+    if (data.applications && Array.isArray(data.applications) && data.applications.length > 0) score += 10;
+    if (data.user?.position) score += 10;
+    if (data.user?.location) score += 10;
+    if (data.user?.avatar) score += 10;
     
     // Use AI analysis score if available
     if (data.aiAnalysis?.overall_score) {
@@ -75,7 +75,13 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
     const fetchHotnessScore = async () => {
       try {
         setIsLoadingHotness(true);
-        console.log('🔍 Fetching hotness score for candidate:', data.user.id);
+        console.log('🔍 Fetching hotness score for candidate:', data.user?.id);
+        
+        if (!data.user?.id) {
+          console.warn('No user ID available for hotness score calculation');
+          setIsLoadingHotness(false);
+          return;
+        }
         
         const analytics = await candidateTracker.getCandidateAnalytics(data.user.id);
         console.log('📊 Received analytics data:', analytics);
@@ -170,9 +176,11 @@ export function TalentCard({ data, onAskForInterview }: TalentCardProps) {
             </div>
             <p className="text-sm text-gray-600">
               {(() => {
-                const position = hasWorkStatus && data.workStatus ? data.workStatus.currentPosition : (data.user.position || 'Position not specified');
+                const position = hasWorkStatus && data.workStatus?.currentPosition 
+                  ? data.workStatus.currentPosition 
+                  : (data.user.position || 'Position not specified');
                 // If position contains commas, take only the first role
-                return position.split(',')[0].trim();
+                return position?.split(',')[0]?.trim() || 'Position not specified';
               })()}
             </p>
           </div>

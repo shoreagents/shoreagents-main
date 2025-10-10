@@ -26,6 +26,7 @@ import { candidateTracker } from '@/lib/candidateTrackingService';
 import { useAuth } from '@/lib/auth-context';
 import { generateUserId } from '@/lib/userEngagementService';
 import { InterviewRequestModal, InterviewRequestData } from '@/components/ui/interview-request-modal';
+import { useBPOCEmployeeById } from '@/hooks/use-api';
 
 interface EmployeeProfile {
   id: string;
@@ -53,94 +54,59 @@ interface EmployeeProfile {
 export default function EmployeeProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const [employee, setEmployee] = useState<EmployeeProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showAIAnalysis, setShowAIAnalysis] = useState(false);
   const [showInterviewModal, setShowInterviewModal] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user, appUser } = useAuth();
+  
+  // Use TanStack Query to fetch employee data
+  const { data: bpocEmployee, isLoading, error } = useBPOCEmployeeById(params.id as string);
 
+  // Convert BPOC data to EmployeeProfile format
+  const employee: EmployeeProfile | null = bpocEmployee ? {
+    id: bpocEmployee.user_id,
+    name: bpocEmployee.full_name,
+    email: `${bpocEmployee.first_name.toLowerCase()}.${bpocEmployee.last_name.toLowerCase()}@example.com`,
+    position: bpocEmployee.current_position || bpocEmployee.position || 'Position not specified',
+    location: bpocEmployee.location || 'Location not specified',
+    avatar: bpocEmployee.avatar_url || null,
+    bio: bpocEmployee.bio || `Professional ${bpocEmployee.current_position || bpocEmployee.position || 'candidate'} with expertise in various technologies.`,
+    score: bpocEmployee.overall_score || 0,
+    skills: bpocEmployee.skills_snapshot || [],
+    experience: bpocEmployee.experience_snapshot ? 
+      (Array.isArray(bpocEmployee.experience_snapshot) ? 
+        bpocEmployee.experience_snapshot.length + ' years' : 
+        'Experience available') : 
+      'Experience not specified',
+    expectedSalary: bpocEmployee.expected_salary ? 
+      parseFloat(bpocEmployee.expected_salary.replace(/[^\d.]/g, '')) : 0,
+    workStatus: bpocEmployee.work_status || 'Status not specified',
+    joinedDate: bpocEmployee.user_created_at ? new Date(bpocEmployee.user_created_at).toISOString().split('T')[0] : '2023-01-01',
+    tier: (bpocEmployee.overall_score || 0) >= 80 ? 'GOLD' : 
+          (bpocEmployee.overall_score || 0) >= 60 ? 'SILVER' : 'BRONZE',
+    // AI Analysis data
+    keyStrengths: bpocEmployee.key_strengths || [],
+    improvements: bpocEmployee.improvements || [],
+    recommendations: bpocEmployee.recommendations || [],
+    improvedSummary: bpocEmployee.improved_summary || null,
+    strengthsAnalysis: bpocEmployee.strengths_analysis || null
+  } : null;
+
+  // Start tracking when employee data is loaded
   useEffect(() => {
-    const fetchEmployeeData = async () => {
-      try {
-        console.log(`🔍 Fetching employee data for ID: ${params.id}`);
-        
-        // Import BPOC service dynamically to avoid SSR issues
-        const { fetchBPOCEmployeeData } = await import('@/lib/bpocApiService');
-        
-        // Fetch all BPOC employees
-        const bpocEmployees = await fetchBPOCEmployeeData();
-        console.log(`📊 Total BPOC employees found: ${bpocEmployees.length}`);
-        
-        // Find the specific employee by ID
-        const foundEmployee = bpocEmployees.find(emp => emp.user_id === params.id);
-        
-        if (!foundEmployee) {
-          console.log(`❌ Employee with ID ${params.id} not found in BPOC data`);
-          setEmployee(null);
-          setLoading(false);
-          return;
-        }
-        
-        console.log(`✅ Found employee: ${foundEmployee.full_name}`, foundEmployee);
-        
-        // Convert BPOC data to EmployeeProfile format
-        const employeeProfile: EmployeeProfile = {
-          id: foundEmployee.user_id,
-          name: foundEmployee.full_name,
-          email: `${foundEmployee.first_name.toLowerCase()}.${foundEmployee.last_name.toLowerCase()}@example.com`,
-          position: foundEmployee.current_position || foundEmployee.position || 'Position not specified',
-          location: foundEmployee.location || 'Location not specified',
-          avatar: foundEmployee.avatar_url || null,
-          bio: foundEmployee.bio || `Professional ${foundEmployee.current_position || foundEmployee.position || 'candidate'} with expertise in various technologies.`,
-          score: foundEmployee.overall_score || 0,
-          skills: foundEmployee.skills_snapshot || [],
-          experience: foundEmployee.experience_snapshot ? 
-            (Array.isArray(foundEmployee.experience_snapshot) ? 
-              foundEmployee.experience_snapshot.length + ' years' : 
-              'Experience available') : 
-            'Experience not specified',
-          expectedSalary: foundEmployee.expected_salary ? 
-            parseFloat(foundEmployee.expected_salary.replace(/[^\d.]/g, '')) : 0,
-          workStatus: foundEmployee.work_status || 'Status not specified',
-          joinedDate: foundEmployee.user_created_at ? new Date(foundEmployee.user_created_at).toISOString().split('T')[0] : '2023-01-01',
-          tier: (foundEmployee.overall_score || 0) >= 80 ? 'GOLD' : 
-                (foundEmployee.overall_score || 0) >= 60 ? 'SILVER' : 'BRONZE',
-          // AI Analysis data
-          keyStrengths: foundEmployee.key_strengths || [],
-          improvements: foundEmployee.improvements || [],
-          recommendations: foundEmployee.recommendations || [],
-          improvedSummary: foundEmployee.improved_summary || null,
-          strengthsAnalysis: foundEmployee.strengths_analysis || null
-        };
-        
-        console.log(`📋 Converted employee profile:`, employeeProfile);
-        setEmployee(employeeProfile);
-        
-        // Start tracking (works with or without user authentication)
-        // For authenticated users, use appUser.user_id; for anonymous users, use the SAME generateUserId() as users.user_id
-        const trackingUserId = appUser?.user_id || 
-          (typeof window !== 'undefined' ? generateUserId() : '') || 
-          '';
-        
-        console.log('🔍 Starting candidate tracking with user ID:', trackingUserId);
-        await candidateTracker.startTracking(
-          trackingUserId,
-          employeeProfile.id, 
-          employeeProfile.name
-        );
-      } catch (error) {
-        console.error('Error fetching employee data:', error);
-        setEmployee(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (params.id) {
-      fetchEmployeeData();
+    if (employee) {
+      const trackingUserId = appUser?.user_id || 
+        (typeof window !== 'undefined' ? generateUserId() : '') || 
+        '';
+      
+      console.log('🔍 Starting candidate tracking with user ID:', trackingUserId);
+      candidateTracker.startTracking(
+        trackingUserId,
+        employee.id, 
+        employee.name
+      );
     }
-  }, [params.id, appUser?.user_id]);
+  }, [employee, appUser?.user_id]);
 
   // Cleanup tracking when component unmounts or user navigates away
   useEffect(() => {
@@ -227,8 +193,42 @@ export default function EmployeeProfilePage() {
   };
 
 
-  // Removed loading state - show content immediately
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full border-4 border-lime-600 border-t-transparent w-8 h-8 mx-auto mb-4"></div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Loading Employee Profile...</h1>
+          <p className="text-gray-600">Fetching candidate information</p>
+        </div>
+      </div>
+    );
+  }
 
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Profile</h1>
+          <p className="text-gray-600 mb-2">Unable to fetch employee data.</p>
+          <p className="text-sm text-gray-500 mb-6">Please try again later.</p>
+          <div className="space-x-4">
+            <Button onClick={() => router.back()}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Go Back
+            </Button>
+            <Button variant="outline" onClick={() => router.push('/')}>
+              Go to Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle employee not found
   if (!employee) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

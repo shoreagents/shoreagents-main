@@ -1,0 +1,218 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public"]
+}
+
+// ShoreAgents Database Models - Exact field names from database
+
+model User {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String    @unique @map("user_id") @db.VarChar(255)
+  first_name            String?   @map("first_name") @db.VarChar(100)
+  last_name             String?   @map("last_name") @db.VarChar(100)
+  company               String?   @db.VarChar(200)
+  email                 String?   @db.VarChar(255)
+  phone_number          String?   @map("phone_number") @db.VarChar(20)
+  country               String?   @db.VarChar(100)
+  created_at            DateTime? @map("created_at") @default(now())
+  updated_at            DateTime? @map("updated_at") @default(now())
+  auth_user_id          String?   @map("auth_user_id") @db.Uuid
+  user_type             UserType  @map("user_type")
+  industry_name         String?   @map("industry_name") @db.VarChar(200)
+  first_lead_capture    Boolean?  @map("first_lead_capture") @default(false)
+  second_lead_capture   Boolean?  @map("second_lead_capture") @default(false)
+  third_lead_capture    Boolean?  @map("third_lead_capture") @default(false)
+
+  // Relations
+  pricingQuotes         PricingQuote[] @relation("UserPricingQuotes")
+  candidateViews        CandidateView[] @relation("UserCandidateViews")
+  aiAnalysis            AiAnalysis[] @relation("UserAiAnalysis")
+  interviewRequests     InterviewRequest[] @relation("UserInterviewRequests")
+  userPageVisits        UserPageVisit[] @relation("UserPageVisits")
+
+  @@map("users")
+  @@schema("public")
+}
+
+model PricingQuote {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                 String    @map("user_id")
+  session_id              String?   @map("session_id")
+  quote_timestamp         DateTime  @map("quote_timestamp") @default(now())
+  member_count            Int       @map("member_count")
+  industry                String
+  total_monthly_cost      Decimal   @map("total_monthly_cost") @db.Decimal(10, 2)
+  currency_code           String    @map("currency_code") @default("PHP") @db.VarChar(3)
+  created_at              DateTime  @map("created_at") @default(now())
+  updated_at              DateTime  @map("updated_at") @default(now())
+  quote_number            Int       @map("quote_number") @default(1)
+  candidate_recommendations Json?   @map("candidate_recommendations")
+
+  // Relations
+  user                    User      @relation("UserPricingQuotes", fields: [user_id], references: [user_id], onDelete: Cascade)
+  pricingQuoteRoles       PricingQuoteRole[]
+
+  @@map("pricing_quotes")
+  @@schema("public")
+}
+
+model CandidateView {
+  id                Int       @id @default(autoincrement())
+  user_id           String    @map("user_id") @db.VarChar(255)
+  candidate_id       String    @map("candidate_id") @db.VarChar(255)
+  candidate_name     String?   @map("candidate_name") @db.VarChar(255)
+  view_duration      Int?      @map("view_duration")
+  page_views         Int?      @map("page_views") @default(1)
+  created_at         DateTime? @map("created_at") @default(now())
+  updated_at         DateTime? @map("updated_at") @default(now())
+  scroll_percentage  Int?      @map("scroll_percentage") @default(0)
+
+  // Relations
+  user              User?     @relation("UserCandidateViews", fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([user_id, candidate_id], map: "unique_user_candidate")
+  @@map("candidate_views")
+  @@schema("public")
+}
+
+model AiAnalysis {
+  id                          Int       @id @default(autoincrement())
+  user_id                     String    @map("user_id") @db.VarChar(255)
+  analysis_id                 String?   @map("analysis_id") @db.VarChar(255)
+  session_id                  String?   @map("session_id") @db.VarChar(255)
+  overall_score               Int?      @map("overall_score")
+  ats_compatibility_score     Int?      @map("ats_compatibility_score")
+  content_quality_score       Int?      @map("content_quality_score")
+  professional_presentation_score Int?    @map("professional_presentation_score")
+  skills_alignment_score      Int?      @map("skills_alignment_score")
+  key_strengths               Json?     @map("key_strengths") @default("[]")
+  improvements                 Json?     @default("[]")
+  recommendations             Json?     @default("[]")
+  improved_summary            String?   @map("improved_summary")
+  strengths_analysis          Json?     @map("strengths_analysis")
+  salary_analysis             Json?     @map("salary_analysis")
+  career_path                 Json?     @map("career_path")
+  section_analysis            Json?     @map("section_analysis")
+  candidate_profile           Json?     @map("candidate_profile")
+  skills_snapshot             Json?     @map("skills_snapshot") @default("[]")
+  experience_snapshot         Json?     @map("experience_snapshot")
+  education_snapshot          Json?     @map("education_snapshot")
+  portfolio_links             Json?     @map("portfolio_links") @default("[]")
+  analysis_created_at         DateTime? @map("analysis_created_at")
+  analysis_updated_at         DateTime? @map("analysis_updated_at")
+  created_at                  DateTime? @map("created_at") @default(now())
+  updated_at                  DateTime? @map("updated_at") @default(now())
+
+  // Relations
+  user                        User?     @relation("UserAiAnalysis", fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([analysis_id], map: "ai_analysis_analysis_id_key")
+  @@map("ai_analysis")
+  @@schema("public")
+}
+
+model BpocEmployee {
+  id                    Int       @id @default(autoincrement())
+  user_id               String    @map("user_id") @db.VarChar(255)
+  full_name             String    @map("full_name") @db.VarChar(255)
+  first_name            String    @map("first_name") @db.VarChar(100)
+  last_name             String    @map("last_name") @db.VarChar(100)
+  current_position      String?   @map("current_position") @db.VarChar(255)
+  position              String?   @db.VarChar(255)
+  location              String?   @db.VarChar(255)
+  avatar_url            String?   @map("avatar_url") @db.VarChar(500)
+  bio                   String?   @db.Text
+  overall_score         Int?      @map("overall_score")
+  skills_snapshot       Json?     @map("skills_snapshot")
+  experience_snapshot   Json?     @map("experience_snapshot")
+  expected_salary       Decimal?  @map("expected_salary") @db.Decimal(10, 2)
+  work_status           String?   @map("work_status") @db.VarChar(100)
+  user_created_at        DateTime? @map("user_created_at")
+  created_at            DateTime? @map("created_at") @default(now())
+  updated_at            DateTime? @map("updated_at") @default(now())
+  key_strengths         Json?     @map("key_strengths")
+  improvements          Json?
+  recommendations       Json?
+  improved_summary      String?   @map("improved_summary")
+  strengths_analysis    Json?     @map("strengths_analysis")
+  work_status_completed Boolean?  @map("work_status_completed")
+
+  @@map("bpoc_employees")
+  @@schema("public")
+}
+
+model InterviewRequest {
+  id                    Int       @id @default(autoincrement())
+  user_id               String    @map("user_id") @db.VarChar(255)
+  candidate_id          String    @map("candidate_id") @db.VarChar(255)
+  candidate_name        String    @map("candidate_name") @db.VarChar(255)
+  candidate_position    String?   @map("candidate_position") @db.VarChar(255)
+  requester_first_name  String    @map("requester_first_name") @db.VarChar(100)
+  requester_last_name   String    @map("requester_last_name") @db.VarChar(100)
+  requester_email       String    @map("requester_email") @db.VarChar(255)
+  created_at            DateTime  @map("created_at") @default(now())
+  updated_at            DateTime  @map("updated_at") @default(now())
+
+  // Relations
+  user                  User?     @relation("UserInterviewRequests", fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("interview_request")
+  @@schema("public")
+}
+
+model PricingQuoteRole {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quote_id        String    @map("quote_id") @db.Uuid
+  role_title      String    @map("role_title")
+  role_description String?   @map("role_description")
+  experience_level String    @map("experience_level")
+  workspace_type  String    @map("workspace_type")
+  base_salary_php Decimal   @map("base_salary_php") @db.Decimal(10, 2)
+  multiplier      Decimal   @db.Decimal(3, 2)
+  monthly_cost    Decimal   @map("monthly_cost") @db.Decimal(10, 2)
+  workspace_cost  Decimal   @map("workspace_cost") @db.Decimal(10, 2)
+  total_cost      Decimal   @map("total_cost") @db.Decimal(10, 2)
+  created_at      DateTime  @map("created_at") @default(now())
+  updated_at      DateTime  @map("updated_at") @default(now())
+
+  // Relations
+  pricingQuote    PricingQuote @relation(fields: [quote_id], references: [id], onDelete: Cascade)
+
+  @@map("pricing_quote_roles")
+  @@schema("public")
+}
+
+model UserPageVisit {
+  id                    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id               String    @map("user_id")
+  page_path             String    @map("page_path")
+  ip_address            String?   @map("ip_address")
+  visit_timestamp       DateTime  @map("visit_timestamp") @default(now())
+  created_at            DateTime? @map("created_at") @default(now())
+  visit_count           Int?      @map("visit_count") @default(1)
+  time_spent_seconds    Int?      @map("time_spent_seconds") @default(0)
+  last_visit_timestamp  DateTime? @map("last_visit_timestamp") @default(now())
+
+  // Relations
+  user                  User?     @relation("UserPageVisits", fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("user_page_visits")
+  @@schema("public")
+}
+
+enum UserType {
+  Anonymous
+  Regular
+  Admin
+
+  @@map("user_type_enum")
+  @@schema("public")
+}

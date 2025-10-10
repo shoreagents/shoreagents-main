@@ -28,18 +28,47 @@ export default function AuthCallback() {
           // User is authenticated, refresh both user and admin contexts
           await Promise.all([refreshUser(), refreshAdmin()])
           
-          // Check if this is an admin user by looking at the user data
-          const { data: userData, error: userError } = await supabase
+          // Check if this is an admin user by looking at the user data - prioritize email lookup
+          console.log('🔍 Auth callback - Auth user ID:', data.session.user.id);
+          console.log('🔍 Auth callback - Email:', data.session.user.email);
+          
+          // First try email lookup (more reliable for admin detection)
+          let { data: userData, error: userError } = await supabase
             .from('users')
-            .select('is_admin, user_type')
-            .eq('auth_user_id', data.session.user.id)
+            .select('user_type, auth_user_id, email')
+            .eq('email', data.session.user.email)
             .single()
+          
+          console.log('🔍 Auth callback - Email lookup result:', { userData, userError });
+          
+          // If email lookup fails, try auth_user_id lookup as fallback
+          if (userError) {
+            console.log('🔄 Auth callback - Email lookup failed, trying auth_user_id lookup...');
+            const { data: authUserData, error: authUserError } = await supabase
+              .from('users')
+              .select('user_type, auth_user_id, email')
+              .eq('auth_user_id', data.session.user.id)
+              .single();
+            
+            if (!authUserError && authUserData) {
+              userData = authUserData;
+              userError = null;
+              console.log('✅ Auth callback - Found user by auth_user_id:', authUserData);
+            }
+          }
+          
+          console.log('🔍 Auth callback - Final user data:', userData);
+          console.log('🔍 Auth callback - User error:', userError);
+          console.log('🔍 Auth callback - User type:', userData?.user_type);
+          console.log('🔍 Auth callback - Is Admin?', userData?.user_type === 'Admin');
           
           if (!userError && userData && userData.user_type === 'Admin') {
             // This is an admin user, redirect to admin dashboard
-            router.push('/admin')
+            console.log('✅ Auth callback - Redirecting admin to /admin-dashboard');
+            router.push('/admin-dashboard')
           } else {
             // This is a regular user, redirect to user dashboard
+            console.log('✅ Auth callback - Redirecting user to /user-dashboard');
             router.push('/user-dashboard')
           }
         } else {

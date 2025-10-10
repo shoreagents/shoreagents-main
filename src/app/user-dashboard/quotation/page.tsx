@@ -4,6 +4,7 @@ import { UserGuard } from '@/components/auth/UserGuard'
 import { UserDashboardSidebar } from '@/components/layout/UserDashboardSidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { useUserAuth } from '@/lib/user-auth-context'
+import { useDeleteQuotationMutation } from '@/hooks/use-api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ import { useCurrency } from '@/lib/currencyContext'
 export default function QuotationPage() {
   const { user } = useUserAuth()
   const { formatPrice, convertPrice } = useCurrency()
+  const deleteQuotationMutation = useDeleteQuotationMutation()
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [quotations, setQuotations] = useState<UserQuoteSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -86,38 +88,7 @@ export default function QuotationPage() {
       setDeletingQuoteId(quoteId)
       console.log('🗑️ Deleting quote:', quoteId)
 
-      const response = await fetch(`/api/pricing-quotes/${quoteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      console.log('🗑️ Response status:', response.status)
-      console.log('🗑️ Response headers:', response.headers)
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to delete quote'
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.error || errorMessage
-          console.log('🗑️ Error data:', errorData)
-        } catch (jsonError) {
-          console.error('🗑️ Failed to parse error response as JSON:', jsonError)
-          const textResponse = await response.text()
-          console.log('🗑️ Raw error response:', textResponse)
-          errorMessage = `Server error: ${response.status} - ${textResponse.substring(0, 100)}`
-        }
-        throw new Error(errorMessage)
-      }
-
-      // Parse the success response
-      try {
-        const result = await response.json()
-        console.log('🗑️ Success response:', result)
-      } catch (jsonError) {
-        console.log('🗑️ No JSON response body (this is normal for successful deletes)')
-      }
+      await deleteQuotationMutation.mutateAsync({ quoteId })
 
       // Remove the quote from the local state
       setQuotations(prev => prev.filter(quote => quote.id !== quoteId))

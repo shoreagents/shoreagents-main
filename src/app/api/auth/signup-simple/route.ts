@@ -11,13 +11,12 @@ export async function POST(request: NextRequest) {
       password, 
       firstName, 
       lastName, 
-      phoneNumber, 
       company, 
-      country 
+      anonymous_user_id
     } = body
 
     // Validate required fields
-    if (!email || !password || !firstName || !lastName || !phoneNumber || !company || !country) {
+    if (!email || !password || !firstName || !lastName || !company) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -43,27 +42,42 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Check if email already exists in the database
-    const { data: existingEmail, error: emailCheckError } = await supabase
+    // Check if email already exists in public.users with auth_user_id (meaning they have a Supabase Auth account)
+    const { data: existingAuthUser, error: authCheckError } = await supabase
       .from('users')
-      .select('email')
+      .select('auth_user_id, email, user_id')
       .eq('email', email)
+      .not('auth_user_id', 'is', null)
       .single()
-
-    if (emailCheckError && emailCheckError.code !== 'PGRST116') {
-      // PGRST116 is "not found" error, which is expected for new emails
-      console.error('Error checking existing email:', emailCheckError)
+    
+    if (authCheckError && authCheckError.code !== 'PGRST116') {
+      console.error('Error checking existing auth user:', authCheckError)
       return NextResponse.json(
         { error: 'Failed to validate email. Please try again.' },
         { status: 500 }
       )
     }
 
-    if (existingEmail) {
+    if (existingAuthUser) {
+      console.log('❌ User already has auth account:', existingAuthUser);
       return NextResponse.json(
         { error: 'An account with this email already exists. Please sign in instead.' },
         { status: 400 }
       )
+    }
+
+    // Also check if there's a Supabase Auth user with this email (even if not in our users table)
+    try {
+      const { data: authUser, error: authUserError } = await supabase.auth.admin.getUserByEmail(email);
+      if (!authUserError && authUser.user) {
+        console.log('❌ Supabase Auth user already exists:', authUser.user.id);
+        return NextResponse.json(
+          { error: 'An account with this email already exists. Please sign in instead.' },
+          { status: 400 }
+        );
+      }
+    } catch (adminError) {
+      console.log('🔍 Could not check Supabase Auth directly (admin function not available)');
     }
 
     // Create user in Supabase Auth
@@ -74,15 +88,24 @@ export async function POST(request: NextRequest) {
         data: {
           first_name: firstName,
           last_name: lastName,
-          phone_number: phoneNumber,
           company,
-          country,
         }
       }
     })
 
     if (authError) {
       console.error('Supabase auth error:', authError)
+      
+      // Check if this is a "user already exists" error
+      if (authError.message.includes('already registered') || 
+          authError.message.includes('User already registered') ||
+          authError.message.includes('already been registered')) {
+        return NextResponse.json(
+          { error: 'An account with this email already exists. Please sign in instead.' },
+          { status: 400 }
+        )
+      }
+      
       return NextResponse.json(
         { error: authError.message },
         { status: 400 }
@@ -96,6 +119,74 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if there's an existing anonymous user with this email or user_id
+    let existingAnonymousUser = null
+    let anonymousCheckError = null
+
+    // First try to find by anonymous_user_id (most reliable)
+    if (anonymous_user_id) {
+      const { data: idUser, error: idError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('user_id', anonymous_user_id)
+        .is('auth_user_id', null)
+        .single()
+
+      if (!idError && idUser) {
+        existingAnonymousUser = idUser
+        console.log('🔍 Found existing anonymous user by user_id:', idUser)
+      } else {
+        console.log('🔍 No anonymous user found by user_id:', idError)
+        anonymousCheckError = idError
+      }
+    }
+
+    // If not found by user_id, try to find by email
+    if (!existingAnonymousUser) {
+      const { data: emailUser, error: emailError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .is('auth_user_id', null)
+        .single()
+
+      if (!emailError && emailUser) {
+        existingAnonymousUser = emailUser
+        console.log('🔍 Found existing anonymous user by email:', emailUser)
+      } else {
+        console.log('🔍 No anonymous user found by email:', emailError)
+        if (!anonymousCheckError) {
+          anonymousCheckError = emailError
+        }
+      }
+    }
+
+    console.log('🔍 Anonymous user check result:', { 
+      email, 
+      anonymous_user_id,
+      existingAnonymousUser, 
+      anonymousCheckError 
+    })
+
+    // Debug: Check if we have the anonymous_user_id
+    if (!anonymous_user_id) {
+      console.log('⚠️ No anonymous_user_id provided - this should not happen for anonymous users')
+      console.log('⚠️ This user might not have anonymous tracking data to preserve')
+    } else {
+      console.log('🔍 Anonymous user ID provided:', anonymous_user_id)
+    }
+
+    // If we found an existing anonymous user, log their current data
+    if (existingAnonymousUser) {
+      console.log('📊 Existing anonymous user data:', {
+        user_id: existingAnonymousUser.user_id,
+        email: existingAnonymousUser.email,
+        auth_user_id: existingAnonymousUser.auth_user_id,
+        first_lead_capture: existingAnonymousUser.first_lead_capture,
+        second_lead_capture: existingAnonymousUser.second_lead_capture
+      });
+    }
+
     // Get the current device fingerprint ID (this preserves anonymous tracking data)
     const deviceFingerprintId = generateUserId()
     
@@ -105,32 +196,6 @@ export async function POST(request: NextRequest) {
       email: authData.user.email
     })
 
-    // Check ALL users in database to see what device IDs exist
-    const { data: allUsers, error: allUsersError } = await supabase
-      .from('users')
-      .select('user_id, auth_user_id, first_name, email')
-      .order('created_at', { ascending: false })
-
-    console.log('🔍 All users in database:', { allUsers, allUsersError })
-
-    // First, check if anonymous user already exists with current device ID
-    const { data: existingUser, error: checkError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('user_id', deviceFingerprintId)
-      .single()
-
-    console.log('🔍 Existing user check for device ID:', { deviceFingerprintId, existingUser, checkError })
-
-    // Also check if there are any anonymous users (users with null auth_user_id)
-    const { data: anonymousUsers, error: anonymousError } = await supabase
-      .from('users')
-      .select('*')
-      .is('auth_user_id', null)
-      .order('created_at', { ascending: false })
-
-    console.log('🔍 Anonymous users in database:', { anonymousUsers, anonymousError })
-
     // All new signups are regular users by default
     // Admin status must be set manually in the database
     const userType = UserType.REGULAR
@@ -138,9 +203,9 @@ export async function POST(request: NextRequest) {
 
     let userData, userError
 
-    if (existingUser) {
+    if (existingAnonymousUser) {
       // Update existing anonymous user with auth data
-      console.log('📝 Updating existing anonymous user with auth data')
+      console.log('📝 Updating existing anonymous user with auth data:', existingAnonymousUser.user_id)
       const { data, error } = await supabase
         .from('users')
         .update({
@@ -149,39 +214,15 @@ export async function POST(request: NextRequest) {
           first_name: firstName,
           last_name: lastName,
           email: email,
-          phone_number: phoneNumber,
           company,
-          country,
+          third_lead_capture: true, // Set third lead capture flag
         })
-        .eq('user_id', deviceFingerprintId)
+        .eq('user_id', existingAnonymousUser.user_id)
         .select()
       
       userData = data
       userError = error
-    } else if (anonymousUsers && anonymousUsers.length > 0) {
-      // Fallback: Update the most recent anonymous user
-      const mostRecentAnonymous = anonymousUsers[0]
-      console.log('🔄 Fallback: Updating most recent anonymous user:', mostRecentAnonymous.user_id)
-      
-      const { data, error } = await supabase
-        .from('users')
-        .update({
-          auth_user_id: authData.user.id, // Add auth UUID
-          user_type: userType, // Set user type
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
-          phone_number: phoneNumber,
-          company,
-          country,
-        })
-        .eq('user_id', mostRecentAnonymous.user_id)
-        .select()
-      
-      userData = data
-      userError = error
-      
-      console.log('🔄 Fallback update result:', { userData, userError })
+      console.log('📝 Update result:', { userData, userError })
     } else {
       // Create new user record
       console.log('🆕 Creating new user record')
@@ -194,14 +235,14 @@ export async function POST(request: NextRequest) {
           first_name: firstName,
           last_name: lastName,
           email: email,
-          phone_number: phoneNumber,
           company,
-          country,
+          third_lead_capture: true, // Set third lead capture flag
         })
         .select()
       
       userData = data
       userError = error
+      console.log('🆕 Create result:', { userData, userError })
     }
 
     if (userError) {
@@ -224,7 +265,6 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         company,
-        country,
       }
     })
 

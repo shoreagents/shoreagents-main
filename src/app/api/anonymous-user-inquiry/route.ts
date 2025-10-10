@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { user_id, industry, company, employeeCount, message } = body;
+    const { user_id, industry, company } = body;
 
     if (!user_id) {
       return NextResponse.json(
@@ -20,10 +20,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database connection not available' },
+        { status: 500 }
+      );
+    }
 
     // First, ensure the user exists using the database function
-    const { data: ensureResult, error: ensureError } = await supabase
+    const { error: ensureError } = await supabase
       .rpc('ensure_user_exists', { p_user_id: user_id });
 
     if (ensureError) {
@@ -40,6 +45,7 @@ export async function POST(request: NextRequest) {
       .update({
         industry_name: industry,
         company: company || null,
+        first_lead_capture: true, // Set first lead capture flag
         updated_at: new Date().toISOString()
       })
       .eq('user_id', user_id)
