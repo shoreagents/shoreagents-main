@@ -39,3 +39,5 @@ async function testPrismaDirect() {
 }
 
 testPrismaDirect()
+
+
