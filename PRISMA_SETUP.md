@@ -128,3 +128,5 @@ npx prisma migrate reset
 2. **Create API routes** using Prisma
 3. **Replace Supabase queries** with Prisma where beneficial
 4. **Add more models** as needed for your features
+
+

@@ -166,3 +166,5 @@ app.listen(PORT, () => {
   console.log('✅ This is a working alternative to Prisma Studio!')
   console.log('✅ Uses Supabase client (which works) instead of Prisma (which has connection issues)')
 })
+
+
