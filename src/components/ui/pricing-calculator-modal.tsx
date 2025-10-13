@@ -64,6 +64,7 @@ import { InterviewRequestModal, InterviewRequestData } from './interview-request
 import { useToast } from '@/lib/toast-context';
 // import { useEngagementTracking } from '@/lib/useEngagementTracking';
 import { useContactFormMutation, useUserFormStatus, usePricingProgressMutation } from '@/hooks/use-api';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface RoleDetail {
   id: string;
@@ -188,6 +189,9 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
   // Toast and engagement tracking
   const { showToast } = useToast();
   // const { // recordInteraction } = useEngagementTracking();
+  
+  // Query client for invalidating queries
+  const queryClient = useQueryClient();
 
   // Convert BPOC candidate to EmployeeCardData format
   const convertToEmployeeCardData = (candidate: {
@@ -432,6 +436,26 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
       if (result.success) {
         setSaveSuccess(true);
         console.log('✅ Quote saved successfully:', result.data);
+        
+        // Invalidate quotations query to refresh the quotation page
+        queryClient.invalidateQueries({ 
+          queryKey: ['quotations'],
+          exact: false // This will invalidate all queries that start with 'quotations'
+        });
+        
+        // Also invalidate user-specific quotations if user is authenticated
+        if (user?.user_id) {
+          queryClient.invalidateQueries({ 
+            queryKey: ['quotations', user.user_id],
+            exact: true
+          });
+        }
+        
+        console.log('🔄 Invalidated quotations query - quotation page will auto-refresh');
+        
+        // Show success toast with auto-refresh notification
+        showToast('Quote saved successfully! Quotation page will refresh automatically.', 'success');
+        
         return { success: true, data: result.data };
       } else {
         setSaveError(result.error || 'Failed to save quote');
@@ -499,7 +523,7 @@ export function PricingCalculatorModal({ isOpen, onClose }: PricingCalculatorMod
               const candidateMatch = await fetchBPOCCandidateRecommendations(role.title, role.level, industry, memberCount || undefined);
               
               console.log(`✅ Found ${candidateMatch.totalCandidates} real BPOC candidates for ${role.title}:`, 
-                candidateMatch.recommendedCandidates.map(c => `${c.name} (${c.position}) - ₱${c.expectedSalary}`)
+                candidateMatch.recommendedCandidates.map((c: any) => `${c.name} (${c.position}) - ₱${c.expectedSalary}`)
               );
               
               return {

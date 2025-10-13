@@ -23,60 +23,97 @@ import {
   FileText,
   Trash2
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserQuoteService, UserQuoteSummary } from '@/lib/userQuoteService'
 import { PricingCalculatorModal } from '@/components/ui/pricing-calculator-modal'
 import { QuoteSummaryModal } from '@/components/ui/quote-summary-modal'
 import { useCurrency } from '@/lib/currencyContext'
+import { RefreshCw } from 'lucide-react'
 
 
 export default function QuotationPage() {
   const { user } = useUserAuth()
   const { formatPrice, convertPrice } = useCurrency()
-  const deleteQuotationMutation = useDeleteQuotationMutation()
+  const queryClient = useQueryClient()
   const [selectedStatus, setSelectedStatus] = useState('all')
-  const [quotations, setQuotations] = useState<UserQuoteSummary[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false)
-  const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null)
   const [isQuoteSummaryOpen, setIsQuoteSummaryOpen] = useState(false)
   const [selectedQuote, setSelectedQuote] = useState<UserQuoteSummary | null>(null)
   const [isDownloading, setIsDownloading] = useState<string | null>(null)
   const [isSending, setIsSending] = useState<string | null>(null)
 
-  // Fetch user quotations
-  useEffect(() => {
-    const fetchQuotations = async () => {
+  // TanStack Query for fetching quotations
+  const {
+    data: quotations = [],
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+    isStale
+  } = useQuery({
+    queryKey: ['quotations', user?.user_id],
+    queryFn: async () => {
       if (!user?.user_id) {
-        setLoading(false)
-        return
+        throw new Error('User not authenticated')
       }
+      
+      console.log('🔄 Fetching user quotations...')
+      const result = await UserQuoteService.getAllQuotes(user.user_id)
+      
+      if (result.success && result.data) {
+        console.log('✅ Fetched quotations:', result.data.length)
+        return result.data
+      } else {
+        throw new Error('Failed to fetch quotations')
+      }
+    },
+    enabled: !!user?.user_id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
+  })
 
-      try {
-        console.log('🔄 Fetching user quotations...')
-        setLoading(true)
-        setError(null)
-        
-        // Fetch all quotes for the user
-        const result = await UserQuoteService.getAllQuotes(user.user_id)
-        
-        if (result.success && result.data) {
-          setQuotations(result.data)
-        } else {
-          setQuotations([])
-        }
-      } catch (err) {
-        console.error('❌ Error fetching quotations:', err)
-        setError('Failed to load quotations')
-        setQuotations([])
-      } finally {
-        setLoading(false)
+  // TanStack Query mutation for deleting quotations
+  const deleteQuotationMutation = useMutation({
+    mutationFn: async ({ quoteId }: { quoteId: string }) => {
+      console.log('🗑️ Deleting quote:', quoteId)
+      const { PricingQuoteServiceClient } = await import('@/lib/pricingQuoteServiceClient')
+      const result = await PricingQuoteServiceClient.deleteQuote(quoteId)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete quote')
       }
+      return quoteId
+    },
+    onMutate: async ({ quoteId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['quotations', user?.user_id] })
+      
+      // Snapshot the previous value
+      const previousQuotations = queryClient.getQueryData(['quotations', user?.user_id])
+      
+      // Optimistically update the quotations
+      queryClient.setQueryData(['quotations', user?.user_id], (old: UserQuoteSummary[] = []) =>
+        old.filter(quote => quote.id !== quoteId)
+      )
+      
+      return { previousQuotations }
+    },
+    onError: (err, { quoteId }, context) => {
+      // Revert the optimistic update
+      if (context?.previousQuotations) {
+        queryClient.setQueryData(['quotations', user?.user_id], context.previousQuotations)
+      }
+      console.error('❌ Error deleting quote:', err)
+    },
+    onSettled: () => {
+      // Refetch after mutation
+      queryClient.invalidateQueries({ queryKey: ['quotations', user?.user_id] })
     }
-
-    fetchQuotations()
-  }, [user?.user_id])
+  })
 
   const handleCreateQuotation = () => {
     console.log('Create quotation button clicked - opening pricing calculator modal')
@@ -85,19 +122,11 @@ export default function QuotationPage() {
 
   const handleDeleteQuotation = async (quoteId: string) => {
     try {
-      setDeletingQuoteId(quoteId)
       console.log('🗑️ Deleting quote:', quoteId)
-
       await deleteQuotationMutation.mutateAsync({ quoteId })
-
-      // Remove the quote from the local state
-      setQuotations(prev => prev.filter(quote => quote.id !== quoteId))
       console.log('✅ Quote deleted successfully')
     } catch (error) {
       console.error('❌ Error deleting quote:', error)
-      setError(error instanceof Error ? error.message : 'Failed to delete quote')
-    } finally {
-      setDeletingQuoteId(null)
     }
   }
 
@@ -289,6 +318,23 @@ export default function QuotationPage() {
               <Badge variant="secondary" className="text-xs">
                 {filteredQuotations.length} quotations
               </Badge>
+              {isStale && (
+                <Badge variant="outline" className="text-xs text-orange-600">
+                  Data may be outdated
+                </Badge>
+              )}
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
             </div>
           </header>
           
@@ -352,7 +398,7 @@ export default function QuotationPage() {
             </div>
 
             {/* Loading State */}
-            {loading && (
+            {isLoading && (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full border-2 border-lime-600 border-t-transparent w-8 h-8" />
                 <span className="ml-2 text-gray-600">Loading quotations...</span>
@@ -364,18 +410,29 @@ export default function QuotationPage() {
               <div className="text-center py-12">
                 <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Error loading quotations</h3>
-                <p className="text-muted-foreground mb-4">{error}</p>
+                <p className="text-muted-foreground mb-4">
+                  {error instanceof Error ? error.message : 'An unexpected error occurred'}
+                </p>
                 <Button 
-                  onClick={() => window.location.reload()}
+                  onClick={() => refetch()}
                   className="bg-lime-600 hover:bg-lime-700"
                 >
+                  <RefreshCw className="w-4 h-4 mr-2" />
                   Try Again
                 </Button>
               </div>
             )}
 
+            {/* Background Refetching Indicator */}
+            {isFetching && !isLoading && (
+              <div className="flex items-center justify-center py-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-lime-600 mr-2" />
+                <span className="text-sm text-gray-600">Updating quotations...</span>
+              </div>
+            )}
+
             {/* Quotations List */}
-            {!loading && !error && (
+            {!isLoading && !error && (
               <div className="space-y-6">
                 {/* Latest Quote - Full Width */}
                 {filteredQuotations.length > 0 && (
@@ -475,15 +532,15 @@ export default function QuotationPage() {
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => handleDeleteQuotation(filteredQuotations[0].id)}
-                                disabled={deletingQuoteId === filteredQuotations[0].id}
+                                disabled={deleteQuotationMutation.isPending}
                                 className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
                               >
-                                {deletingQuoteId === filteredQuotations[0].id ? (
-                                  <div className="animate-spin rounded-full border-2 border-red-600 border-t-transparent w-4 h-4 mr-2" />
+                                {deleteQuotationMutation.isPending ? (
+                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                                 ) : (
                                   <Trash2 className="w-4 h-4 mr-2" />
                                 )}
-                                {deletingQuoteId === filteredQuotations[0].id ? 'Deleting...' : 'Delete'}
+                                {deleteQuotationMutation.isPending ? 'Deleting...' : 'Delete'}
                               </Button>
                             </div>
                             <div className="text-sm text-muted-foreground">
@@ -574,10 +631,10 @@ export default function QuotationPage() {
                                       size="sm"
                                       className="flex-1 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
                                       onClick={() => handleDeleteQuotation(quotation.id)}
-                                      disabled={deletingQuoteId === quotation.id}
+                                      disabled={deleteQuotationMutation.isPending}
                                     >
-                                      {deletingQuoteId === quotation.id ? (
-                                        <div className="animate-spin rounded-full border-2 border-red-600 border-t-transparent w-3 h-3" />
+                                      {deleteQuotationMutation.isPending ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
                                       ) : (
                                         <Trash2 className="w-3 h-3" />
                                       )}
@@ -596,7 +653,7 @@ export default function QuotationPage() {
             )}
 
             {/* No Results */}
-            {!loading && !error && filteredQuotations.length === 0 && (
+            {!isLoading && !error && filteredQuotations.length === 0 && (
               <div className="text-center py-12">
                 <Quote className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No quotations found</h3>
@@ -628,7 +685,7 @@ export default function QuotationPage() {
             )}
 
             {/* Summary Stats */}
-            {!loading && !error && filteredQuotations.length > 0 && (
+            {!isLoading && !error && filteredQuotations.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Summary</CardTitle>

@@ -8,3 +8,4 @@ ADD COLUMN third_lead_capture BOOLEAN DEFAULT FALSE;
 CREATE INDEX idx_users_third_lead_capture ON public.users USING btree (third_lead_capture);
 
 
+
