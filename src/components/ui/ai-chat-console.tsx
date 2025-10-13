@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, ChevronDown, ChevronUp, ExternalLink, Sparkles, MoreVertical, Pin, PinOff } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-// import { ButtonLoader } from './loader'; // Removed - will be recreated later
 
 interface Message {
   id: string;

@@ -369,19 +369,47 @@ export default function ChatPage() {
           {/* Right Sidebar Panel - Fixed position, won't move when scrolled */}
           <div className="fixed top-0 right-0 z-10 w-80 h-full bg-gray-50 border-l pt-14 pb-32">
             <div className="p-4 h-full flex flex-col justify-center space-y-4">
-              {/* Card 1 */}
+              {/* Conversation History */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm h-[45%] w-full">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Component 1</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Recent Conversations</h3>
                 <div className="text-sm text-gray-600">
-                  This is where we'll display the first component.
+                  {conversations.length > 0 ? (
+                    <div className="space-y-2">
+                      {conversations.slice(0, 3).map((conversation) => (
+                        <div key={conversation.id} className="p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                          <div className="text-xs font-medium text-gray-800 truncate">{conversation.title}</div>
+                          <div className="text-xs text-gray-500">{conversation.messageCount} messages</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500">No conversations yet</div>
+                  )}
                 </div>
               </div>
 
-              {/* Card 2 */}
+              {/* Quick Actions */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm h-[45%] w-full">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Component 2</h3>
-                <div className="text-sm text-gray-600">
-                  This is where we'll display the second component.
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleModalTrigger('pricing_calculator_modal')}
+                    className="w-full text-left p-2 text-xs bg-lime-50 text-lime-700 rounded-lg hover:bg-lime-100 transition-colors"
+                  >
+                    💰 Get Pricing Quote
+                  </button>
+                  <button
+                    onClick={() => handleModalTrigger('interview_request_modal')}
+                    className="w-full text-left p-2 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    📅 Schedule Interview
+                  </button>
+                  <button
+                    onClick={() => handleModalTrigger('anonymous_user_modal')}
+                    className="w-full text-left p-2 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                  >
+                    📝 Quick Contact
+                  </button>
                 </div>
               </div>
             </div>
