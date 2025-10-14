@@ -27,7 +27,6 @@ import {
   MessageCircle,
   PanelLeftClose,
   PanelLeftOpen,
-  ChevronDown,
   Clock,
   Trash2,
   Plus,
@@ -35,13 +34,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
+import { useChatContext } from '@/lib/chat-context'
 
 const userNavItems = [
   {
@@ -94,6 +87,9 @@ export function UserDashboardSidebar({ onChatOpen }: UserDashboardSidebarProps) 
   const { toggleSidebar, state } = useSidebar()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
+  
+  // Chat context for creating new conversations
+  const { clearMessages, setCurrentConversationId } = useChatContext()
 
   const handleSignOut = async () => {
     try {
@@ -109,6 +105,23 @@ export function UserDashboardSidebar({ onChatOpen }: UserDashboardSidebarProps) 
     if (onChatOpen) {
       onChatOpen()
     }
+  }
+
+  const handleNewChat = () => {
+    // Clear current messages and conversation
+    clearMessages()
+    setCurrentConversationId(null)
+    
+    // Navigate to chat page
+    window.location.href = '/user-dashboard/chat'
+  }
+
+  const handleLoadConversation = (conversationId: string) => {
+    // Set the current conversation ID
+    setCurrentConversationId(conversationId)
+    
+    // Navigate to chat page with conversation ID
+    window.location.href = `/user-dashboard/chat?conversation=${conversationId}`
   }
 
   // Load conversations from localStorage
@@ -179,79 +192,105 @@ export function UserDashboardSidebar({ onChatOpen }: UserDashboardSidebarProps) 
                 </SidebarMenuItem>
               ))}
               
-              {/* Separator and Chat with Maya button */}
+              {/* Separator and Chat with Maya section */}
               <div className="mt-4 mb-2">
                 <div className="h-px bg-gray-200 mx-3"></div>
               </div>
               
+              {/* Chat with Maya - Main Button */}
               <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors text-base"
-                      tooltip="Chat with Maya"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="text-base font-medium">Chat with Maya</span>
-                      <ChevronDown className="w-4 h-4 ml-auto" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-80">
-                    <DropdownMenuItem asChild>
-                      <Link href="/user-dashboard/chat" className="flex items-center gap-2">
-                        <Plus className="w-4 h-4" />
-                        New Chat
-                      </Link>
-                    </DropdownMenuItem>
-                    {conversations.length > 0 && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500">
-                          Recent Conversations
-                        </div>
-                        {conversations.slice(0, 5).map((conversation) => (
-                          <DropdownMenuItem key={conversation.id} asChild>
-                            <Link 
-                              href={`/user-dashboard/chat?conversation=${conversation.id}`}
-                              className="flex items-center justify-between w-full"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium truncate">
-                                  {conversation.title}
-                                </div>
-                                <div className="text-xs text-gray-500 truncate">
-                                  {conversation.lastMessage}
-                                </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Clock className="w-3 h-3" />
-                                  <span className="text-xs text-gray-400">
-                                    {conversation.timestamp.toLocaleDateString()}
-                                  </span>
-                                  <span className="text-xs text-gray-400">
-                                    {conversation.messageCount} messages
-                                  </span>
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  deleteConversation(conversation.id)
-                                }}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === '/user-dashboard/chat'}
+                  className={`${pathname === '/user-dashboard/chat' ? '!bg-lime-600 !text-white hover:!bg-lime-700' : 'bg-lime-600 hover:bg-lime-700 text-white'} transition-colors text-base`}
+                  tooltip="Chat with Maya"
+                >
+                  <Link href="/user-dashboard/chat">
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="text-base font-medium">Chat with Maya</span>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
+
+              {/* New Chat Button */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={handleNewChat}
+                  className="w-full hover:!bg-lime-100 hover:!text-lime-800 text-base h-10 cursor-pointer"
+                  tooltip="Start New Chat"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="text-base font-medium">New Chat</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Maya Components Button */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === '/user-dashboard/maya-components'}
+                  className={`${pathname === '/user-dashboard/maya-components' ? '!bg-lime-600 !text-white hover:!bg-lime-700' : 'hover:!bg-lime-100 hover:!text-lime-800'} transition-colors text-base`}
+                  tooltip="Maya's Components"
+                >
+                  <Link href="/user-dashboard/maya-components">
+                    <Settings className="w-5 h-5" />
+                    <span className="text-base font-medium">Maya's Components</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Recent Conversations */}
+              {conversations.length > 0 && (
+                <>
+                  <div className="mt-4 mb-2">
+                    <div className="px-3 py-1">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Recent Conversations
+                      </h3>
+                    </div>
+                  </div>
+                  
+                  {conversations.slice(0, 5).map((conversation) => (
+                    <SidebarMenuItem key={conversation.id}>
+                      <SidebarMenuButton
+                        onClick={() => handleLoadConversation(conversation.id)}
+                        className="w-full hover:!bg-gray-100 hover:!text-gray-800 text-sm h-auto py-2 px-3 cursor-pointer"
+                        tooltip={conversation.title}
+                      >
+                        <div className="flex items-center justify-between w-full group">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">
+                              {conversation.title}
+                            </div>
+                            <div className="text-xs text-gray-500 truncate mt-1">
+                              {conversation.lastMessage}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Clock className="w-3 h-3" />
+                              <span className="text-xs text-gray-400">
+                                {conversation.timestamp.toLocaleDateString()}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {conversation.messageCount} messages
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center hover:bg-gray-200 rounded"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              deleteConversation(conversation.id)
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </div>
+                        </div>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

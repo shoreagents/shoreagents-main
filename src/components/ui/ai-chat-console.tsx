@@ -1,22 +1,13 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Send, ChevronDown, ChevronUp, ExternalLink, Sparkles, MoreVertical, Pin, PinOff } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useChatContext, Message } from '@/lib/chat-context';
+import { MayaTextField, MayaNameFields, MayaAnonymousUserForm, MayaTalentSearchModal, MayaPricingCalculatorModal, MayaPricingForm } from '@/components/maya';
+import { generateUserId } from '@/lib/userEngagementService';
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  components?: React.ReactNode[];
-  relatedContent?: Array<{
-    title: string;
-    content: string;
-    url?: string;
-  }>;
-}
 
 interface ChatConsoleProps {
   isOpen: boolean;
@@ -60,21 +51,58 @@ const LimeLoader = () => {
 };
 
 const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Hello! I'm Maya Santos, your ShoreAgents AI assistant. I can help you with information about our services, team, pricing, and more. How can I assist you today?",
-      timestamp: new Date(),
-    }
-  ]);
+  const {
+    messages,
+    setMessages,
+    addMessage,
+    clearMessages,
+    isLoading,
+    setIsLoading,
+    generateAIResponse
+  } = useChatContext();
+  
+  // Get existing userId from database or generate new one
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const getExistingUserId = async () => {
+      try {
+        const response = await fetch('/api/get-existing-user');
+        const data = await response.json();
+        
+        if (data.success && data.userId) {
+          console.log('Using existing userId:', data.userId);
+          setUserId(data.userId);
+        } else {
+          console.log('No existing user found, generating new userId');
+          const newUserId = generateUserId();
+          setUserId(newUserId);
+        }
+      } catch (error) {
+        console.error('Error getting existing userId:', error);
+        const newUserId = generateUserId();
+        setUserId(newUserId);
+      }
+    };
+    
+    getExistingUserId();
+  }, []);
+  
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isFullHeight, setIsFullHeight] = useState(false);
+  const [isCollectingContact, setIsCollectingContact] = useState(false);
+  const [contactStep, setContactStep] = useState<'name' | 'email' | 'company' | null>(null);
+  const [contactData, setContactData] = useState<{name?: string; email?: string; company?: string}>({});
+  const [isTalentSearchOpen, setIsTalentSearchOpen] = useState(false);
+  const [isPricingCalculatorOpen, setIsPricingCalculatorOpen] = useState(false);
+  const [isCollectingPricing, setIsCollectingPricing] = useState(false);
+  const [pricingStep, setPricingStep] = useState<'teamSize' | 'roleType' | 'roles' | 'description' | null>(null);
+  const [pricingData, setPricingData] = useState<{teamSize?: string; roleType?: string; roles?: string; description?: string}>({});
+  const [conversationContext, setConversationContext] = useState<{isTalentInquiry?: boolean; conversationHistory?: Message[]}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -104,13 +132,32 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+      // Only focus main input if no form is being collected
+      if (isOpen && !isMinimized && !isCollectingContact && !isCollectingPricing) {
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 100);
+      }
+  }, [messages, isOpen, isMinimized, isCollectingContact, isCollectingPricing]);
 
   useEffect(() => {
     if (inputValue === '') {
       adjustTextareaHeight();
     }
   }, [inputValue]);
+
+  // Maintain focus when loading state changes (only if no form is being collected)
+  useEffect(() => {
+    if (!isLoading && isOpen && !isMinimized && !isCollectingContact) {
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [isLoading, isOpen, isMinimized, isCollectingContact, isCollectingPricing]);
 
   useEffect(() => {
     if (isOpen) {
@@ -123,10 +170,10 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (isOpen && inputRef.current && !isCollectingContact && !isCollectingPricing) {
       inputRef.current.focus();
     }
-  }, [isOpen]);
+  }, [isOpen, isCollectingContact, isCollectingPricing]);
 
   // Scroll to bottom when expanding from minimized state
   useEffect(() => {
@@ -134,9 +181,13 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
       // Small delay to ensure the chat is fully expanded
       setTimeout(() => {
         scrollToBottom();
+        // Focus input field when expanding from minimized state (only if no form is being collected)
+        if (!isCollectingContact && inputRef.current) {
+          inputRef.current.focus();
+        }
       }, 100);
     }
-  }, [isMinimized, isOpen]);
+  }, [isMinimized, isOpen, isCollectingContact]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -152,39 +203,13 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
     }
   }, [showMenu]);
 
-  const generateAIResponse = async (userMessage: string, conversationHistory: Message[]) => {
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage,
-          conversationHistory: conversationHistory.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          })),
-        }),
-      });
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      return {
-        response: data.content || 'I apologize, but I encountered an error processing your request.',
-        relatedContent: data.components || [],
-      };
-    } catch (error) {
-      console.error('API call error:', error);
-      throw error;
+  // Wrapper function for MayaTextField setMessages prop
+  const handleSetMessages = (newMessages: React.SetStateAction<Message[]>) => {
+    if (typeof newMessages === 'function') {
+      setMessages(newMessages(messages));
+    } else {
+      setMessages(newMessages);
     }
   };
 
@@ -199,14 +224,37 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    addMessage(userMessage);
     setInputValue('');
     setIsLoading(true);
     // Reset textarea height after sending
     setTimeout(() => adjustTextareaHeight(), 0);
 
     try {
-      const { response, relatedContent } = await generateAIResponse(inputValue, messages);
+      const { response, relatedContent, userData } = await generateAIResponse(inputValue, messages, userId);
+      
+      // Check if this is a talent inquiry
+      const messageLower = inputValue.toLowerCase();
+      const isTalentInquiry = messageLower.includes('talent') || 
+                              messageLower.includes('hire') || 
+                              messageLower.includes('team') || 
+                              messageLower.includes('staff') || 
+                              messageLower.includes('employee') || 
+                              messageLower.includes('candidate') ||
+                              messageLower.includes('recruit') ||
+                              messageLower.includes('find people') ||
+                              messageLower.includes('team building');
+      
+      // Update conversation context
+      setConversationContext({
+        isTalentInquiry,
+        conversationHistory: [...messages, {
+          id: Date.now().toString(),
+          role: 'user',
+          content: inputValue,
+          timestamp: new Date(),
+        }]
+      });
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -214,9 +262,53 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
         content: response,
         timestamp: new Date(),
         relatedContent: relatedContent.length > 0 ? relatedContent : undefined,
+        userData: userData,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      addMessage(assistantMessage);
+      
+       // Check if Maya is asking for contact information
+       const responseLower = response.toLowerCase();
+       const isAskingForContact = 
+         // Exact phrase matches
+         responseLower.includes('before we continue our conversation, it\'s okay to have your name?') ||
+         responseLower.includes('before we continue our conversation, it\'s okay to have your name') ||
+         responseLower.includes('before we continue, it\'s okay to have your name') ||
+         // Pattern matches for contact collection
+         (responseLower.includes('before we continue') && responseLower.includes('name')) ||
+         (responseLower.includes('before we continue') && responseLower.includes('contact')) ||
+         (responseLower.includes('before we continue') && responseLower.includes('email')) ||
+         // Alternative patterns
+         (responseLower.includes('before we proceed') && responseLower.includes('name')) ||
+         (responseLower.includes('before we move forward') && responseLower.includes('name')) ||
+         (responseLower.includes('to better assist you') && responseLower.includes('name')) ||
+         (responseLower.includes('to provide you with better service') && responseLower.includes('name'));
+       
+       if (isAskingForContact && !isCollectingContact) {
+         console.log('Maya is asking for contact info, triggering form');
+         // Only trigger contact collection for anonymous users
+         // Authenticated users already have contact information
+         if (!userData || userData.isNewUser || userData.user?.user_type === 'Anonymous') {
+           setIsCollectingContact(true);
+           setContactStep('name');
+         } else {
+           console.log('User is authenticated, skipping contact collection');
+         }
+       }
+
+       // Check if Maya is suggesting pricing calculator for talent needs
+       const isSuggestingPricingForTalent = responseLower.includes('pricing_calculator_modal') ||
+                                           responseLower.includes('let me help you get a personalized quote for your talent needs') ||
+                                           responseLower.includes('personalized quote for your talent') ||
+                                           responseLower.includes('pricing calculator') ||
+                                           responseLower.includes('pricing quote') ||
+                                           (responseLower.includes('talent') && responseLower.includes('quote'));
+       
+       if (isSuggestingPricingForTalent && !isCollectingPricing) {
+         console.log('Maya is suggesting pricing calculator for talent needs, starting step-by-step form');
+         setIsCollectingPricing(true);
+         setPricingStep('teamSize');
+       }
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: Message = {
@@ -225,9 +317,17 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
         content: "I'm sorry, I encountered an error. Please try again or contact our support team.",
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      addMessage(errorMessage);
     } finally {
       setIsLoading(false);
+      // Maintain focus on input field after message submission (only if no form is being collected)
+      if (!isCollectingContact && !isCollectingPricing) {
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 100);
+      }
     }
   };
 
@@ -381,12 +481,7 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
                   <button
                     onClick={() => {
                       // Clear chat history
-                      setMessages([{
-                        id: '1',
-                        role: 'assistant',
-                        content: "Hello! I'm Maya Santos, your ShoreAgents AI assistant. I can help you with information about our services, team, pricing, and more. How can I assist you today?",
-                        timestamp: new Date(),
-                      }]);
+                      clearMessages();
                       setShowMenu(false);
                     }}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
@@ -424,7 +519,15 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
         {!isMinimized && (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white transition-all duration-300 ease-out">
+            <div 
+              className="flex-1 overflow-y-auto p-4 space-y-3 bg-white transition-all duration-300 ease-out"
+              onClick={() => {
+                // Focus input field when clicking in messages area (only if no form is being collected)
+                if (!isCollectingContact && !isCollectingPricing && inputRef.current) {
+                  inputRef.current.focus();
+                }
+              }}
+            >
               {messages.map(renderMessage)}
               {isLoading && (
                 <div className="flex justify-start mb-4">
@@ -440,6 +543,74 @@ const ChatConsole: React.FC<ChatConsoleProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
               )}
+              
+              
+              {/* Contact Collection Form */}
+              {isCollectingContact && contactStep && (
+                <div className="mt-4">
+                  <MayaAnonymousUserForm
+                    currentStep={contactStep}
+                    onStepChange={(step) => {
+                      if (step === null) {
+                        setIsCollectingContact(false);
+                        setContactStep(null);
+                      } else {
+                        setContactStep(step as 'name' | 'email' | 'company');
+                      }
+                    }}
+                    onFormDataChange={(data) => {
+                      setContactData(data);
+                    }}
+                    setMessages={handleSetMessages}
+                    generateMessageId={() => Date.now().toString()}
+                    formData={{...contactData, userId: userId || 'anonymous_' + Date.now()}}
+                    conversationContext={conversationContext}
+                  />
+                </div>
+              )}
+              
+              {/* Pricing Collection Form */}
+              {isCollectingPricing && pricingStep && (
+                <div className="mt-4">
+                  <MayaPricingForm
+                    currentStep={pricingStep}
+                    onStepChange={(step: string | null) => {
+                      if (step === null) {
+                        setIsCollectingPricing(false);
+                        setPricingStep(null);
+                      } else {
+                        setPricingStep(step as 'teamSize' | 'roleType' | 'roles' | 'description');
+                      }
+                    }}
+                    onFormDataChange={(data: any) => {
+                      setPricingData(data);
+                    }}
+                    setMessages={handleSetMessages}
+                    generateMessageId={() => Date.now().toString()}
+                    formData={{...pricingData, userId: userId || 'anonymous_' + Date.now()}}
+                  />
+                </div>
+              )}
+              
+              {/* Talent Search Modal */}
+              {isTalentSearchOpen && (
+                <MayaTalentSearchModal
+                  isOpen={isTalentSearchOpen}
+                  onClose={() => setIsTalentSearchOpen(false)}
+                  userData={contactData}
+                />
+              )}
+              
+              {/* Pricing Calculator Modal */}
+              {isPricingCalculatorOpen && (
+                <MayaPricingCalculatorModal
+                  isOpen={isPricingCalculatorOpen}
+                  onClose={() => setIsPricingCalculatorOpen(false)}
+                  userData={contactData}
+                  setMessages={handleSetMessages}
+                />
+              )}
+              
               <div ref={messagesEndRef} />
             </div>
 

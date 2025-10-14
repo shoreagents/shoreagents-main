@@ -19,88 +19,46 @@ import {
   Download,
   MapPin,
   Calendar,
-  Briefcase,
-  RefreshCw,
-  AlertCircle
+  Briefcase
 } from 'lucide-react'
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
 import { getEmployeeCardData } from '@/lib/api'
 import { EmployeeCardData } from '@/types/api'
 
 export default function CandidatesPage() {
   const { user } = useUserAuth()
-  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [favorites, setFavorites] = useState<string[]>([])
+  const [candidates, setCandidates] = useState<EmployeeCardData[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // TanStack Query for fetching candidates
-  const {
-    data: candidates = [],
-    isLoading,
-    error,
-    refetch,
-    isFetching,
-    isStale
-  } = useQuery({
-    queryKey: ['candidates'],
-    queryFn: async () => {
-      console.log('🔄 Fetching candidates from BPOC API...')
-      const data = await getEmployeeCardData()
-      console.log('✅ Fetched candidates:', data.length)
-      return data
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
-  })
-
-  // Mutation for toggling favorites
-  const toggleFavoriteMutation = useMutation({
-    mutationFn: async (candidateId: string) => {
-      // Simulate API call - in real app, this would update the server
-      await new Promise(resolve => setTimeout(resolve, 500))
-      return candidateId
-    },
-    onMutate: async (candidateId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['candidates'] })
-      
-      // Snapshot the previous value
-      const previousCandidates = queryClient.getQueryData(['candidates'])
-      
-      // Optimistically update the favorites
-      setFavorites(prev => 
-        prev.includes(candidateId) 
-          ? prev.filter(id => id !== candidateId)
-          : [...prev, candidateId]
-      )
-      
-      return { previousCandidates }
-    },
-    onError: (err, candidateId, context) => {
-      // Revert the optimistic update
-      if (context?.previousCandidates) {
-        queryClient.setQueryData(['candidates'], context.previousCandidates)
+  // Fetch real candidates from BPOC API
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        console.log('🔄 Fetching candidates from BPOC API...')
+        setLoading(true)
+        const data = await getEmployeeCardData()
+        console.log('✅ Fetched candidates:', data.length)
+        setCandidates(data)
+      } catch (error) {
+        console.error('❌ Error fetching candidates:', error)
+        setCandidates([])
+      } finally {
+        setLoading(false)
       }
-      setFavorites(prev => 
-        prev.includes(candidateId) 
-          ? prev.filter(id => id !== candidateId)
-          : [...prev, candidateId]
-      )
-    },
-    onSettled: () => {
-      // Refetch after mutation
-      queryClient.invalidateQueries({ queryKey: ['candidates'] })
     }
-  })
+
+    fetchCandidates()
+  }, [])
 
   const handleFavorite = (candidateId: string) => {
-    toggleFavoriteMutation.mutate(candidateId)
+    setFavorites(prev => 
+      prev.includes(candidateId) 
+        ? prev.filter(id => id !== candidateId)
+        : [...prev, candidateId]
+    )
   }
 
   const filteredCandidates = candidates.filter(candidate => {
@@ -123,23 +81,6 @@ export default function CandidatesPage() {
               <Badge variant="secondary" className="text-xs">
                 {filteredCandidates.length} candidates found
               </Badge>
-              {isStale && (
-                <Badge variant="outline" className="text-xs text-orange-600">
-                  Data may be outdated
-                </Badge>
-              )}
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
             </div>
           </header>
           
@@ -192,41 +133,15 @@ export default function CandidatesPage() {
             </div>
 
             {/* Loading State */}
-            {isLoading && (
+            {loading && (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full border-2 border-lime-600 border-t-transparent w-8 h-8" />
                 <span className="ml-3 text-gray-600">Loading candidates...</span>
               </div>
             )}
 
-            {/* Error State */}
-            {error && (
-              <div className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to load candidates</h3>
-                <p className="text-muted-foreground mb-4 text-center max-w-md">
-                  {error instanceof Error ? error.message : 'An unexpected error occurred'}
-                </p>
-                <Button 
-                  onClick={() => refetch()}
-                  className="bg-lime-600 hover:bg-lime-700"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again
-                </Button>
-              </div>
-            )}
-
-            {/* Background Refetching Indicator */}
-            {isFetching && !isLoading && (
-              <div className="flex items-center justify-center py-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-lime-600 mr-2" />
-                <span className="text-sm text-gray-600">Updating candidates...</span>
-              </div>
-            )}
-
             {/* Candidates Grid - 4 Column Portrait Layout */}
-            {!isLoading && !error && (
+            {!loading && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredCandidates.map((candidate) => (
                   <Card key={candidate.user.id} className="hover:shadow-lg transition-all duration-300 flex flex-col h-full overflow-hidden">
@@ -257,20 +172,15 @@ export default function CandidatesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleFavorite(candidate.user.id)}
-                          disabled={toggleFavoriteMutation.isPending}
                           className="absolute top-2 right-2 p-1 h-6 w-6"
                         >
-                          {toggleFavoriteMutation.isPending ? (
-                            <RefreshCw className="w-3 h-3 animate-spin text-gray-400" />
-                          ) : (
-                            <Heart 
-                              className={`w-3 h-3 ${
-                                favorites.includes(candidate.user.id) 
-                                  ? 'text-red-500 fill-current' 
-                                  : 'text-gray-400'
-                              }`} 
-                            />
-                          )}
+                          <Heart 
+                            className={`w-3 h-3 ${
+                              favorites.includes(candidate.user.id) 
+                                ? 'text-red-500 fill-current' 
+                                : 'text-gray-400'
+                            }`} 
+                          />
                         </Button>
                       </div>
                     </CardHeader>
@@ -352,7 +262,7 @@ export default function CandidatesPage() {
             )}
 
             {/* No Results */}
-            {!isLoading && !error && filteredCandidates.length === 0 && (
+            {!loading && filteredCandidates.length === 0 && (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No candidates found</h3>

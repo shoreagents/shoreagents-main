@@ -55,3 +55,4 @@ console.log('\n✅ This should fix your Supabase connection issues!')
 
 
 
+

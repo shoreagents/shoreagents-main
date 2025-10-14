@@ -82,10 +82,13 @@ function analyzeConversation(message: string, conversationHistory: Array<{ role:
     suggestedActions.push('urgent_contact_modal');
   }
   
-  // Only suggest talent search for specific hiring requests
-  if ((fullConversation.includes('talent') || fullConversation.includes('hire') || fullConversation.includes('find') || fullConversation.includes('recruit')) && 
+  // Only suggest pricing calculator for specific talent/hiring requests (not simple greetings)
+  const simpleGreetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'howdy', 'greetings'];
+  const isSimpleGreeting = simpleGreetings.some(greeting => fullConversation.toLowerCase().trim() === greeting);
+  
+  if (!isSimpleGreeting && (fullConversation.includes('talent') || fullConversation.includes('hire') || fullConversation.includes('find') || fullConversation.includes('recruit')) && 
       (fullConversation.includes('candidate') || fullConversation.includes('employee') || fullConversation.includes('staff') || fullConversation.includes('team'))) {
-    suggestedActions.push('talent_search_modal');
+    suggestedActions.push('pricing_calculator_modal');
   }
   
   // Only suggest demo for specific demo requests
@@ -280,9 +283,8 @@ export async function POST(request: NextRequest) {
           if (isAnonymous && !hasContactInfo) {
             potentialNeeds.push('contact_information');
           }
-          if (isAnonymous && !hasQuotes) {
-            potentialNeeds.push('pricing_calculator');
-          }
+          // Only suggest pricing calculator if user has shown interest in pricing/hiring
+          // Don't automatically add it for all anonymous users
           if (hasQuotes && !isRegular) {
             potentialNeeds.push('account_creation');
           }
@@ -328,8 +330,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Search knowledge base for relevant information
-    const relevantKnowledge = searchKnowledge(message);
+    // Search knowledge base for relevant information (skip for simple greetings)
+    let relevantKnowledge = null;
+    const messageLower = message.toLowerCase().trim();
+    const simpleGreetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'howdy', 'greetings'];
+    
+    if (!simpleGreetings.includes(messageLower)) {
+      relevantKnowledge = searchKnowledge(message);
+    }
     
     // Also search for specific trigger phrases that should always include links
     const triggerPhrases = [
@@ -353,14 +361,14 @@ export async function POST(request: NextRequest) {
     ];
     
     // Add specific knowledge items based on trigger phrases
-    const messageLower = message.toLowerCase();
+    const messageLowerForTriggers = message.toLowerCase();
     const triggeredKnowledge = triggerPhrases
-      .filter(trigger => messageLower.includes(trigger.phrase))
+      .filter(trigger => messageLowerForTriggers.includes(trigger.phrase))
       .map(trigger => knowledgeBase.find(item => item.id === trigger.knowledgeId))
       .filter(Boolean);
     
     // Combine search results with triggered knowledge, removing duplicates
-    const allRelevantKnowledge = [...relevantKnowledge];
+    const allRelevantKnowledge = relevantKnowledge ? [...relevantKnowledge] : [];
     triggeredKnowledge.forEach(item => {
       if (item && !allRelevantKnowledge.find(existing => existing.id === item.id)) {
         allRelevantKnowledge.push(item);
@@ -374,9 +382,84 @@ export async function POST(request: NextRequest) {
   let personalizedContext = '';
   const suggestedComponents = [];
   
+  // Enhanced AI analysis for anonymous users
+  let shouldRequestContactInfo = false;
+  let contactRequestReason = '';
+  let statusBasedQuestion = '';
+  
+  // Check for anonymous users without userData (new visitors)
+  if (!userData || userData.isNewUser) {
+    // For new/anonymous users, check conversation patterns
+    if (conversationHistory.length >= 2) {
+      shouldRequestContactInfo = true;
+      contactRequestReason = 'new_user_engagement';
+    }
+    
+    // Check if user is asking for specific services
+    if (conversationAnalysis.intent === 'pricing_inquiry' || 
+        conversationAnalysis.intent === 'talent_inquiry' || 
+        conversationAnalysis.intent === 'service_inquiry') {
+      shouldRequestContactInfo = true;
+      contactRequestReason = 'service_inquiry_anonymous';
+    }
+  }
+  
   if (userData && !userData.isNewUser) {
     const { user, quotes, leadCaptureStatus, userProfile } = userData;
     
+    // Check if user is anonymous and missing contact information
+    if (user.user_type === 'Anonymous' && !userProfile.hasContactInfo) {
+      shouldRequestContactInfo = true;
+      contactRequestReason = 'anonymous_user_missing_contact';
+    }
+    
+    // Don't ask for contact info from authenticated users (Regular/Admin)
+    if (user.user_type === 'Regular' || user.user_type === 'Admin') {
+      shouldRequestContactInfo = false;
+      contactRequestReason = 'authenticated_user_has_contact_info';
+    }
+    
+    // Check if user has already provided contact info in current conversation
+    const hasProvidedContactInConversation = conversationHistory.some(msg => 
+      msg.role === 'user' && (
+        msg.content.toLowerCase().includes('my name is') ||
+        msg.content.toLowerCase().includes('i am') ||
+        msg.content.toLowerCase().includes('email') ||
+        msg.content.toLowerCase().includes('@')
+      )
+    );
+    
+    // Check if user has been engaging but hasn't provided contact info
+    if (conversationHistory.length >= 3 && !userProfile.hasContactInfo && !hasProvidedContactInConversation) {
+      shouldRequestContactInfo = true;
+      contactRequestReason = 'engaged_user_missing_contact';
+    }
+    
+    // Check if user is asking for quotes but hasn't provided contact info
+    // Now we check both database contact info AND conversation history
+    if ((conversationAnalysis.intent === 'pricing_inquiry' || conversationAnalysis.intent === 'talent_inquiry') && 
+        !userProfile.hasContactInfo && !hasProvidedContactInConversation) {
+      shouldRequestContactInfo = true;
+      contactRequestReason = 'quote_request_missing_contact';
+    }
+    
+    // Determine status-based question
+    const hasCompany = user.company && user.company.trim() !== '';
+    const hasIndustry = user.industry && user.industry.trim() !== '';
+    const isReturningUser = quotes.length > 0 || userProfile.recentActivity?.length > 0;
+    
+    if (hasCompany && hasIndustry) {
+      statusBasedQuestion = "Since you're from an established company, would you like me to show you our talent pool to find the right team members for your business needs?";
+    } else if (hasCompany && !hasIndustry) {
+      statusBasedQuestion = "I'd love to help you find the right talent for your company. What industry does your business operate in?";
+    } else if (!hasCompany && hasIndustry) {
+      statusBasedQuestion = `Great! Since you're interested in our services, would you like to see our pricing calculator to get a personalized quote for your ${user.industry} needs?`;
+    } else if (isReturningUser) {
+      statusBasedQuestion = "Welcome back! I can see you've been here before. What would you like to explore today - our talent pool, pricing calculator, or something else?";
+    } else {
+      statusBasedQuestion = "Great to meet you! Let me help you discover what ShoreAgents can do for your business. Would you like to start with our talent pool or get a pricing quote?";
+    }
+
     // Create personalized greeting context
     personalizedContext = `\n\nPERSONALIZED USER CONTEXT:
 - User Type: ${user.user_type}
@@ -388,15 +471,37 @@ export async function POST(request: NextRequest) {
 - Has Contact Info: ${userProfile.hasContactInfo}
 - Interests: ${userProfile.interests.join(', ') || 'None specified'}
 - Potential Needs: ${userProfile.potentialNeeds.join(', ') || 'None identified'}
+- Status-Based Question: ${statusBasedQuestion}
 
 CONVERSATION ANALYSIS:
 - User Intent: ${conversationAnalysis.intent}
 - Conversation Stage: ${conversationAnalysis.stage}
 - Key Topics: ${conversationAnalysis.topics.join(', ')}
 - Urgency Level: ${conversationAnalysis.urgency}
-- Suggested Actions: ${conversationAnalysis.suggestedActions.join(', ')}`;
+- Suggested Actions: ${conversationAnalysis.suggestedActions.join(', ')}
+- Should Request Contact Info: ${shouldRequestContactInfo}
+- Contact Request Reason: ${contactRequestReason}`;
+  } else {
+    // For new/anonymous users without userData
+    personalizedContext = `\n\nANONYMOUS USER CONTEXT:
+- User Type: Anonymous/New Visitor
+- Has Contact Info: No
+- Conversation History Length: ${conversationHistory.length}
 
-    // Suggest relevant components based on user data and conversation analysis
+CONVERSATION ANALYSIS:
+- User Intent: ${conversationAnalysis.intent}
+- Conversation Stage: ${conversationAnalysis.stage}
+- Key Topics: ${conversationAnalysis.topics.join(', ')}
+- Urgency Level: ${conversationAnalysis.urgency}
+- Suggested Actions: ${conversationAnalysis.suggestedActions.join(', ')}
+- Should Request Contact Info: ${shouldRequestContactInfo}
+- Contact Request Reason: ${contactRequestReason}`;
+  }
+
+  // Suggest relevant components based on user data and conversation analysis
+  if (userData && !userData.isNewUser) {
+    const { userProfile, quotes } = userData;
+    
     if (conversationAnalysis.suggestedActions.includes('pricing_calculator_modal') || userProfile.potentialNeeds.includes('pricing_calculator') || userProfile.potentialNeeds.includes('quote_creation')) {
       suggestedComponents.push('pricing_calculator_modal');
     }
