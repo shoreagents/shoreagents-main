@@ -1,10 +1,40 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from './supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 const supabase = createClient()
+
+// TanStack Query hook for fetching app user data
+export const useAppUserQuery = (authUser: User | null) => {
+  return useQuery({
+    queryKey: ['appUser', authUser?.id],
+    queryFn: async () => {
+      if (!authUser || !supabase) {
+        return null
+      }
+
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_user_id', authUser.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching app user:', error)
+        throw error
+      }
+
+      return userData
+    },
+    enabled: !!authUser && !!supabase,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: 1000,
+  })
+}
 
 export interface AppUser {
   id: string
@@ -38,49 +68,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [appUser, setAppUser] = useState<AppUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const [lastFetchedUserId, setLastFetchedUserId] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  // Fetch app user data from our custom users table
-  const fetchAppUser = async (authUser: User | null) => {
-    if (!authUser || !supabase) {
-      setAppUser(null)
-      setLastFetchedUserId(null)
-      return
-    }
-
-    // Skip fetch if we already have data for this user
-    if (lastFetchedUserId === authUser.id && appUser) {
-      return
-    }
-
-    try {
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('auth_user_id', authUser.id)
-        .single()
-
-      if (error) {
-        console.error('Error fetching app user:', error)
-        setAppUser(null)
-        setLastFetchedUserId(null)
-      } else {
-        setAppUser(userData)
-        setLastFetchedUserId(authUser.id)
-      }
-    } catch (error) {
-      console.error('Error in fetchAppUser:', error)
-      setAppUser(null)
-      setLastFetchedUserId(null)
-    }
-  }
+  // Use TanStack Query for app user data
+  const { 
+    data: appUser, 
+    isLoading: appUserLoading, 
+    error: appUserError,
+    refetch: refetchAppUser 
+  } = useAppUserQuery(user)
 
   // Memoize the refresh function to prevent unnecessary re-renders
   const refreshUser = async () => {
     if (user) {
-      await fetchAppUser(user)
+      await refetchAppUser()
     }
   }
 
@@ -89,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const getInitialSession = async () => {
       const { data: { session } } = await supabase?.auth.getSession() || { data: { session: null } }
       setUser(session?.user ?? null)
-      await fetchAppUser(session?.user ?? null)
       setLoading(false)
     }
 
@@ -99,7 +100,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase?.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null)
-        await fetchAppUser(session?.user ?? null)
         setLoading(false)
       }
     ) || { data: { subscription: null } }
@@ -125,12 +125,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('✅ Supabase signOut successful')
       }
       
+      // Clear TanStack Query cache
+      queryClient.clear()
+      
       // Clear local state immediately
       setUser(null)
-      setAppUser(null)
-      setLastFetchedUserId(null)
       
-      console.log('✅ Local state cleared')
+      console.log('✅ Local state and cache cleared')
       
       // Force a page reload to ensure complete cleanup
       // This prevents any lingering state issues
@@ -141,10 +142,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('❌ Sign out error:', error)
       
-      // Even if there's an error, clear local state
+      // Even if there's an error, clear local state and cache
+      queryClient.clear()
       setUser(null)
-      setAppUser(null)
-      setLastFetchedUserId(null)
       
       // Still redirect to home page
       window.location.href = '/'
@@ -159,6 +159,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAnonymous = userType === 'Anonymous'
   const isAuthenticated = !!user
 
+  // Combined loading state
+  const combinedLoading = loading || appUserLoading
 
   const value = {
     user,
@@ -168,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isRegular,
     isAnonymous,
     isAuthenticated,
-    loading,
+    loading: combinedLoading,
     signOut,
     refreshUser,
   }

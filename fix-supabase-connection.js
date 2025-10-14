@@ -54,3 +54,5 @@ console.log('Then open http://localhost:3001')
 console.log('\n✅ This should fix your Supabase connection issues!')
 
 
+
+

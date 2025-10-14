@@ -17,6 +17,7 @@ import { UserAuthProvider } from "@/lib/user-auth-context";
 import { AdminAuthProvider } from "@/lib/admin-auth-context";
 import { FavoritesProvider } from "@/lib/favorites-context";
 import { QueryProvider } from "@/lib/query-client-provider";
+import { ChatProvider } from "@/lib/chat-context";
 import { Toaster } from "@/components/ui/sonner";
 
 const poppins = Poppins({
@@ -58,6 +59,7 @@ export default function RootLayout({
                 <UserAuthProvider>
                   <AdminAuthProvider>
                     <FavoritesProvider>
+                      <ChatProvider>
                       {/* <AnonymousUserInitializer /> */}
                       <GlobalEngagementTracker />
                       <ScrollToTop />
@@ -70,6 +72,7 @@ export default function RootLayout({
                       <BottomNav />
                       {/* <GlobalPricingModal /> */}
                       <AnonymousUserButton />
+                      </ChatProvider>
                     </FavoritesProvider>
                   </AdminAuthProvider>
                 </UserAuthProvider>

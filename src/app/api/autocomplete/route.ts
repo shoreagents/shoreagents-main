@@ -1,252 +1,154 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
 
-// Simple in-memory cache for autocomplete suggestions
-const suggestionCache = new Map<string, { suggestions: unknown[]; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-// Rate limiting to prevent excessive API calls
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 20; // Max 20 requests per minute per IP (increased from 10)
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+})
 
 export async function POST(request: NextRequest) {
   try {
     // Check if API key is available
     if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable' },
-        { status: 503 }
-      );
+      console.error('ANTHROPIC_API_KEY is not set')
+      return NextResponse.json({ 
+        suggestions: [],
+        error: 'API key not configured'
+      }, { status: 500 })
     }
 
-    const { query, type, industry, roleTitle, generateAnother, generationCount } = await request.json();
+    const { input, context = '', maxSuggestions = 3 } = await request.json()
 
-    if (!query || !type) {
-      return NextResponse.json(
-        { error: 'Query and type are required' },
-        { status: 400 }
-      );
+    if (!input || input.length < 2) {
+      return NextResponse.json({ suggestions: [] })
     }
 
-    // Validate query length to prevent unnecessary API calls
-    if (query.trim().length < 2) {
-      return NextResponse.json(
-        { error: 'Query must be at least 2 characters long' },
-        { status: 400 }
-      );
-    }
+    // Create a comprehensive prompt for role suggestions
+    const prompt = `You are an AI assistant helping users specify job roles and positions. Based on the user's input "${input}" and context "${context}", suggest ${maxSuggestions} relevant job roles or positions.
 
-    // Rate limiting check
-    const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const now = Date.now();
-    const rateLimitKey = `${clientIP}-${type}`;
-    
-    const rateLimitData = rateLimitMap.get(rateLimitKey);
-    if (rateLimitData) {
-      if (now < rateLimitData.resetTime) {
-        if (rateLimitData.count >= RATE_LIMIT_MAX_REQUESTS) {
-          return NextResponse.json(
-            { error: 'Rate limit exceeded. Please wait before making another request.' },
-            { status: 429 }
-          );
+Context: The user is looking for team members for their business. They might be specifying roles like:
+- Software Developer, Frontend Developer, Backend Developer
+- Marketing Manager, Content Writer, Social Media Specialist
+- Customer Service Representative, Sales Representative
+- Accountant, Bookkeeper, Financial Analyst
+- Virtual Assistant, Administrative Assistant
+- Project Manager, Team Lead, Operations Manager
+- Graphic Designer, UI/UX Designer, Web Designer
+- Data Analyst, Business Analyst, Research Analyst
+- HR Specialist, Recruiter, Talent Acquisition
+- And many more...
+
+Based on the input "${input}", suggest ${maxSuggestions} specific, relevant job roles that would be appropriate for offshore staffing. Make the suggestions:
+1. Specific and professional
+2. Commonly used in business contexts
+3. Relevant to the input provided
+4. Different from each other but related
+
+Format your response as a JSON array of objects with "text" and "confidence" fields:
+[
+  {"text": "Software Developer", "confidence": 0.9},
+  {"text": "Frontend Developer", "confidence": 0.8},
+  {"text": "Full Stack Developer", "confidence": 0.7}
+]
+
+Only return the JSON array, no other text.`
+
+    const response = await anthropic.messages.create({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 200,
+      temperature: 0.3,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
         }
-        rateLimitData.count++;
-      } else {
-        // Reset rate limit window
-        rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
-      }
-    } else {
-      rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+      ]
+    })
+
+    if (!response || !response.content || response.content.length === 0) {
+      throw new Error('Empty response from Anthropic API')
     }
 
-    // Check cache first (but not for "generate another" requests)
-    const cacheKey = generateAnother 
-      ? `${type}-${query}-${industry || ''}-${roleTitle || ''}-${Date.now()}` // Unique key for each "generate another"
-      : `${type}-${query}-${industry || ''}-${roleTitle || ''}`;
-    
-    const cached = suggestionCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION && !generateAnother) {
-      return NextResponse.json({ suggestions: cached.suggestions });
+    const content = response.content[0]
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response type from Anthropic')
     }
 
-    // Initialize Anthropic client
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-
-    let systemPrompt = '';
-    let userPrompt = '';
-
-    if (type === 'industry') {
-      systemPrompt = `Suggest industries based on user input. Return ONLY JSON array:
-      [{"title": "Industry Name", "description": "Brief description", "level": "Industry"}]
-      
-      IMPORTANT:
-      - Return actual INDUSTRY NAMES (like "Web Development", "E-commerce", "Healthcare")
-      - NOT job descriptions or tasks
-      - Include 4-6 suggestions
-      - Keep descriptions under 8 words
-      - Use "Industry" as the level for all suggestions`;
-
-      userPrompt = `Query: "${query}"
-      
-      Suggest 4-6 matching industry names. Focus on exact/partial matches.
-      Return only JSON array with industry names, not job descriptions.`;
-    } else if (type === 'role') {
-      systemPrompt = `You are a job title suggestion assistant. Return ONLY a JSON array of job titles with descriptions.
-      Format: [{"title": "Job Title", "description": "Brief job description", "level": "entry|mid|senior"}]
-      
-      IMPORTANT: 
-      - Return actual JOB TITLES (like "Software Developer", "Marketing Manager")
-      - NOT task descriptions or responsibilities
-      - Include 3-5 suggestions
-      - Keep descriptions under 10 words
-      - Be specific about experience level`;
-
-      userPrompt = `Query: "${query}" | Industry: ${industry || 'General'}
-      
-      Suggest 3-5 JOB TITLES that match this query. Focus on actual job positions, not tasks.
-      Examples of good job titles: "Junior Web Developer", "Senior Software Engineer", "Marketing Coordinator"
-      Examples of BAD responses: "Build websites", "Write code", "Manage projects"
-      
-      Return only JSON array with job titles.`;
-    } else if (type === 'description') {
-      systemPrompt = `You are an AI assistant that generates detailed job role descriptions.
-      Based on the role title and industry context, create a comprehensive job description.
-      
-      IMPORTANT: You must return ONLY the job description text directly.
-      Do not wrap it in JSON, quotes, or any other formatting.
-      Just return the plain text description.
-      Make the description professional, specific, and comprehensive.`;
-
-      // Create more varied prompts for different generations
-      const variationPrompts = [
-        `Create a DIFFERENT variation focusing on TECHNICAL SKILLS and SYSTEM EXPERTISE. Emphasize software, tools, and technical competencies.`,
-        `Create a DIFFERENT variation focusing on COMMUNICATION and INTERPERSONAL SKILLS. Emphasize client relations, teamwork, and soft skills.`,
-        `Create a DIFFERENT variation focusing on OPERATIONAL and PROCESS MANAGEMENT. Emphasize workflow, efficiency, and organizational skills.`,
-        `Create a DIFFERENT variation focusing on ANALYTICAL and PROBLEM-SOLVING SKILLS. Emphasize data analysis, critical thinking, and decision-making.`,
-        `Create a DIFFERENT variation focusing on LEADERSHIP and PROJECT MANAGEMENT. Emphasize team leadership, project coordination, and strategic thinking.`,
-        `Create a DIFFERENT variation focusing on CREATIVE and INNOVATIVE SKILLS. Emphasize creativity, innovation, and out-of-the-box thinking.`
-      ];
-
-      // Use a variation prompt based on generation count for "generate another"
-      const randomVariation = generateAnother 
-        ? variationPrompts[(generationCount || 0) % variationPrompts.length]
-        : '';
-
-      userPrompt = `Generate a detailed job description for the role: "${roleTitle}"
-      Industry context: ${industry || 'General business'}
-      
-      Create a comprehensive description that includes:
-      - Primary responsibilities and daily tasks
-      - Required skills and qualifications
-      - Industry-specific knowledge or experience
-      - Expected deliverables and outcomes
-      
-      ${randomVariation}
-      
-      IMPORTANT: Use completely different wording, structure, and focus areas. Make this description unique and distinct from any previous versions.
-      
-      Return ONLY the plain text description. No JSON, no quotes, no formatting. Just the description text.`;
-    }
-
-    // Try Claude 4 Sonnet first, fallback to Claude 3.5 Sonnet if not available
-    let response;
+    // Parse the JSON response
+    let suggestions
     try {
-      response = await anthropic.messages.create({
-        model: 'claude-4-sonnet-20241022', // Using Claude 4 Sonnet for faster responses
-        max_tokens: 300, // Further reduced for faster response
-        temperature: generateAnother ? 0.8 : 0.6, // Slightly lower for more consistent, faster responses
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-      });
-    } catch (modelError) {
-      console.log('Claude 4 not available, falling back to Claude 3.5 Sonnet');
-      response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022', // Fallback to Claude 3.5 Sonnet
-        max_tokens: 300,
-        temperature: generateAnother ? 0.8 : 0.6,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-      });
-    }
-
-    const aiResponse = response.content[0];
-    if (aiResponse.type !== 'text') {
-      throw new Error('Unexpected response type');
-    }
-
-    // Debug logging for industry type
-    if (type === 'industry') {
-      console.log('🔍 Industry API Debug:', {
-        query,
-        aiResponse: aiResponse.text,
-        type
-      });
-    }
-
-    // Parse the response
-    let suggestions;
-    try {
-      if (type === 'description') {
-        // For descriptions, expect plain text directly
-        suggestions = aiResponse.text.trim();
-        
-        // Clean up any potential formatting artifacts
-        suggestions = suggestions
-          .replace(/^["']|["']$/g, '') // Remove surrounding quotes
-          .replace(/^\{[\s\S]*"description":\s*["']?([^"'}]+)["']?[\s\S]*\}$/, '$1') // Extract from JSON if AI still returns it
-          .trim();
-        
-        if (!suggestions) {
-          throw new Error('No description found in response');
-        }
-      } else {
-        // For suggestions, expect a JSON array
-        const jsonMatch = aiResponse.text.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          suggestions = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('No JSON array found in response');
-        }
-      }
+      suggestions = JSON.parse(content.text)
     } catch (parseError) {
-      console.error('Failed to parse AI response:', aiResponse.text);
-      console.error('Parse error:', parseError);
-      
-      // For descriptions, provide a fallback
-      if (type === 'description') {
-        suggestions = `This role involves key responsibilities and tasks related to ${roleTitle || 'the position'}. The ideal candidate should have relevant experience and skills for this position.`;
-      } else {
-        return NextResponse.json(
-          { error: 'Failed to parse suggestions' },
-          { status: 500 }
-        );
-      }
+      console.error('Failed to parse suggestions:', parseError)
+      // Fallback suggestions based on common roles
+      suggestions = [
+        { text: "Software Developer", confidence: 0.8 },
+        { text: "Marketing Manager", confidence: 0.7 },
+        { text: "Customer Service Representative", confidence: 0.6 }
+      ]
     }
 
-    // Debug logging for parsed suggestions
-    if (type === 'industry') {
-      console.log('🔍 Parsed Industry Suggestions:', {
-        suggestions,
-        count: Array.isArray(suggestions) ? suggestions.length : 'not array'
-      });
-    }
-
-    // Cache the results
-    suggestionCache.set(cacheKey, {
-      suggestions,
-      timestamp: Date.now()
-    });
-
-    return NextResponse.json({ suggestions });
+    return NextResponse.json({ suggestions })
 
   } catch (error) {
-    console.error('Autocomplete API error:', error);
-    return NextResponse.json(
-      { error: 'Service temporarily unavailable' },
-      { status: 503 }
-    );
+    console.error('Autocomplete API error:', error)
+    
+    // Fallback suggestions for common inputs
+    const fallbackSuggestions = getFallbackSuggestions(input)
+    
+    return NextResponse.json({ 
+      suggestions: fallbackSuggestions,
+      error: error instanceof Error ? error.message : 'AI service temporarily unavailable'
+    })
   }
+}
+
+function getFallbackSuggestions(input: string): Array<{text: string, confidence: number}> {
+  const lowerInput = input.toLowerCase()
+  
+  if (lowerInput.includes('dev') || lowerInput.includes('software') || lowerInput.includes('program')) {
+    return [
+      { text: "Software Developer", confidence: 0.9 },
+      { text: "Frontend Developer", confidence: 0.8 },
+      { text: "Backend Developer", confidence: 0.8 }
+    ]
+  }
+  
+  if (lowerInput.includes('market') || lowerInput.includes('social') || lowerInput.includes('content')) {
+    return [
+      { text: "Marketing Manager", confidence: 0.9 },
+      { text: "Content Writer", confidence: 0.8 },
+      { text: "Social Media Specialist", confidence: 0.8 }
+    ]
+  }
+  
+  if (lowerInput.includes('customer') || lowerInput.includes('service') || lowerInput.includes('support')) {
+    return [
+      { text: "Customer Service Representative", confidence: 0.9 },
+      { text: "Support Specialist", confidence: 0.8 },
+      { text: "Client Success Manager", confidence: 0.7 }
+    ]
+  }
+  
+  if (lowerInput.includes('admin') || lowerInput.includes('assistant') || lowerInput.includes('virtual')) {
+    return [
+      { text: "Virtual Assistant", confidence: 0.9 },
+      { text: "Administrative Assistant", confidence: 0.8 },
+      { text: "Executive Assistant", confidence: 0.7 }
+    ]
+  }
+  
+  if (lowerInput.includes('account') || lowerInput.includes('finance') || lowerInput.includes('book')) {
+    return [
+      { text: "Accountant", confidence: 0.9 },
+      { text: "Bookkeeper", confidence: 0.8 },
+      { text: "Financial Analyst", confidence: 0.7 }
+    ]
+  }
+  
+  // Default suggestions
+  return [
+    { text: "Software Developer", confidence: 0.8 },
+    { text: "Marketing Manager", confidence: 0.7 },
+    { text: "Customer Service Representative", confidence: 0.6 }
+  ]
 }

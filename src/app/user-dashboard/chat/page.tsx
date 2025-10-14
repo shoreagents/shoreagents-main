@@ -5,7 +5,8 @@ import { UserDashboardSidebar } from '@/components/layout/UserDashboardSidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { useUserAuth } from '@/lib/user-auth-context'
 import { Badge } from '@/components/ui/badge'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Send, Copy, ThumbsUp, ThumbsDown } from 'lucide-react'
@@ -14,49 +15,40 @@ import { AI_CONFIG, getRandomWelcomeMessage } from '@/lib/ai-config'
 import { PricingCalculatorModal } from '@/components/ui/pricing-calculator-modal'
 import { InterviewRequestModal } from '@/components/ui/interview-request-modal'
 import { AnonymousUserModal } from '@/components/ui/anonymous-user-modal'
+import { useChatContext, Message, Conversation } from '@/lib/chat-context'
+import { MayaTextField, MayaNameFields, MayaAnonymousUserForm } from '@/components/maya'
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  relatedContent?: Array<{
-    title: string;
-    content: string;
-    url?: string;
-  }>;
-  suggestedComponents?: string[];
-  userData?: {
-    userType: string;
-    hasQuotes: boolean;
-    leadCaptureStatus: {
-      first_lead_capture: boolean;
-      second_lead_capture: boolean;
-      third_lead_capture: boolean;
-    };
-  };
-}
 
-interface Conversation {
-  id: string;
-  title: string;
-  lastMessage: string;
-  timestamp: Date;
-  messageCount: number;
-}
-
-export default function ChatPage() {
+// Component that uses searchParams
+function ChatPageContent() {
   const { user } = useUserAuth()
-  const [messages, setMessages] = useState<Message[]>([])
+  const searchParams = useSearchParams()
+  const {
+    messages,
+    conversations,
+    currentConversationId,
+    isLoading,
+    addMessage,
+    clearMessages,
+    addConversation,
+    updateConversation,
+    deleteConversation,
+    setCurrentConversationId,
+    setIsLoading,
+    generateAIResponse
+  } = useChatContext()
+  
   const [inputValue, setInputValue] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   
   // Modal states
   const [showPricingModal, setShowPricingModal] = useState(false)
   const [showInterviewModal, setShowInterviewModal] = useState(false)
   const [showAnonymousModal, setShowAnonymousModal] = useState(false)
+  
+  // Contact collection states
+  const [isCollectingContact, setIsCollectingContact] = useState(false)
+  const [contactStep, setContactStep] = useState<'name' | 'email' | 'company' | null>(null)
+  const [contactData, setContactData] = useState<{name?: string; email?: string; company?: string}>({})
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -65,22 +57,23 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  // Wrapper function for setMessages prop compatibility
+  const handleSetMessages = (messageOrMessages: Message | Message[] | ((prev: Message[]) => Message[])) => {
+    if (Array.isArray(messageOrMessages)) {
+      // If it's an array, replace all messages
+      messageOrMessages.forEach(msg => addMessage(msg))
+    } else if (typeof messageOrMessages === 'function') {
+      // If it's a function, we can't easily handle this with addMessage
+      // For now, we'll just ignore it since MayaTextField doesn't use this pattern
+    } else {
+      // If it's a single message, add it
+      addMessage(messageOrMessages)
+    }
+  }
+
   useEffect(() => {
     scrollToBottom()
   }, [messages])
-
-  // Initialize with welcome message if no messages exist
-  useEffect(() => {
-    if (messages.length === 0) {
-      const welcomeMessage: Message = {
-        id: 'welcome',
-        role: 'assistant',
-        content: getRandomWelcomeMessage(),
-        timestamp: new Date(),
-      }
-      setMessages([welcomeMessage])
-    }
-  }, [])
 
   // Add dashboard-page class to body to prevent scrolling
   useEffect(() => {
@@ -90,59 +83,22 @@ export default function ChatPage() {
     }
   }, [])
 
-  // Load conversations from localStorage
+  // Handle loading specific conversation from URL
   useEffect(() => {
-    const savedConversations = localStorage.getItem('chat-conversations')
-    if (savedConversations) {
-      setConversations(JSON.parse(savedConversations))
-    }
-  }, [])
-
-  // Save conversations to localStorage
-  useEffect(() => {
-    if (conversations.length > 0) {
-      localStorage.setItem('chat-conversations', JSON.stringify(conversations))
-    }
-  }, [conversations])
-
-  const generateAIResponse = async (message: string, conversationHistory: Message[]) => {
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          conversationHistory: conversationHistory.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          })),
-          userId: user?.user_id || ''
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`)
+    const conversationId = searchParams.get('conversation')
+    if (conversationId && conversationId !== currentConversationId) {
+      // Find the conversation in the list
+      const conversation = conversations.find(c => c.id === conversationId)
+      if (conversation) {
+        // Set the current conversation
+        setCurrentConversationId(conversationId)
+        // In a real app, you would load the messages for this conversation
+        // For now, we'll just set the conversation ID and let the context handle it
+        console.log('Loading conversation:', conversation.title)
       }
-
-      const data = await response.json()
-      
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      return {
-        response: data.content || 'I apologize, but I encountered an error processing your request.',
-        relatedContent: data.components || [],
-        suggestedComponents: data.suggestedComponents || [],
-        userData: data.userData || null
-      }
-    } catch (error) {
-      console.error('API call error:', error)
-      throw error
     }
-  }
+  }, [searchParams, conversations, currentConversationId, setCurrentConversationId])
+
 
   const handleModalTrigger = (modalType: string) => {
     switch (modalType) {
@@ -171,12 +127,12 @@ export default function ChatPage() {
       timestamp: new Date(),
     }
 
-    setMessages(prev => [...prev, userMessage])
+    addMessage(userMessage)
     setInputValue('')
     setIsLoading(true)
 
     try {
-      const { response, relatedContent, suggestedComponents, userData } = await generateAIResponse(inputValue, messages)
+      const { response, relatedContent, suggestedComponents, userData } = await generateAIResponse(inputValue, messages, user?.user_id)
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -188,7 +144,21 @@ export default function ChatPage() {
         userData: userData
       }
 
-      setMessages(prev => [...prev, assistantMessage])
+      addMessage(assistantMessage)
+      
+      // Check if Maya is asking for contact information
+      const responseLower = response.toLowerCase();
+      const isAskingForContact = responseLower.includes('before we continue our conversation, it\'s okay to have your name?') ||
+                                (responseLower.includes('name') && responseLower.includes('email')) ||
+                                (responseLower.includes('contact') && (responseLower.includes('get') || responseLower.includes('have'))) ||
+                                (responseLower.includes('personalized') && responseLower.includes('assistance')) ||
+                                (responseLower.includes('best service') && responseLower.includes('email'));
+      
+      if (isAskingForContact && !isCollectingContact) {
+        console.log('Maya is asking for contact info, triggering form');
+        setIsCollectingContact(true);
+        setContactStep('name');
+      }
       
       // Update or create conversation
       const conversationTitle = inputValue.length > 50 ? inputValue.substring(0, 50) + '...' : inputValue
@@ -202,14 +172,12 @@ export default function ChatPage() {
         messageCount: messages.length + 2
       }
 
-      setConversations(prev => {
-        const existing = prev.find(c => c.id === conversationId)
-        if (existing) {
-          return prev.map(c => c.id === conversationId ? newConversation : c)
-        } else {
-          return [newConversation, ...prev]
-        }
-      })
+      const existing = conversations.find(c => c.id === conversationId)
+      if (existing) {
+        updateConversation(conversationId, newConversation)
+      } else {
+        addConversation(newConversation)
+      }
       
       setCurrentConversationId(conversationId)
     } catch (error) {
@@ -220,14 +188,14 @@ export default function ChatPage() {
         content: AI_CONFIG.errorMessages.generic,
         timestamp: new Date(),
       }
-      setMessages(prev => [...prev, errorMessage])
+      addMessage(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
 
   const startNewConversation = () => {
-    setMessages([])
+    clearMessages()
     setCurrentConversationId(null)
   }
 
@@ -235,14 +203,6 @@ export default function ChatPage() {
     // In a real app, you'd load the conversation from your backend
     // For now, we'll just set the current conversation ID
     setCurrentConversationId(conversationId)
-  }
-
-  const deleteConversation = (conversationId: string) => {
-    setConversations(prev => prev.filter(c => c.id !== conversationId))
-    if (currentConversationId === conversationId) {
-      setMessages([])
-      setCurrentConversationId(null)
-    }
   }
 
   const renderMessage = (message: Message) => {
@@ -369,19 +329,47 @@ export default function ChatPage() {
           {/* Right Sidebar Panel - Fixed position, won't move when scrolled */}
           <div className="fixed top-0 right-0 z-10 w-80 h-full bg-gray-50 border-l pt-14 pb-32">
             <div className="p-4 h-full flex flex-col justify-center space-y-4">
-              {/* Card 1 */}
+              {/* Conversation History */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm h-[45%] w-full">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Component 1</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Recent Conversations</h3>
                 <div className="text-sm text-gray-600">
-                  This is where we'll display the first component.
+                  {conversations.length > 0 ? (
+                    <div className="space-y-2">
+                      {conversations.slice(0, 3).map((conversation) => (
+                        <div key={conversation.id} className="p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                          <div className="text-xs font-medium text-gray-800 truncate">{conversation.title}</div>
+                          <div className="text-xs text-gray-500">{conversation.messageCount} messages</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500">No conversations yet</div>
+                  )}
                 </div>
               </div>
 
-              {/* Card 2 */}
+              {/* Quick Actions */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm h-[45%] w-full">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Component 2</h3>
-                <div className="text-sm text-gray-600">
-                  This is where we'll display the second component.
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleModalTrigger('pricing_calculator_modal')}
+                    className="w-full text-left p-2 text-xs bg-lime-50 text-lime-700 rounded-lg hover:bg-lime-100 transition-colors"
+                  >
+                    💰 Get Pricing Quote
+                  </button>
+                  <button
+                    onClick={() => handleModalTrigger('interview_request_modal')}
+                    className="w-full text-left p-2 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    📅 Schedule Interview
+                  </button>
+                  <button
+                    onClick={() => handleModalTrigger('anonymous_user_modal')}
+                    className="w-full text-left p-2 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                  >
+                    📝 Quick Contact
+                  </button>
                 </div>
               </div>
             </div>
@@ -393,6 +381,29 @@ export default function ChatPage() {
               <AnimatePresence>
                 {messages.map(renderMessage)}
               </AnimatePresence>
+              
+              {/* Contact Collection Form */}
+              {isCollectingContact && contactStep && (
+                <div className="mt-4">
+                  <MayaAnonymousUserForm
+                    currentStep={contactStep}
+                    onStepChange={(step) => {
+                      if (step === null) {
+                        setIsCollectingContact(false);
+                        setContactStep(null);
+                      } else {
+                        setContactStep(step as 'name' | 'email' | 'company');
+                      }
+                    }}
+                    onFormDataChange={(data) => {
+                      setContactData(data);
+                    }}
+                    setMessages={handleSetMessages}
+                    generateMessageId={() => Date.now().toString()}
+                    formData={contactData}
+                  />
+                </div>
+              )}
             {isLoading && (
               <div className="flex gap-4 p-6 bg-white">
                 <div className="w-8 h-8 bg-gradient-to-r from-lime-500 to-lime-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
@@ -439,5 +450,21 @@ export default function ChatPage() {
         />
       </SidebarProvider>
     </UserGuard>
+  )
+}
+
+// Main export with Suspense wrapper
+export default function ChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-lime-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading chat...</p>
+        </div>
+      </div>
+    }>
+      <ChatPageContent />
+    </Suspense>
   )
 }
